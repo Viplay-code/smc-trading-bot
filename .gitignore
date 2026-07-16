@@ -1,0 +1,3 @@
+# Fase A (market_data): datasets crudos regenerables via
+# scripts/download_market_data.py — no se versionan en git.
+data/raw/
