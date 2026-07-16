@@ -8,8 +8,7 @@ dc_v1.prepare_raw (ver CLAUDE.md / TARGET_ARCHITECTURE.md). Un CSV por
 (symbol, interval, year), con un manifest JSON sidecar que documenta qué
 ventana se pidió y qué se obtuvo.
 
-Convención de ruta (data/raw/, excluido de git — ver .gitignore, próximo
-commit):
+Convención de ruta (data/raw/, excluido de git — ver .gitignore):
   data/raw/{symbol}_{interval}_{year}.csv
   data/raw/{symbol}_{interval}_{year}.manifest.json
 """

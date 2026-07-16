@@ -9,7 +9,7 @@ years_in_range()/year_window().
 
 Convención de archivo (mantenida, no se migra a archivo continuo por ahora):
 un CSV crudo por (activo, intervalo, año), con buffer de warmup embebido antes
-del 1-ene de ese año — ver storage.py (próximo commit).
+del 1-ene de ese año — ver storage.py.
 """
 from __future__ import annotations
 
