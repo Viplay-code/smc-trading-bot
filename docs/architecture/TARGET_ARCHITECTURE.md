@@ -1,7 +1,7 @@
 # Arquitectura Objetivo — SMC Trading Bot
 
-**Estado:** Referencia oficial de arquitectura (v3)
-**Última revisión:** 2026-07-16
+**Estado:** Referencia oficial de arquitectura (v4)
+**Última revisión:** 2026-07-17
 
 Este documento describe la arquitectura **objetivo** del proyecto — cómo debería
 verse el sistema, no cómo está hoy. El estado actual y el roadmap de migración
@@ -83,7 +83,11 @@ entre ambos se documentan por separado dentro de este mismo archivo (§3 y §6).
   **distintos entre sí** (`backtest_trades.csv`, `t1_trades_completos.csv`,
   `t1_trades_multiasset.csv`, `v3_barxbar_trades.csv`) — evidencia concreta de
   que sin un esquema canónico, cada experimento reinventa sus columnas.
-- `market_data` no existe; `versions.py` depende de él y no es importable hoy.
+- `market_data` existe y está versionado (Fase A cerrada): descarga y
+  almacenamiento de OHLCV crudo vía `scripts/download_market_data.py`.
+  `versions.py` importa `FETCHER_VERSION` desde su punto de entrada público y
+  es importable hoy. Pendiente (Fase B): conectar `dc_v1` a los datos reales
+  que produce, más allá de los datos sintéticos usados hasta ahora.
 
 ## 4. Arquitectura objetivo
 
@@ -140,8 +144,8 @@ bot                              (mismo research.layers + circuit breaker +
 
 | Pieza | Existe hoy | Objetivo |
 |---|---|---|
-| `market_data` | No | Sí — bloqueante para todo lo que use datos reales |
-| `dc_v1` | Sí (con datos sintéticos) | Conectado a datos reales vía `market_data` |
+| `market_data` | Sí (Fase A cerrada) | — (cerrado) |
+| `dc_v1` | Sí (con datos sintéticos) | Conectado a datos reales vía `market_data` (Fase B) |
 | Contrato de señal (columnas requeridas por capa) | No (implícito, no declarado) | Declarado en `research/layers.py` |
 | Registro de capas 1/2/3 intercambiables | No — dos implementaciones fijas y **distintas** entre sí | Un registro único, consumido por `research` y `bot` |
 | Simulador de gestión genérico | Ya existe dentro de `backtest.py`, acoplado a una sola señal | Extraído a `research/simulate.py` |
@@ -236,7 +240,8 @@ Fase C3 (registro de capas + contrato de señal)     ─────┘         
 |---|---|
 | v1 | Primera propuesta de arquitectura objetivo (6 fases, sin distinguir qué ya existía como precedente de estilo en el código). |
 | v2 | Reordenamiento de fases para permitir paralelismo real (C en paralelo con A/B); corrección de componentes sobredimensionados (el simulador y el motor de backtest no se construyen desde cero, se extraen). |
-| v3 (este documento) | Reducción de 9 a 4 componentes nombrados; TA-Lib movido a "Decisiones Pendientes" (§10) por requerir validación técnica antes de ratificarse; se agregan principios de gobernanza (§0) y reglas de dependencias (§2); se documenta el hallazgo de los 4 esquemas de trade record ya divergentes como justificación del esquema canónico en `research/runner.py`. |
+| v3 | Reducción de 9 a 4 componentes nombrados; TA-Lib movido a "Decisiones Pendientes" (§10) por requerir validación técnica antes de ratificarse; se agregan principios de gobernanza (§0) y reglas de dependencias (§2); se documenta el hallazgo de los 4 esquemas de trade record ya divergentes como justificación del esquema canónico en `research/runner.py`. |
+| v4 (este documento) | Fase A dada por cerrada: §3 y §5 actualizados (`market_data` existe y está versionado, `versions.py` es importable). ADR-001 (§10) ratificado — TA-Lib queda fijado como dependencia de runtime para EMA/ATR, consistente con `DC-v1_Precisiones_Implementacion.md` P-7. |
 
 ---
 
@@ -248,26 +253,18 @@ resto del roadmap mientras se resuelven.
 
 ### ADR-001 — Implementación de indicadores canónicos (EMA/ATR) en `dc_v1`
 
-- **Estado:** Pendiente de decisión. No bloquea las Fases A–F del roadmap
-  (§6), salvo que se cierre antes de dar por completada la Fase B.
+- **Estado:** Ratificado. `DC-v1_Precisiones_Implementacion.md` (P-7) registra
+  la decisión: TA-Lib es la dependencia de runtime definitiva para EMA/ATR,
+  coherente con `dc_v1/indicators.py` ("Gobernanza P-7 (congelado)").
 - **Contexto:** `dc_v1/indicators.py` pinea EMA y ATR a TA-Lib, una librería
   en C que requiere instalación a nivel de sistema (no solo `pip install`).
   Se verificó que TA-Lib **no está instalado** en al menos un entorno de
-  desarrollo de este proyecto (`ModuleNotFoundError` al importar). El propio
-  `DC-v1_Precisiones_Implementacion.md` marca esta decisión como **P-7,
-  "pendiente de ratificación"** por el Research Director — no es una
-  decisión de gobernanza ya cerrada.
-- **Opciones a evaluar:**
-  1. Mantener TA-Lib como dependencia de runtime (estado actual de P-7).
-  2. Implementación propia (pandas/numpy puro) de EMA con semilla SMA y ATR
-     con suavizado de Wilder, verificada una única vez contra TA-Lib
-     (`assert_equivalence_pandas_ta`, ya existente en el módulo) y luego
-     vendorizada, sin dependencia de runtime.
-- **Qué falta para decidir:** confirmar equivalencia numérica en casos borde
-  (no solo el caso general que ya cubre `assert_equivalence_pandas_ta`) y que
-  el Research Director ratifique la opción elegida, tal como el propio
-  documento de precisiones exige.
-- **Próximo paso:** llevar esta comparación al Research Director antes de
-  cerrar la Fase B del roadmap.
+  desarrollo de este proyecto (`ModuleNotFoundError` al importar) — esto no
+  cambia la decisión, pero es un paso de preparación de entorno pendiente
+  (Fase B, tarea de instalación) en cualquier máquina donde falte.
+- **Decisión:** TA-Lib como dependencia de runtime (opción 1 de las
+  evaluadas). La alternativa vendorizada (pandas/numpy puro, verificada con
+  `assert_equivalence_pandas_ta`) queda descartada como implementación de
+  runtime salvo que una revisión futura reabra esta ADR explícitamente.
 
 ---

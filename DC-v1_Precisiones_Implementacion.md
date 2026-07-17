@@ -7,7 +7,7 @@ no perdona. Ninguna altera la arquitectura; fijan convenciones y añaden asserts
 
 Aprobadas: P-1, P-2, P-3, P-4, P-5, P-7, P-8.
 P-6 resuelto por decisión del Research Director (conservar dominio ternario).
-P-7: pin recomendado, **pendiente de ratificación** de librería/parámetros.
+P-7 ratificado por el Research Director: TA-Lib fijado como librería de indicadores.
 
 ---
 
@@ -87,18 +87,20 @@ def derive_htf_bias(htf_close_prev: pd.Series, htf_ema200_prev: pd.Series) -> pd
 - Derivar un bias alternativo desde columnas `_prev` sigue requiriendo decisión de
   gobernanza propia (DC-v1, regla 3).
 
-## P-7 — Pin de indicadores (PENDIENTE DE RATIFICACIÓN)
+## P-7 — Pin de indicadores (RATIFICADO)
 Registrar en `pipeline_version` no *previene* la divergencia; hay que nombrar librería +
 parámetros para que el esquema 3×3 sea determinista y no dependa de disciplina manual.
 
-Pin **recomendado**:
+Pin **ratificado**:
 - **EMA** (ema50, htf_ema200): recursiva `adjust=False`, semilla = SMA de las primeras N.
   Convención TA-Lib / TradingView (coherente con el diseño de T4).
 - **ATR14**: suavizado de Wilder (RMA) sobre True Range, período 14.
-- **Librería**: TA-Lib para ambos. Fallback pandas-ta con parámetros idénticos **solo si**
-  se verifica igualdad numérica.
+- **Librería**: TA-Lib para ambos (`dc_v1/indicators.py`). Fallback pandas-ta con
+  parámetros idénticos solo sería admisible si se verifica igualdad numérica
+  (`assert_equivalence_pandas_ta`); no es la implementación de runtime.
 
-> Estado: a la espera de "confirmo TA-Lib / uso X" del Research Director.
+> Estado: ratificado por el Research Director. TA-Lib es la dependencia de runtime
+> definitiva para EMA/ATR — ver `dc_v1/indicators.py`.
 
 ## P-8 — `session`
 - Ventanas por **horas UTC fijas** (declaradas; sin DST, por reproducibilidad).

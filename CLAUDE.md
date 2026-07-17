@@ -44,8 +44,13 @@ pip install -r requirements.txt        # pandas, numpy, python-binance
 ```
 
 `dc_v1/indicators.py` imports `talib` (the TA-Lib Python binding), which is **not** in
-`requirements.txt` and is not installed in this environment. Anything importing `dc_v1`
-transitively requires it — install the TA-Lib C library first, then `pip install TA-Lib`.
+`requirements.txt` (deliberately — it needs a system-level C library, not just `pip
+install`). Anything importing `dc_v1` transitively requires it. ADR-001/P-7 ratified TA-Lib
+as the canonical indicator library (`DC-v1_Precisiones_Implementacion.md` P-7,
+`docs/architecture/TARGET_ARCHITECTURE.md` §10) — install it once per environment:
+the TA-Lib C library (a prebuilt `.deb` for amd64 is published at
+`github.com/TA-Lib/ta-lib/releases`; other platforms need to build from the source
+tarball in that same release), then `pip install TA-Lib`.
 The inspection scripts in `scripts/` were deliberately written to use `ast` parsing
 instead of importing `dc_v1`, specifically to work without TA-Lib available.
 
