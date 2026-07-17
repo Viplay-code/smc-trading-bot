@@ -68,7 +68,16 @@ python bot.py
 # Inspect the DC-v1 contract without importing dc_v1 (no TA-Lib needed)
 python scripts/inspect_dc_v1_contract.py
 
-# Inspect one real dataset end-to-end (requires TA-Lib + a raw CSV under data/raw/)
+# Download real OHLCV for the 3 assets (Phase A, no API key needed — public klines)
+python scripts/download_market_data.py
+
+# Build + validate all 9 real datasets (3 assets × 2022/2023/2024) from data/raw/,
+# and confirm they share pipeline_version/dataset_version — the Phase B gate-runner
+# (requires TA-Lib and data/raw/ populated by download_market_data.py first)
+python scripts/build_dc_v1_datasets.py
+
+# Inspect ONE real dataset end-to-end in detail (requires TA-Lib + a raw CSV under
+# data/raw/) — manual debug companion to build_dc_v1_datasets.py, not a replacement
 python scripts/inspect_single_dataset.py
 ```
 
@@ -145,6 +154,11 @@ same data (guards against the two ever drifting apart).
   pipeline_version across all 9 datasets" gate holds by construction. It imports
   `FETCHER_VERSION` from `market_data`'s public entry point (`market_data/__init__.py`),
   not from the `market_data.config` submodule directly.
+- `scripts/build_dc_v1_datasets.py` — the gate-runner (Phase B): builds + validates all 9
+  real datasets (3 assets × 2022/2023/2024) from `data/raw/` and verifies in practice
+  (not just by construction) that all 9 share `pipeline_version`/`dataset_version`. This is
+  what "`dc_v1` connected to real data" (`docs/architecture/TARGET_ARCHITECTURE.md` §6.1
+  Phase B) means concretely.
 
 ## Validation methodology (see `FRAMEWORK.md`)
 

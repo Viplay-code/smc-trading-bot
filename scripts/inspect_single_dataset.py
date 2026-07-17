@@ -1,10 +1,18 @@
-##!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """inspect_single_dataset.py — Inspección manual de UN dataset real bajo DC-v1.
 
 Corre build_dc_v1() + validate_dc_v1() sobre un único dataset real
-(BTCUSDT 1H, in-sample 2022) e imprime un reporte de consola para verificar A
-OJO antes de automatizar el gate-runner de los 9.
+(BTCUSDT 1H, in-sample 2022 por defecto — editar la CONFIG de abajo para otro
+caso) e imprime un reporte de consola detallado, para debug puntual de un
+(activo, año) específico.
+
+Relación con scripts/build_dc_v1_datasets.py (Fase B): ese script es el
+gate-runner que automatiza esta misma verificación sobre los 9 (activo, año)
+y decide el criterio de éxito de la Fase B. Este script NO fue reemplazado
+por aquel — sigue siendo la herramienta para bajar a un solo caso e
+inspeccionar contenido en detalle (gaps, distribución de htf_bias/sesiones)
+cuando el gate-runner reporta un FAIL y hace falta ver el detalle a ojo.
 
 Flujo (post-integración D-004 + I-1):
   cargar CSV crudo (data/raw, con buffer) -> build_dc_v1 (4 args) ->
