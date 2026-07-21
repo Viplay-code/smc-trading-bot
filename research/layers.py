@@ -1,9 +1,10 @@
 """
 research/layers.py — Contrato de señal y registro de capas 1/2/3 (Fase C3).
 
-Fija la interfaz que deben cumplir los candidatos de FRAMEWORK.md antes de portar
-ninguno (Tarea 1 del plan de unificación del motor de señales, 2026-07-21). No
-contiene candidatos todavía — eso es Tareas 2/3/4.
+Fija la interfaz que deben cumplir los candidatos de FRAMEWORK.md (Tarea 1 del
+plan de unificación del motor de señales, 2026-07-21). Tarea 2 porta el primer
+candidato (Capa 1 — bias); Capa 2 y Capa 3 siguen sin candidatos hasta las
+Tareas 3/4.
 
 Cada capa es una función VECTORIZADA sobre un DataFrame histórico completo, nunca
 "dame el valor actual": el bot en vivo toma el último valor/evento del mismo
@@ -33,6 +34,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal, Mapping
 
+import numpy as np
 import pandas as pd
 
 
@@ -78,9 +80,37 @@ EntryFn = Callable[[pd.DataFrame, TriggerEvent], EntrySignal]
 
 
 # --------------------------------------------------------------------------- #
-# Registros: nombre de candidato (FRAMEWORK.md) -> función. Vacíos hasta que  #
-# las Tareas 2/3/4 porten los candidatos existentes de bot.py/backtest.py.    #
+# Capa 1 — candidato A: EMA200 4H con zona neutral ±1% (FRAMEWORK.md, baseline  #
+# actual). Portado de bot.py::compute_ema + bot.py::htf_bias, vectorizado.     #
 # --------------------------------------------------------------------------- #
-BIAS_LAYERS: dict[str, BiasFn] = {}
+def bias_A_ema200_neutral(
+    df4h: pd.DataFrame, ema_period: int = 200, neutral_pct: float = 0.01,
+) -> pd.Series:
+    """Bias HTF: signo de `(close - EMA200) / EMA200` contra una zona neutral
+    ±1%. Réplica EXACTA de la clasificación de `backtest.py::build_features`
+    (`np.where` anidado), incluido su manejo de warmup: una comparación con
+    NaN no cumple ninguna rama y cae en 0 (mismo comportamiento que hoy mapea
+    a "neutral"). Deliberado: esta tarea porta el comportamiento tal cual
+    existe, no lo corrige — ver hallazgo #2 del backlog post-Fase-B para la
+    variante NaN-segura (`np.sign`, como en `dc_v1.derive_htf_bias`), que
+    queda para una tarea de mejora futura, no para este port.
+
+    Equivalencia validada durante la migración (Tarea 2, 2026-07-21): 0
+    diferencias contra `backtest.py::build_features` sobre una serie 4H
+    sintética de 260 filas, y último valor idéntico a `bot.py::htf_bias`.
+    """
+    ema = df4h["close"].ewm(span=ema_period, adjust=False).mean()
+    dist = (df4h["close"] - ema) / ema
+    bias = np.where(dist > neutral_pct, 1, np.where(dist < -neutral_pct, -1, 0))
+    return pd.Series(bias, index=df4h.index, name="bias").astype("int8")
+
+
+# --------------------------------------------------------------------------- #
+# Registros: nombre de candidato (FRAMEWORK.md) -> función. Capa 2 y Capa 3   #
+# siguen vacíos hasta las Tareas 3/4.                                         #
+# --------------------------------------------------------------------------- #
+BIAS_LAYERS: dict[str, BiasFn] = {
+    "A_ema200_neutral": bias_A_ema200_neutral,
+}
 TRIGGER_LAYERS: dict[str, TriggerFn] = {}
 ENTRY_LAYERS: dict[str, EntryFn] = {}
