@@ -237,6 +237,108 @@ def entry_A_pullback_50(
 
 
 # --------------------------------------------------------------------------- #
+# Capa 2 — candidato T1: cruce EMA9/EMA21 con filtro de bias 4H (FRAMEWORK.md, #
+# nuevo candidato explícito). Portado de backtest.py::find_entries            #
+# ([backtest.py:87-115]).                                                     #
+#                                                                              #
+# El filtro de bias/sesión de find_entries (`bias == "neutral"`,              #
+# `not in_session`, y "solo cross_up si bias es long / solo cross_down si     #
+# bias es short") NO se replica acá — es exactamente el mismo principio de    #
+# composición ya aplicado a `trigger_A_sweep_bos`: Capa 2 detecta el patrón   #
+# de velas (el cruce, cuya dirección surge solo de la acción del precio,      #
+# igual que el tipo de sweep) sin mirar bias ni sesión; alinear esa           #
+# dirección contra el bias y filtrar sesión es responsabilidad de quien       #
+# orqueste. El chequeo `pd.isna(row["ema200_4h"])` de find_entries tampoco se #
+# replica: es redundante con `bias == "neutral"` (con NaN, `bias_A_ema200_    #
+# neutral` ya devuelve 0 — ver su docstring — así que cualquier orquestador   #
+# que filtre bias neutral cubre ese warmup sin que Capa 2 necesite conocer    #
+# el 4H en absoluto).                                                         #
+#                                                                              #
+# El filtro de riesgo degenerado (`risk_pts < 1e-9: continue`) SÍ se replica  #
+# exacto (decisión tomada explícitamente, no asumida): calcula SL/ATR solo    #
+# para decidir si el evento existe, sin exponerlos en `meta` ni en el         #
+# contrato público — el SL sigue siendo "Gestión" fija por FRAMEWORK.md, no   #
+# una variante de Capa 2/3, igual que ya declara `entry_A_pullback_50`.       #
+# Preservar este gate exacto es lo que garantiza que el universo de eventos   #
+# generado acá, tras aplicarle el mismo filtro de bias/sesión que aplicaría   #
+# un orquestador, coincide 1:1 con lo que `find_entries` produce hoy — no es  #
+# opcional para la paridad.                                                   #
+# --------------------------------------------------------------------------- #
+def trigger_T1_ema_cross(
+    df1h: pd.DataFrame,
+    ema_fast: int = 9,
+    ema_slow: int = 21,
+    atr_period: int = 14,
+    atr_mult: float = 1.5,
+    warmup: int = 25,
+) -> list[TriggerEvent]:
+    """Capa 2 — candidato T1: cruce de EMA9 sobre/bajo EMA21. `direction` es
+    "long" en cruce alcista, "short" en cruce bajista — determinado solo por
+    el cruce, no por bias (ver nota de composición arriba). `meta` queda
+    vacío: a diferencia de Sweep+BOS, Capa 3 de T1 (`entry_C_market_close`)
+    no necesita ningún dato del evento más allá de `entry_idx`.
+
+    Rango de iteración (`range(warmup, n-2)`, `warmup=25`) y fórmulas de
+    EMA/ATR replicadas literalmente de `backtest.py::build_features`
+    (`ewm(span=..., adjust=False)` para EMA, `ewm(alpha=1/atr_period,
+    adjust=False)` sobre True Range para ATR) — no se reutiliza el ATR de
+    `bot.py` porque su fórmula no está confirmada idéntica (ver hallazgo #3
+    del backlog post-Fase-B); usar la de `bot.py` acá sería una fuente
+    silenciosamente distinta a la que `find_entries` usa hoy.
+    """
+    close, high, low = df1h["close"], df1h["high"], df1h["low"]
+    ema_f = close.ewm(span=ema_fast, adjust=False).mean()
+    ema_s = close.ewm(span=ema_slow, adjust=False).mean()
+
+    prev_close = close.shift(1)
+    tr = pd.concat(
+        [high - low, (high - prev_close).abs(), (low - prev_close).abs()], axis=1
+    ).max(axis=1)
+    atr = tr.ewm(alpha=1 / atr_period, adjust=False).mean()
+
+    events: list[TriggerEvent] = []
+    n = len(df1h)
+    for i in range(warmup, n - 2):
+        if pd.isna(ema_f.iloc[i]):
+            continue
+
+        cross_up = ema_f.iloc[i - 1] <= ema_s.iloc[i - 1] and ema_f.iloc[i] > ema_s.iloc[i]
+        cross_down = ema_f.iloc[i - 1] >= ema_s.iloc[i - 1] and ema_f.iloc[i] < ema_s.iloc[i]
+        if not cross_up and not cross_down:
+            continue
+        direction: Literal["long", "short"] = "long" if cross_up else "short"
+
+        entry = close.iloc[i]
+        atr_val = atr.iloc[i]
+        if direction == "long":
+            sl = min(low.iloc[i], entry - atr_mult * atr_val)
+        else:
+            sl = max(high.iloc[i], entry + atr_mult * atr_val)
+        if abs(entry - sl) < 1e-9:
+            continue
+
+        events.append(TriggerEvent(entry_idx=i, direction=direction, meta={}))
+    return events
+
+
+# --------------------------------------------------------------------------- #
+# Capa 3 — candidato C: cierre de la vela de señal, entrada a mercado         #
+# (FRAMEWORK.md, candidato declarado pero no implementado hasta ahora).       #
+# Generalizado de "cierre de vela BOS" a "cierre de la vela de señal" porque  #
+# el mecanismo (usar `event.entry_idx` como la vela de entrada a mercado) no  #
+# depende de qué candidato de Capa 2 produjo el evento — hoy lo usa T1        #
+# (`backtest.py::find_entries`, `entry = row["close"]`), pero no es          #
+# exclusivo de T1 (decisión tomada explícitamente al portar T1, no asumida). #
+# --------------------------------------------------------------------------- #
+def entry_C_market_close(df1h: pd.DataFrame, event: TriggerEvent) -> EntrySignal:
+    """Precio de entrada = cierre de la vela en `event.entry_idx` (orden a
+    mercado). No usa `event.meta` — a diferencia de `entry_A_pullback_50`,
+    el precio no depende de niveles de sweep/BOS, solo de la posición del
+    evento en la serie."""
+    return EntrySignal(price=float(df1h["close"].iloc[event.entry_idx]))
+
+
+# --------------------------------------------------------------------------- #
 # Registros: nombre de candidato (FRAMEWORK.md) -> función.                  #
 # --------------------------------------------------------------------------- #
 BIAS_LAYERS: dict[str, BiasFn] = {
@@ -244,7 +346,9 @@ BIAS_LAYERS: dict[str, BiasFn] = {
 }
 TRIGGER_LAYERS: dict[str, TriggerFn] = {
     "A_sweep_bos": trigger_A_sweep_bos,
+    "T1_ema_cross": trigger_T1_ema_cross,
 }
 ENTRY_LAYERS: dict[str, EntryFn] = {
     "A_pullback_50": entry_A_pullback_50,
+    "C_market_close": entry_C_market_close,
 }

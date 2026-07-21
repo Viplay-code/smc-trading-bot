@@ -34,6 +34,8 @@ from research.layers import (
     bias_A_ema200_neutral,
     trigger_A_sweep_bos,
     entry_A_pullback_50,
+    trigger_T1_ema_cross,
+    entry_C_market_close,
 )
 
 Path("smc_bot.log").unlink(missing_ok=True)
@@ -84,8 +86,10 @@ def test_registries_populated():
         BIAS_LAYERS.get("A_ema200_neutral") is bias_A_ema200_neutral
         and TRIGGER_LAYERS.get("A_sweep_bos") is trigger_A_sweep_bos
         and ENTRY_LAYERS.get("A_pullback_50") is entry_A_pullback_50
+        and TRIGGER_LAYERS.get("T1_ema_cross") is trigger_T1_ema_cross
+        and ENTRY_LAYERS.get("C_market_close") is entry_C_market_close
     )
-    return _p("los 3 candidatos baseline están registrados en BIAS/TRIGGER/ENTRY_LAYERS", ok)
+    return _p("los candidatos baseline + T1 están registrados en BIAS/TRIGGER/ENTRY_LAYERS", ok)
 
 
 def test_contract_return_types():
@@ -216,6 +220,42 @@ def test_entry_matches_shared_implementation():
     return _p(f"entry_A_pullback_50 == punto medio sweep/bos + dirección->clave correcta ({len(events)} eventos)", ok)
 
 
+# --------------------------------------------------------------------------- #
+# Paridad T1 — trigger_T1_ema_cross + entry_C_market_close vs                 #
+# backtest.py::find_entries real, reaplicando el mismo filtro de bias/sesión  #
+# que find_entries hace inline (trigger_T1_ema_cross deliberadamente no lo    #
+# aplica — ver nota de composición en research/layers.py). Sin reaplicar ese  #
+# filtro, comparar directamente no tendría sentido: find_entries ya viene     #
+# filtrado, trigger_T1_ema_cross no.                                         #
+# --------------------------------------------------------------------------- #
+def test_t1_matches_legacy():
+    df1h = make_synthetic_1h()
+    df4h = make_synthetic_4h()
+    cfg = backtest.Config()
+
+    feats = backtest.build_features(df1h, df4h, cfg)
+    legacy = [
+        (e["entry_idx"], e["direction"], e["entry"])
+        for e in backtest.find_entries(feats, cfg)
+    ]
+
+    raw_events = trigger_T1_ema_cross(df1h)
+    new = []
+    for ev in raw_events:
+        in_session = bool(feats["in_session"].iloc[ev.entry_idx])
+        bias = feats["bias"].iloc[ev.entry_idx]
+        if in_session and bias == ev.direction:
+            price = entry_C_market_close(df1h, ev).price
+            new.append((ev.entry_idx, ev.direction, price))
+
+    ok = legacy == new and len(legacy) > 0
+    return _p(
+        f"trigger_T1_ema_cross + entry_C_market_close (tras filtrar bias/sesión) "
+        f"== find_entries real, evento a evento ({len(legacy)} eventos)",
+        ok,
+    )
+
+
 ALL_TESTS = [
     test_registries_populated,
     test_contract_return_types,
@@ -224,6 +264,7 @@ ALL_TESTS = [
     test_bias_matches_legacy,
     test_trigger_matches_legacy,
     test_entry_matches_shared_implementation,
+    test_t1_matches_legacy,
 ]
 
 

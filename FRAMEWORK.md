@@ -70,12 +70,19 @@ Candidatos a evaluar:
 - B: Liquidity Sweep + BOS (5 velas)
 - C: Solo BOS sin sweep previo
 - D: Ruptura y cierre fuera de rango de 10 velas
+- T1: Cruce EMA9/EMA21 — implementado en `backtest.py` (validación V3
+  barra-a-barra), portado a `research.layers::trigger_T1_ema_cross`
+  (2026-07-21). Dirección del evento = dirección del cruce (alcista/bajista),
+  sin filtrar por bias — igual que A, ese filtro lo aplica quien orqueste.
 
 ### Capa 3: Entrada (precio exacto)
 Candidatos a evaluar:
 - A: Orden límite al 50% del rango Sweep→BOS  ← baseline actual
 - B: Zona 40%-60% (entrada al tocar la zona)
-- C: Cierre de vela BOS (entrada a mercado)
+- C: Cierre de la vela de señal (entrada a mercado) — generalizado de
+  "cierre de vela BOS": no depende de qué candidato de Capa 2 produjo el
+  evento. Implementado en `research.layers::entry_C_market_close`
+  (2026-07-21); es el precio de entrada que usa T1 hoy en `backtest.py`.
 - D: Apertura de vela siguiente al BOS
 
 ### Gestión (fija para todas las variantes)
