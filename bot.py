@@ -17,6 +17,8 @@ import numpy as np
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
 
+import research
+
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -250,7 +252,12 @@ def run_bot(client: Client, cfg: Config):
             atr  = compute_atr(df1h, cfg.atr_period)
 
             # ── 2. Filtro HTF ───────────────────────────────────────────────
-            bias = htf_bias(df4h, cfg)
+            # Delega a research.layers (Tarea 6) — misma fórmula que htf_bias()
+            # (que queda definida más abajo, ya sin uso, ver nota de la Tarea 6
+            # en CLAUDE.md/plan). Se mapea int{-1,0,1} -> string porque el resto
+            # del loop compara contra "long"/"short"/"neutral".
+            bias_int = int(research.BIAS_LAYERS["A_ema200_neutral"](df4h).iloc[-1])
+            bias = {1: "long", -1: "short", 0: "neutral"}[bias_int]
             if bias == "neutral":
                 log.info(f"HTF neutral — sin operación. EMA zona ±1%")
                 time.sleep(60)
@@ -315,40 +322,47 @@ def run_bot(client: Client, cfg: Config):
                 time.sleep(60)
                 continue
 
-            sweep = detect_liquidity_sweep(df1h, cfg)
-            if not sweep:
-                time.sleep(60)
-                continue
-
-            if sweep["type"] != bias:
-                log.info(f"Sweep {sweep['type']} pero bias es {bias} — ignorado")
-                time.sleep(60)
-                continue
-
+            # Delega a research.layers (Tarea 6). trigger_A_sweep_bos tiene
+            # visión retrospectiva completa sobre df1h, así que solo se acepta
+            # un evento cuyo SWEEP ocurrió en la vela más reciente
+            # (sweep_idx == len(df1h)-1) — replica la semántica original de
+            # "sweep detectado en la última vela cerrada".
+            #
+            # NOTA (hallazgo de backlog, NO corregido acá — decisión explícita
+            # de la Tarea 6): para un sweep en la última vela, la ventana de
+            # búsqueda de BOS de detect_bos siempre queda vacía (no hay velas
+            # futuras todavía dentro de este mismo fetch) — por construcción,
+            # esta condición nunca deja de ser None en producción hoy. Se
+            # preserva ese comportamiento tal cual a propósito, para mantener
+            # equivalencia funcional estricta; el arreglo del bug queda
+            # pendiente como tarea aparte del backlog post-Fase-B.
+            events = research.TRIGGER_LAYERS["A_sweep_bos"](df1h)
             sweep_idx = len(df1h) - 1
-            bos = detect_bos(df1h, sweep_idx, sweep["type"], cfg)
-            if not bos:
-                log.info("Sweep detectado pero sin BOS en 3 velas — setup inválido")
+            new_event = next((e for e in events if e.meta["sweep_idx"] == sweep_idx), None)
+            if new_event is None:
+                time.sleep(60)
+                continue
+
+            if new_event.direction != bias:
+                log.info(f"Sweep {new_event.direction} pero bias es {bias} — ignorado")
                 time.sleep(60)
                 continue
 
             # ── 6. Calcular niveles ──────────────────────────────────────────
-            bos_idx  = bos["bos_idx"]
-            bos_lvl  = bos["bos_level"]
+            bos_idx  = new_event.entry_idx
+            bos_lvl  = new_event.meta["bos_level"]
             atr_val  = atr.iloc[-1]
 
-            if sweep["type"] == "long":
-                sweep_lvl = sweep["swing_low"]
-                rng       = bos_lvl - sweep_lvl
-                entry     = bos_lvl - rng * cfg.pullback_pct   # 50%
+            entry = research.ENTRY_LAYERS["A_pullback_50"](df1h, new_event).price
+
+            if new_event.direction == "long":
+                sweep_lvl = new_event.meta["swing_low"]
                 sl_struct = sweep_lvl
                 sl_atr    = entry - cfg.atr_mult * atr_val
                 sl        = min(sl_struct, sl_atr)             # el más conservador
                 tp        = entry + (entry - sl) * cfg.rr
             else:
-                sweep_lvl = sweep["swing_high"]
-                rng       = sweep_lvl - bos_lvl
-                entry     = bos_lvl + rng * cfg.pullback_pct
+                sweep_lvl = new_event.meta["swing_high"]
                 sl_struct = sweep_lvl
                 sl_atr    = entry + cfg.atr_mult * atr_val
                 sl        = max(sl_struct, sl_atr)
@@ -357,18 +371,18 @@ def run_bot(client: Client, cfg: Config):
             size_usd = calculate_position(entry, sl, state.equity, cfg)
 
             log.info(
-                f"Setup {sweep['type'].upper()} | entry={entry:.2f} "
+                f"Setup {new_event.direction.upper()} | entry={entry:.2f} "
                 f"sl={sl:.2f} tp={tp:.2f} size=${size_usd:.2f} | "
                 f"RR real: {abs(tp-entry)/abs(entry-sl):.2f}"
             )
 
             state.setup = {
-                "direction": sweep["type"],
+                "direction": new_event.direction,
                 "entry": entry, "sl": sl, "tp": tp,
                 "bos_candle_count": len(df1h)
             }
 
-            place_order(client, cfg.symbol, sweep["type"], size_usd,
+            place_order(client, cfg.symbol, new_event.direction, size_usd,
                         entry, sl, tp, cfg, state)
 
         except Exception as e:
