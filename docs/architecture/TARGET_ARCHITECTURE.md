@@ -1,7 +1,7 @@
 # Arquitectura Objetivo — SMC Trading Bot
 
-**Estado:** Referencia oficial de arquitectura (v4)
-**Última revisión:** 2026-07-17
+**Estado:** Referencia oficial de arquitectura (v5)
+**Última revisión:** 2026-07-21
 
 Este documento describe la arquitectura **objetivo** del proyecto — cómo debería
 verse el sistema, no cómo está hoy. El estado actual y el roadmap de migración
@@ -86,8 +86,12 @@ entre ambos se documentan por separado dentro de este mismo archivo (§3 y §6).
 - `market_data` existe y está versionado (Fase A cerrada): descarga y
   almacenamiento de OHLCV crudo vía `scripts/download_market_data.py`.
   `versions.py` importa `FETCHER_VERSION` desde su punto de entrada público y
-  es importable hoy. Pendiente (Fase B): conectar `dc_v1` a los datos reales
-  que produce, más allá de los datos sintéticos usados hasta ahora.
+  es importable hoy.
+- `dc_v1` está conectado a datos reales (Fase B cerrada): los 9 datasets reales
+  (3 activos × 2022/2023/2024) se generan y validan vía
+  `scripts/build_dc_v1_datasets.py`, con `pipeline_version`/`dataset_version`
+  consistentes en los 9 (`dc-v1` / `market-data-v1`). `dc_v1` ya no depende
+  solo de datos sintéticos para su verificación end-to-end.
 
 ## 4. Arquitectura objetivo
 
@@ -145,7 +149,7 @@ bot                              (mismo research.layers + circuit breaker +
 | Pieza | Existe hoy | Objetivo |
 |---|---|---|
 | `market_data` | Sí (Fase A cerrada) | — (cerrado) |
-| `dc_v1` | Sí (con datos sintéticos) | Conectado a datos reales vía `market_data` (Fase B) |
+| `dc_v1` | Sí, conectado a datos reales (Fase B cerrada) | — (cerrado) |
 | Contrato de señal (columnas requeridas por capa) | No (implícito, no declarado) | Declarado en `research/layers.py` |
 | Registro de capas 1/2/3 intercambiables | No — dos implementaciones fijas y **distintas** entre sí | Un registro único, consumido por `research` y `bot` |
 | Simulador de gestión genérico | Ya existe dentro de `backtest.py`, acoplado a una sola señal | Extraído a `research/simulate.py` |
@@ -160,23 +164,23 @@ bot                              (mismo research.layers + circuit breaker +
 
 ### 6.1 Fases
 
-| Fase | Contenido | Depende de |
-|---|---|---|
-| **A** | `market_data`: descarga y almacenamiento versionado de OHLCV crudo | — |
-| **B** | `dc_v1` conectado a datos reales vía `market_data`; cerrar `versions.py` | A |
-| **C1** | Consolidar métricas + gate en `research/metrics.py` | — (independiente, puede empezar ya) |
-| **C2** | Extraer el simulador de gestión a `research/simulate.py`, probado primero contra la ruta de datos legacy que ya funciona hoy | — (independiente de A/B) |
-| **C3** | Construir `research/layers.py` (registro de capas + contrato de señal + esquema canónico de trade record) | — (independiente de A/B) |
-| **D** | `research/runner.py`: barrido completo 2022→2023→2024 con disciplina de blind set | A, B, C1, C2, C3 |
-| **E** | Artefacto de configuración ganadora + refactor de `bot` (separación interna + circuit breaker + persistencia) | D |
-| **F** | Paper trading operativo endurecido (monitoreo del circuit breaker en producción) | E |
+| Fase | Contenido | Depende de | Estado |
+|---|---|---|---|
+| **A** | `market_data`: descarga y almacenamiento versionado de OHLCV crudo | — | Cerrada |
+| **B** | `dc_v1` conectado a datos reales vía `market_data`; cerrar `versions.py` | A | Cerrada — 9/9 datasets reales (3 activos × 2022/2023/2024) generados y validados vía `scripts/build_dc_v1_datasets.py`, `pipeline_version`/`dataset_version` consistentes |
+| **C1** | Consolidar métricas + gate en `research/metrics.py` | — (independiente, puede empezar ya) | Pendiente |
+| **C2** | Extraer el simulador de gestión a `research/simulate.py`, probado primero contra la ruta de datos legacy que ya funciona hoy | — (independiente de A/B) | Pendiente |
+| **C3** | Construir `research/layers.py` (registro de capas + contrato de señal + esquema canónico de trade record) | — (independiente de A/B) | Pendiente |
+| **D** | `research/runner.py`: barrido completo 2022→2023→2024 con disciplina de blind set | A, B, C1, C2, C3 | Pendiente |
+| **E** | Artefacto de configuración ganadora + refactor de `bot` (separación interna + circuit breaker + persistencia) | D | Pendiente |
+| **F** | Paper trading operativo endurecido (monitoreo del circuit breaker en producción) | E | Pendiente |
 
-C1/C2/C3 pueden empezar de inmediato, en paralelo con A/B — no dependen de
-datos reales ni del contrato `dc_v1` para su desarrollo inicial (se validan
-contra la ruta de datos legacy y se re-apuntan a `dc_v1` cuando B esté listo).
-Solo D requiere que A y B estén cerradas, porque es el punto donde los
-resultados dejan de ser exploratorios y empiezan a informar decisiones reales
-sobre qué variante operar.
+C1/C2/C3 no dependían de datos reales ni del contrato `dc_v1` para su
+desarrollo inicial (se validaban contra la ruta de datos legacy). Con A y B
+ya cerradas, ya pueden re-apuntarse a los datasets reales de `dc_v1` en vez de
+validarse solo contra la ruta legacy. Solo D requiere que A y B estén
+cerradas, porque es el punto donde los resultados dejan de ser exploratorios
+y empiezan a informar decisiones reales sobre qué variante operar.
 
 ### 6.2 Dependencias entre fases
 
@@ -241,7 +245,8 @@ Fase C3 (registro de capas + contrato de señal)     ─────┘         
 | v1 | Primera propuesta de arquitectura objetivo (6 fases, sin distinguir qué ya existía como precedente de estilo en el código). |
 | v2 | Reordenamiento de fases para permitir paralelismo real (C en paralelo con A/B); corrección de componentes sobredimensionados (el simulador y el motor de backtest no se construyen desde cero, se extraen). |
 | v3 | Reducción de 9 a 4 componentes nombrados; TA-Lib movido a "Decisiones Pendientes" (§10) por requerir validación técnica antes de ratificarse; se agregan principios de gobernanza (§0) y reglas de dependencias (§2); se documenta el hallazgo de los 4 esquemas de trade record ya divergentes como justificación del esquema canónico en `research/runner.py`. |
-| v4 (este documento) | Fase A dada por cerrada: §3 y §5 actualizados (`market_data` existe y está versionado, `versions.py` es importable). ADR-001 (§10) ratificado — TA-Lib queda fijado como dependencia de runtime para EMA/ATR, consistente con `DC-v1_Precisiones_Implementacion.md` P-7. |
+| v4 | Fase A dada por cerrada: §3 y §5 actualizados (`market_data` existe y está versionado, `versions.py` es importable). ADR-001 (§10) ratificado — TA-Lib queda fijado como dependencia de runtime para EMA/ATR, consistente con `DC-v1_Precisiones_Implementacion.md` P-7. |
+| v5 (este documento) | Fase B dada por cerrada: los 9 datasets reales (3 activos × 2022/2023/2024) se generaron y validaron vía `scripts/build_dc_v1_datasets.py` (`pipeline_version=dc-v1`, `dataset_version=market-data-v1` consistentes en los 9). §3, §5 y §6.1 (nueva columna "Estado") actualizados. |
 
 ---
 
