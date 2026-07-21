@@ -207,8 +207,37 @@ def trigger_A_sweep_bos(
 
 
 # --------------------------------------------------------------------------- #
-# Registros: nombre de candidato (FRAMEWORK.md) -> función. Capa 3 sigue     #
-# vacía hasta la Tarea 4.                                                     #
+# Capa 3 — candidato A: 50% del rango Sweep→BOS (FRAMEWORK.md, baseline       #
+# actual). Portado de la sección "Calcular niveles" de bot.py::run_bot        #
+# ([bot.py:335-355]) — ahí vive inline, mezclada con SL/TP/sizing.            #
+# --------------------------------------------------------------------------- #
+def entry_A_pullback_50(
+    df1h: pd.DataFrame, event: TriggerEvent, pullback_pct: float = 0.50,
+) -> EntrySignal:
+    """Precio de entrada al `pullback_pct` (50%) del rango Sweep→BOS. Extrae
+    SOLO la parte de `entry` de bot.py::run_bot — el Stop Loss (estructura vs
+    ATR×1.5) y el Take Profit son "Gestión" fija por FRAMEWORK.md, no una
+    variante de Capa 3, y quedan fuera de este registro (decisión de la
+    Tarea 1). Riesgo/sizing tampoco se tocan en esta tarea.
+
+    `df1h` no se usa (la fórmula depende solo de `event.meta`) — se mantiene
+    en la firma por el contrato de `EntryFn`: otros candidatos futuros (ej.
+    la entrada a mercado de T1) sí necesitan leer el DataFrame.
+    """
+    bos_lvl = event.meta["bos_level"]
+    if event.direction == "long":
+        sweep_lvl = event.meta["swing_low"]
+        rng = bos_lvl - sweep_lvl
+        entry = bos_lvl - rng * pullback_pct
+    else:
+        sweep_lvl = event.meta["swing_high"]
+        rng = sweep_lvl - bos_lvl
+        entry = bos_lvl + rng * pullback_pct
+    return EntrySignal(price=entry)
+
+
+# --------------------------------------------------------------------------- #
+# Registros: nombre de candidato (FRAMEWORK.md) -> función.                  #
 # --------------------------------------------------------------------------- #
 BIAS_LAYERS: dict[str, BiasFn] = {
     "A_ema200_neutral": bias_A_ema200_neutral,
@@ -216,4 +245,6 @@ BIAS_LAYERS: dict[str, BiasFn] = {
 TRIGGER_LAYERS: dict[str, TriggerFn] = {
     "A_sweep_bos": trigger_A_sweep_bos,
 }
-ENTRY_LAYERS: dict[str, EntryFn] = {}
+ENTRY_LAYERS: dict[str, EntryFn] = {
+    "A_pullback_50": entry_A_pullback_50,
+}
