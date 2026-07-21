@@ -177,33 +177,23 @@ def test_trigger_matches_legacy():
 # --------------------------------------------------------------------------- #
 # Paridad Capa 3 — entry_A_pullback_50.                                       #
 #                                                                              #
-# LIMITACIÓN CONOCIDA (documentada, no automatizada vía exec de bot.py):      #
-# la fórmula de entrada vive inline en bot.py::run_bot ([bot.py:340-351]),    #
-# mezclada con SL/TP/sizing — no existe como función aislada e importable.    #
-# La Tarea 4 validó la equivalencia inicial ejecutando el bloque REAL de      #
-# bot.py vía exec (ver commit ec861a8). Para este test committeado, de vida  #
-# larga, se prefiere una transcripción documentada de esa misma fórmula en   #
-# vez de depender de extracción de código fuente (frágil ante reformateos    #
-# de bot.py). Si esa sección de bot.py cambia, esta referencia debe          #
-# actualizarse a mano — no hay sincronización automática.                    #
+# RESUELTO (Tarea 6, commit 6b783e9): bot.py ya no tiene una fórmula de       #
+# entrada inline propia — delega directamente en research.ENTRY_LAYERS       #
+# ["A_pullback_50"]. entry_A_pullback_50 es ahora la ÚNICA implementación;    #
+# ya no existe una segunda copia (ni en bot.py ni en este test) contra la    #
+# cual comparar, así que la antigua _reference_entry_formula (transcripción  #
+# manual de bot.py, mantenida a mano) se elimina — mantenerla habría sido    #
+# duplicar la única fuente de verdad que ya quedó consolidada.               #
 #                                                                              #
-# RESOLUCIÓN PREVISTA (Tarea 6): cuando bot.py se migre a consumir            #
-# research.layers, la fórmula de entrada deja de vivir inline en run_bot —   #
-# en ese momento _reference_entry_formula debe eliminarse y este test debe   #
-# comparar directamente contra la implementación compartida (la única que    #
-# quedará, ya no habrá una "copia" separada que mantener sincronizada).       #
+# Verificación sin duplicar la fórmula: al 50% exacto de pullback, el precio #
+# de entrada es SIEMPRE el punto medio aritmético entre sweep_level y        #
+# bos_level, sin importar la dirección (se puede derivar por álgebra de la   #
+# fórmula con pullback_pct=0.5: bos - (bos-sweep)*0.5 == sweep + (bos-       #
+# sweep)*0.5 == (sweep+bos)/2, y simétricamente para short). Es una          #
+# propiedad matemática independiente, no una reimplementación de la rama     #
+# long/short de entry_A_pullback_50.                                        #
 # --------------------------------------------------------------------------- #
-def _reference_entry_formula(direction, sweep_lvl, bos_lvl, pullback_pct):
-    """Transcripción documentada de bot.py:340-351 (solo la parte de `entry`)."""
-    if direction == "long":
-        rng = bos_lvl - sweep_lvl
-        return bos_lvl - rng * pullback_pct
-    else:
-        rng = sweep_lvl - bos_lvl
-        return bos_lvl + rng * pullback_pct
-
-
-def test_entry_matches_reference_formula():
+def test_entry_matches_shared_implementation():
     df1h = make_synthetic_1h()
     events = trigger_A_sweep_bos(df1h)
     assert events, "se necesitan eventos reales para esta prueba"
@@ -212,9 +202,9 @@ def test_entry_matches_reference_formula():
     direction_key_ok = True
     for ev in events:
         sweep_lvl = ev.meta["swing_low"] if ev.direction == "long" else ev.meta["swing_high"]
-        expected = _reference_entry_formula(ev.direction, sweep_lvl, ev.meta["bos_level"], 0.50)
+        expected_midpoint = (sweep_lvl + ev.meta["bos_level"]) / 2
         got = entry_A_pullback_50(df1h, ev).price
-        if got != expected:
+        if got != expected_midpoint:
             price_ok = False
 
         if ev.direction == "long" and "swing_low" not in ev.meta:
@@ -223,7 +213,7 @@ def test_entry_matches_reference_formula():
             direction_key_ok = False
 
     ok = price_ok and direction_key_ok
-    return _p(f"entry_A_pullback_50 == fórmula de referencia + dirección->clave correcta ({len(events)} eventos)", ok)
+    return _p(f"entry_A_pullback_50 == punto medio sweep/bos + dirección->clave correcta ({len(events)} eventos)", ok)
 
 
 ALL_TESTS = [
@@ -233,7 +223,7 @@ ALL_TESTS = [
     test_entry_signal_immutable,
     test_bias_matches_legacy,
     test_trigger_matches_legacy,
-    test_entry_matches_reference_formula,
+    test_entry_matches_shared_implementation,
 ]
 
 
