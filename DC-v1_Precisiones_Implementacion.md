@@ -109,6 +109,12 @@ Pin **ratificado**:
   Un `.astype('category')` sin dtype fijo produce categorías distintas por período si
   alguno nunca ve `overlap` → el `concat`/comparación de los 9 datasets degrada a object
   y rompe "esquema idéntico".
+- Es una **taxonomía descriptiva de sesión de mercado** (Londres/NY/overlap/off
+  sobre las 24h, límites de convención estándar de mercado), sin relación con
+  el filtro operativo de horas de trading que usan `bot.py`/`backtest.py`
+  (`FRAMEWORK.md`, sección Gestión) — no asumir que esta columna ya alimenta
+  o reemplaza ese filtro; nada fuera de `dc_v1/` la consume hoy (análisis
+  2026-07-22, backlog post-Fase-B, Iniciativa C).
 
 ---
 

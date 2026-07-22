@@ -88,7 +88,20 @@ Candidatos a evaluar:
 ### Gestión (fija para todas las variantes)
 - Stop Loss: mínimo entre estructura y ATR(14) × 1.5
 - Take Profit: 2.5R fijo
-- Sesiones: Londres 07-11 UTC + Nueva York 13-17 UTC
+- Sesiones: Londres 07-11 UTC + Nueva York 13-17 UTC — ventana operativa que
+  filtra CUÁNDO se buscan setups (`bot.py::in_session`, `backtest.py`'s
+  columna `in_session`), distinta de la taxonomía de sesión de mercado que
+  produce `dc_v1` (`london`/`overlap`/`ny`/`off` sobre las 24h, análisis
+  2026-07-22 en el backlog post-Fase-B — Iniciativa C). Cada ventana arranca
+  exactamente en la apertura de Londres/NY y dura 4h, consistente con
+  filtrar las horas de mayor probabilidad de barrido de liquidez, y excluye
+  a propósito el overlap (11-13 UTC) y las horas tardías de cada sesión —
+  no es la misma ventana que "está abierto el mercado de Londres/NY".
+  **A la fecha (2026-07-22) no existe una validación empírica registrada
+  que compare esta ventana operativa contra ventanas alternativas** (a
+  diferencia de Capa 1/2/3, que sí tienen candidatos enumerados y
+  evaluables) — esto documenta el estado de la evidencia, no implica que
+  la configuración actual esté mal elegida.
 - Una posición a la vez por activo
 
 ---
