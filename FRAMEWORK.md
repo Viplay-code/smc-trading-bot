@@ -60,7 +60,25 @@ El período 2024 NO se consulta hasta que la variante ganadora esté seleccionad
 
 ### Capa 1: Contexto HTF (filtro de dirección)
 Candidatos a evaluar:
-- A: EMA200 4H con zona neutral ±1%  ← baseline actual
+- A: EMA200 4H con zona neutral ±1%  ← baseline actual, único registrado en
+  `BIAS_LAYERS` (`research.layers::bias_A_ema200_neutral`), lo usa `bot.py`.
+  Clasifica una vez por vela 4H: cierre 4H vs su propia EMA200 4H.
+- A2: misma EMA200 4H y zona neutral ±1% que A, pero con mecánica temporal
+  distinta — reclasifica en CADA vela 1H, comparando el cierre 1H (que se
+  mueve cada hora) contra el nivel de EMA200 de la última vela 4H ya cerrada
+  (sostenido/`ffill` durante las 4 horas siguientes). Es la fórmula que
+  `backtest.py::build_features` calcula inline hoy; formalizada como port
+  literal en `research.layers::bias_A2_ema200_neutral_1h_held` (2026-07-22,
+  Iniciativa G del backlog post-Fase-B), fuera de `BIAS_LAYERS` porque su
+  firma `(df1h, df4h)` no encaja en el contrato `BiasFn` de A. Documentar A2
+  no es una recomendación de converger hacia ella ni de preferirla sobre A:
+  **a la fecha (2026-07-22) no existe validación empírica registrada con
+  datos reales que compare A vs A2** contra las métricas de esta sección (PF,
+  DD, Expectancy, frecuencia) — la decisión de mantener ambas, converger
+  hacia una sola, o diseñar una tercera fórmula queda condicionada a esa
+  validación (2022 in-sample como mínimo). Ver Iniciativa G en el backlog
+  post-Fase-B para el análisis de la divergencia numérica medida sobre datos
+  sintéticos.
 - B: EMA50 + EMA200 4H (cruce de medias)
 - C: Precio vs máximo/mínimo de las últimas 20 velas 4H
 

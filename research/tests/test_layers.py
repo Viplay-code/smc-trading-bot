@@ -32,6 +32,7 @@ from research.layers import (
     TriggerEvent,
     EntrySignal,
     bias_A_ema200_neutral,
+    bias_A2_ema200_neutral_1h_held,
     trigger_A_sweep_bos,
     entry_A_pullback_50,
     trigger_T1_ema_cross,
@@ -187,6 +188,31 @@ def test_bias_matches_legacy():
 
 
 # --------------------------------------------------------------------------- #
+# Paridad Capa 1 — candidato A2 (Iniciativa G, backlog post-Fase-B): a         #
+# diferencia de test_bias_matches_legacy, acá sí se exige paridad EXACTA,     #
+# porque bias_A2_ema200_neutral_1h_held es un port literal de la lógica       #
+# actual de backtest.py::build_features (misma fuente pandas.ewm, misma       #
+# mecánica shift+ffill) — no una variante con fuente distinta como A.         #
+# --------------------------------------------------------------------------- #
+def test_bias_a2_matches_backtest_exact():
+    df1h = make_synthetic_1h()
+    df4h = make_synthetic_4h()
+    cfg = backtest.Config()
+
+    feats = backtest.build_features(df1h, df4h, cfg)
+    legacy_bias = feats["bias"].map({"long": 1, "short": -1, "neutral": 0}).astype("int8")
+
+    new_bias = bias_A2_ema200_neutral_1h_held(df1h, df4h)
+
+    ok = legacy_bias.equals(new_bias)
+    return _p(
+        "bias_A2_ema200_neutral_1h_held == backtest.py::build_features bias "
+        "(paridad EXACTA, port literal, misma fuente pandas.ewm)",
+        ok,
+    )
+
+
+# --------------------------------------------------------------------------- #
 # Paridad Capa 2 — trigger_A_sweep_bos vs bot.py real, sin máquina de estados #
 # --------------------------------------------------------------------------- #
 def test_trigger_matches_legacy():
@@ -294,6 +320,7 @@ ALL_TESTS = [
     test_trigger_event_immutable,
     test_entry_signal_immutable,
     test_bias_matches_legacy,
+    test_bias_a2_matches_backtest_exact,
     test_trigger_matches_legacy,
     test_entry_matches_shared_implementation,
     test_t1_matches_legacy,

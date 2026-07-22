@@ -123,8 +123,18 @@ and Entry (`C_market_close`) from the registry, but its Bias stays inline in
 `build_features` — it's a materially different Capa 1 formula (reclassifies every 1H bar
 against a held 4H EMA200 level, instead of classifying once per 4H bar like
 `A_ema200_neutral`), and routing it through the registry would change `backtest.py`'s
-observable signals. Reconciling the two Bias formulas is a separate, not-yet-scheduled
-backlog item — don't assume it's a drop-in swap.
+observable signals.
+
+Both Bias formulas now have a formal name and a home in `research/layers.py`:
+`bias_A_ema200_neutral` (candidate "A", registered in `BIAS_LAYERS`, what `bot.py` uses)
+and `bias_A2_ema200_neutral_1h_held` (candidate "A2", a literal port of
+`backtest.py::build_features`'s inline formula, kept **outside** `BIAS_LAYERS` because its
+`(df1h, df4h)` signature doesn't fit `BiasFn`). A2's existence documents what
+`backtest.py` already does — it doesn't wire, replace, or recommend converging toward
+either formula. `backtest.py` still computes its Bias inline exactly as before. Deciding
+whether A and A2 stay separate, converge, or get replaced by a third formula is Iniciativa
+G of the post-Fase-B backlog, gated on real 2022/2023 Binance data — see that backlog and
+`FRAMEWORK.md`'s Capa 1 candidate list for the analysis.
 
 Gestión (SL/TP/sizing) is deliberately outside this registry (`FRAMEWORK.md` treats it as
 fixed, not a layer variant) and stays inline in each consumer.

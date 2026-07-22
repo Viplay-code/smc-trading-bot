@@ -118,6 +118,62 @@ def bias_A_ema200_neutral(
 
 
 # --------------------------------------------------------------------------- #
+# Capa 1 — candidato A2: EMA200 4H con zona neutral ±1%, PERO reclasificado   #
+# en cada vela 1H contra un nivel 4H sostenido. Port histórico de            #
+# backtest.py::build_features (Iniciativa G, backlog post-Fase-B). Fuera de  #
+# BIAS_LAYERS — ver docstring.                                               #
+# --------------------------------------------------------------------------- #
+def bias_A2_ema200_neutral_1h_held(
+    df1h: pd.DataFrame, df4h: pd.DataFrame, ema_period: int = 200, neutral_pct: float = 0.01,
+) -> pd.Series:
+    """Bias HTF candidato "A2" (FRAMEWORK.md, Capa 1): mismo umbral ±1% que A,
+    pero con una mecánica temporal distinta — reclasifica en CADA vela 1H,
+    comparando el cierre 1H (que se mueve cada hora) contra el nivel de EMA200
+    de la última vela 4H YA CERRADA (`shift(1)`, sostenido/`ffill` durante las
+    4 horas siguientes), en vez de comparar el cierre 4H contra su propia
+    EMA200 como hace A.
+
+    PORT HISTÓRICO de una implementación ya existente, NO una fórmula nueva y
+    NO una recomendación de convergencia: es una transcripción literal, campo
+    a campo, de la lógica que hoy vive inline en `backtest.py::build_features`
+    (bloque de Bias, sin modificar desde antes de la Tarea 7), incluyendo su
+    fuente de indicador (`pandas.ewm`, NO `dc_v1.ema()` — a diferencia de
+    `bias_A_ema200_neutral` desde la Iniciativa B, deliberadamente sin migrar
+    acá). El propósito de este port es dar nombre y ubicación formal en el
+    registro de candidatos a una fórmula que ya existe y ya se ejecuta de
+    facto dentro de `backtest.py`; que quede documentada y testeada NO implica
+    preferirla sobre A ni sugerir que `backtest.py` deba converger hacia A, o
+    viceversa. `backtest.py` sigue calculando su Bias inline exactamente igual
+    que antes de este port — esta función no la reemplaza ni la consume
+    ningún consumidor todavía.
+
+    Fuera de `BIAS_LAYERS`/`BiasFn` a propósito: `BiasFn` es
+    `Callable[[pd.DataFrame], pd.Series]` (una sola vela 4H de entrada) — esta
+    fórmula necesita AMBOS `df1h` y `df4h` (el precio que se mueve cada hora y
+    el nivel 4H que se sostiene entre velas), incompatible con esa firma. No
+    se fuerza el contrato de `BiasFn` para acomodarla.
+
+    La decisión de mantener A y A2 como candidatos separados, converger hacia
+    uno solo, o diseñar una tercera fórmula, queda condicionada a validación
+    con datos reales 2022/2023 contra las métricas de `FRAMEWORK.md` (PF, DD,
+    Expectancy, frecuencia) — Iniciativa G del backlog post-Fase-B, todavía
+    abierta. Ver ese backlog para el análisis de la divergencia numérica entre
+    A y A2 medida sobre datos sintéticos.
+    """
+    df4h_ema = df4h.copy()
+    df4h_ema["ema200"] = df4h_ema["close"].ewm(span=ema_period, adjust=False).mean()
+    df4h_s = df4h_ema[["ema200", "close"]].shift(1)
+    df4h_s.columns = ["ema200_4h", "close_4h"]
+
+    df1h_j = df1h.join(df4h_s, how="left")
+    df1h_j[["ema200_4h", "close_4h"]] = df1h_j[["ema200_4h", "close_4h"]].ffill()
+
+    dist = (df1h_j["close"] - df1h_j["ema200_4h"]) / df1h_j["ema200_4h"]
+    bias = np.where(dist > neutral_pct, 1, np.where(dist < -neutral_pct, -1, 0))
+    return pd.Series(bias, index=df1h.index, name="bias").astype("int8")
+
+
+# --------------------------------------------------------------------------- #
 # Capa 2 — candidato A: Liquidity Sweep + BOS 3 velas (FRAMEWORK.md, baseline  #
 # actual). Portado de bot.py::detect_liquidity_sweep + bot.py::detect_bos.    #
 # --------------------------------------------------------------------------- #
