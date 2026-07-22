@@ -18,6 +18,7 @@ from binance.client import Client
 from binance.exceptions import BinanceAPIException
 
 import research
+import dc_v1
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -90,13 +91,11 @@ def fetch_ohlcv(client: Client, symbol: str, interval: str, limit: int = 500) ->
 
 
 def compute_ema(series: pd.Series, period: int) -> pd.Series:
-    return series.ewm(span=period, adjust=False).mean()
+    return dc_v1.ema(series, period)
 
 
 def compute_atr(df: pd.DataFrame, period: int) -> pd.Series:
-    h, l, c = df["high"], df["low"], df["close"].shift(1)
-    tr = pd.concat([h - l, (h - c).abs(), (l - c).abs()], axis=1).max(axis=1)
-    return tr.ewm(alpha=1/period, adjust=False).mean()
+    return dc_v1.atr(df["high"], df["low"], df["close"], period)
 
 
 # ─── Lógica de señales ──────────────────────────────────────────────────────
@@ -107,7 +106,9 @@ def compute_atr(df: pd.DataFrame, period: int) -> pd.Series:
 # reproducen el comportamiento original del sistema (test_bias_matches_legacy,
 # test_trigger_matches_legacy) — no una transcripción mantenida a mano, sino
 # el código real. Eliminarlas rompería esa comparación. Mismo criterio de
-# compute_ema, usada solo dentro de htf_bias.
+# compute_ema, usada solo dentro de htf_bias. Ambas migradas a dc_v1.ema()/
+# dc_v1.atr() en la Iniciativa B — compute_atr SÍ se usa en producción
+# (Sección 1/6 de run_bot), compute_ema/htf_bias solo en tests.
 def htf_bias(df4h: pd.DataFrame, cfg: Config) -> str:
     """Devuelve 'long', 'short' o 'neutral' según EMA200 4H."""
     ema = compute_ema(df4h["close"], cfg.ema_period)

@@ -24,10 +24,15 @@ Composición de capas — quién filtra qué:
     `TriggerEvent`. El Stop Loss (estructura vs ATR×1.5) es "Gestión" fija por
     FRAMEWORK.md, no una variante de Capa 3 — no vive en este registro.
 
-EMA/ATR: los candidatos que se porten en las Tareas 2-4 siguen calculando estos
-indicadores con `pandas.ewm` tal cual hoy (`bot.py`/`backtest.py`) — migrar a
-`dc_v1` como fuente única es el ítem #2 del backlog post-Fase-B, deliberadamente
-posterior y separado de esta fase (decisión tomada 2026-07-21).
+EMA/ATR: desde la Iniciativa B (backlog post-Fase-B, ítem #2), `bias_A_ema200_
+neutral` y `trigger_T1_ema_cross` calculan EMA/ATR vía `dc_v1.ema()`/`dc_v1.
+atr()` (TA-Lib, ADR-001) en vez de `pandas.ewm`. Es la primera dependencia de
+`research` sobre `dc_v1` — permitida por la regla de dependencias
+(`market_data → dc_v1 → research → bot`), pero implica que `import research`
+requiere TA-Lib instalado. TA-Lib difiere numéricamente de `pandas.ewm`
+(semilla SMA + NaN de warmup real vs recursión sin NaN desde el primer valor)
+— no es un simple cambio de fuente transparente, ver validación de la
+Iniciativa B para las diferencias medidas.
 """
 from __future__ import annotations
 
@@ -36,6 +41,8 @@ from typing import Any, Callable, Literal, Mapping
 
 import numpy as np
 import pandas as pd
+
+import dc_v1
 
 
 @dataclass(frozen=True)
@@ -87,19 +94,24 @@ def bias_A_ema200_neutral(
     df4h: pd.DataFrame, ema_period: int = 200, neutral_pct: float = 0.01,
 ) -> pd.Series:
     """Bias HTF: signo de `(close - EMA200) / EMA200` contra una zona neutral
-    ±1%. Réplica EXACTA de la clasificación de `backtest.py::build_features`
-    (`np.where` anidado), incluido su manejo de warmup: una comparación con
-    NaN no cumple ninguna rama y cae en 0 (mismo comportamiento que hoy mapea
-    a "neutral"). Deliberado: esta tarea porta el comportamiento tal cual
-    existe, no lo corrige — ver hallazgo #2 del backlog post-Fase-B para la
-    variante NaN-segura (`np.sign`, como en `dc_v1.derive_htf_bias`), que
-    queda para una tarea de mejora futura, no para este port.
+    ±1%. Clasificación (`np.where` anidado) sin cambios desde la Tarea 2:
+    NaN no cumple ninguna rama y cae en 0 ("neutral") — deliberado, no se
+    corrige a `np.sign` acá (ver hallazgo #2 del backlog post-Fase-B).
 
-    Equivalencia validada durante la migración (Tarea 2, 2026-07-21): 0
-    diferencias contra `backtest.py::build_features` sobre una serie 4H
-    sintética de 260 filas, y último valor idéntico a `bot.py::htf_bias`.
+    EMA vía `dc_v1.ema()` desde la Iniciativa B (antes `pandas.ewm`) — a
+    diferencia de `pandas.ewm`, TA-Lib devuelve NaN real en las primeras
+    `ema_period-1` filas (warmup), lo que ahora SÍ activa la rama NaN->0 de
+    forma genuina en vez de solo defensiva. Sobre series cortas (tests
+    sintéticos) esto reduce el rango de filas con bias no-neutral; en
+    producción es irrelevante porque `dc_v1`/`bot.py` siempre alimentan esta
+    función con muchas más de 200 velas 4H de historia.
+
+    Equivalencia contra `backtest.py::build_features`/`bot.py::htf_bias` ya
+    NO es exacta desde esta migración (ambos siguen en `pandas.ewm` — ver
+    Iniciativa B en el backlog post-Fase-B para las diferencias numéricas
+    medidas, e Iniciativa G para la reconciliación funcional pendiente).
     """
-    ema = df4h["close"].ewm(span=ema_period, adjust=False).mean()
+    ema = dc_v1.ema(df4h["close"], ema_period)
     dist = (df4h["close"] - ema) / ema
     bias = np.where(dist > neutral_pct, 1, np.where(dist < -neutral_pct, -1, 0))
     return pd.Series(bias, index=df4h.index, name="bias").astype("int8")
@@ -278,23 +290,18 @@ def trigger_T1_ema_cross(
     vacío: a diferencia de Sweep+BOS, Capa 3 de T1 (`entry_C_market_close`)
     no necesita ningún dato del evento más allá de `entry_idx`.
 
-    Rango de iteración (`range(warmup, n-2)`, `warmup=25`) y fórmulas de
-    EMA/ATR replicadas literalmente de `backtest.py::build_features`
-    (`ewm(span=..., adjust=False)` para EMA, `ewm(alpha=1/atr_period,
-    adjust=False)` sobre True Range para ATR) — no se reutiliza el ATR de
-    `bot.py` porque su fórmula no está confirmada idéntica (ver hallazgo #3
-    del backlog post-Fase-B); usar la de `bot.py` acá sería una fuente
-    silenciosamente distinta a la que `find_entries` usa hoy.
+    Rango de iteración (`range(warmup, n-2)`, `warmup=25`) preservado tal
+    cual desde el port original. EMA/ATR vía `dc_v1.ema()`/`dc_v1.atr()`
+    desde la Iniciativa B (antes replicaban `pandas.ewm` de
+    `backtest.py::build_features` literalmente) — `warmup=25` sigue siendo
+    mayor que el warmup NaN real de TA-Lib para cualquiera de los 3
+    indicadores acá (8/20/13 velas para EMA9/EMA21/ATR14 respectivamente),
+    así que el rango de iteración no necesita ajustarse.
     """
     close, high, low = df1h["close"], df1h["high"], df1h["low"]
-    ema_f = close.ewm(span=ema_fast, adjust=False).mean()
-    ema_s = close.ewm(span=ema_slow, adjust=False).mean()
-
-    prev_close = close.shift(1)
-    tr = pd.concat(
-        [high - low, (high - prev_close).abs(), (low - prev_close).abs()], axis=1
-    ).max(axis=1)
-    atr = tr.ewm(alpha=1 / atr_period, adjust=False).mean()
+    ema_f = dc_v1.ema(close, ema_fast)
+    ema_s = dc_v1.ema(close, ema_slow)
+    atr = dc_v1.atr(high, low, close, atr_period)
 
     events: list[TriggerEvent] = []
     n = len(df1h)

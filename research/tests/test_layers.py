@@ -131,10 +131,32 @@ def test_entry_signal_immutable():
 
 
 # --------------------------------------------------------------------------- #
-# Paridad Capa 1 — bias_A_ema200_neutral vs backtest.py/bot.py real           #
+# Capa 1 — bias_A_ema200_neutral vs bot.py real (paridad) y vs backtest.py    #
+# (verificación de impacto de la Iniciativa B, NO paridad funcional).         #
+#                                                                              #
+# Contra bot.py::htf_bias: sigue siendo una comparación de PARIDAD exacta —   #
+# desde la Iniciativa B, bias_A_ema200_neutral y bot.py::compute_ema usan     #
+# ambas dc_v1.ema() (mismo candidato migrado, misma fuente), así que el       #
+# último valor debe coincidir exactamente, igual que antes de la migración.  #
+#                                                                              #
+# Contra backtest.py::build_features: YA NO es una comparación de paridad     #
+# funcional entre bot.py y backtest.py — nunca lo fue del todo desde la       #
+# Tarea 7 (dos fórmulas de reclasificación distintas), y desde la Iniciativa  #
+# B tampoco lo es a nivel de fuente (bias_A_ema200_neutral -> dc_v1.ema(),    #
+# backtest.py's EMA200 de Bias -> pandas.ewm, sin migrar a propósito, ver     #
+# Iniciativa G). Lo que este test verifica ahora es solo el IMPACTO medido    #
+# de migrar la fuente del indicador: cuántas filas cambian de clasificación   #
+# fuera de la ventana de warmup real de TA-Lib (199 velas para EMA200, que    #
+# pandas.ewm nunca tuvo — con un fixture chico casi todo el fixture cae en    #
+# ese warmup y la comparación no dice nada útil, por eso acá se usa un        #
+# fixture más grande que en el resto de la suite). Medido empíricamente:      #
+# ~2% de las filas post-warmup difieren (14/700 con n=900) — se documenta un  #
+# techo generoso (10%) para detectar una regresión real, no para exigir       #
+# equivalencia. La reconciliación funcional completa de Bias entre bot.py y   #
+# backtest.py sigue siendo responsabilidad exclusiva de la Iniciativa G.      #
 # --------------------------------------------------------------------------- #
 def test_bias_matches_legacy():
-    df4h = make_synthetic_4h()
+    df4h = make_synthetic_4h(n=900)
     new_bias = bias_A_ema200_neutral(df4h)
 
     cfg_bt = backtest.Config()
@@ -143,15 +165,25 @@ def test_bias_matches_legacy():
         {"long": 1, "short": -1, "neutral": 0}
     ).astype("int8")
 
-    rows_match = (new_bias == legacy_bias).all()
+    ema_period = 200
+    post_warmup = new_bias.index[ema_period:]
+    disagree = int((new_bias.loc[post_warmup] != legacy_bias.loc[post_warmup]).sum())
+    disagree_pct = 100 * disagree / len(post_warmup)
+    impact_ok = disagree_pct <= 10.0
+    print(f"    (info) impacto de fuente sobre bias post-warmup: "
+          f"{disagree}/{len(post_warmup)} filas ({disagree_pct:.1f}%) — no se exige paridad")
 
     cfg_bot = bot.Config()
     last_str = bot.htf_bias(df4h, cfg_bot)
     last_map = {"long": 1, "short": -1, "neutral": 0}
     last_matches = last_map[last_str] == int(new_bias.iloc[-1])
 
-    ok = bool(rows_match) and last_matches
-    return _p("bias_A_ema200_neutral == backtest.py fila a fila y == bot.py en el último valor", ok)
+    ok = impact_ok and last_matches
+    return _p(
+        "bias_A_ema200_neutral == bot.py (paridad exacta, misma fuente dc_v1) "
+        "y vs backtest.py impacto de fuente <=10% post-warmup (NO paridad funcional)",
+        ok,
+    )
 
 
 # --------------------------------------------------------------------------- #

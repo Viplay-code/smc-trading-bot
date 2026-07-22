@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from binance.client import Client
 
 import research
+import dc_v1
 
 COST_PER_TRADE = 0.0009   # 0.04% comision + 0.05% slippage, en fraccion del precio
 
@@ -65,22 +66,23 @@ def build_features(df1h_raw, df4h_raw, cfg):
     df   = df1h_raw.copy()
     df4h = df4h_raw.copy()
 
-    h, l, cp = df["high"], df["low"], df["close"].shift(1)
-    tr = pd.concat([h-l, (h-cp).abs(), (l-cp).abs()], axis=1).max(axis=1)
-    df["atr"]  = tr.ewm(alpha=1/cfg.atr_period, adjust=False).mean()
+    # ATR vía dc_v1.atr() desde la Iniciativa B (antes pandas.ewm inline).
+    df["atr"] = dc_v1.atr(df["high"], df["low"], df["close"], cfg.atr_period)
 
     h_idx = df.index.hour
     df["in_session"] = [any(s <= hh < e for s, e in cfg.sessions) for hh in h_idx]
 
     # Bias NO se enruta por research.BIAS_LAYERS["A_ema200_neutral"] (decision
-    # explicita, Tarea 7): esa funcion clasifica una vez por vela 4H (cierre
-    # 4H vs su propio EMA200 4H, replica fiel de bot.py::htf_bias), mientras
-    # que esta formula reclasifica cada hora comparando el cierre 1H (que
-    # cambia) contra un nivel de EMA200 4H sostenido fijo (shift+ffill) —
-    # son dos formulas de Capa 1 distintas bajo el mismo nombre de candidato,
-    # no una y su transcripcion. Migrarla habria cambiado el comportamiento
-    # observable de backtest.py (ver hallazgo registrado en memoria post-
-    # Fase-B). Se deja igual que antes de la Tarea 7.
+    # explicita, Tarea 7) NI su EMA200 se migra a dc_v1 (Iniciativa B): esa
+    # funcion clasifica una vez por vela 4H (cierre 4H vs su propio EMA200
+    # 4H, replica fiel de bot.py::htf_bias), mientras que esta formula
+    # reclasifica cada hora comparando el cierre 1H (que cambia) contra un
+    # nivel de EMA200 4H sostenido fijo (shift+ffill) — son dos formulas de
+    # Capa 1 distintas bajo el mismo nombre de candidato, no una y su
+    # transcripcion. Tocar la fuente del indicador ahora, sin resolver
+    # primero la formula, mezclaria dos decisiones separadas (Iniciativa B
+    # vs Iniciativa G) — se deja igual que antes de la Tarea 7, EMA200 en
+    # pandas.ewm, hasta que la Iniciativa G reconcilie ambas formulas.
     df4h["ema200"] = df4h["close"].ewm(span=200, adjust=False).mean()
     df4h_s = df4h[["ema200","close"]].shift(1)
     df4h_s.columns = ["ema200_4h","close_4h"]
