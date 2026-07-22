@@ -1,12 +1,44 @@
 """
-Optimizacion de la distancia de trailing — basada en datos MFE/MAE
-Barre distintas distancias de trailing y activaciones para justificar
-objetivamente el parametro, en vez de fijarlo por intuicion.
+ARCHIVADO (Iniciativa F, backlog post-Fase-B, 2026-07-22) — herramienta
+histórica, fuera del flujo activo del proyecto. Se conserva por su valor
+documental, no se ejecuta como parte de ningún proceso vigente.
 
-Limitacion: el CSV tiene MFE final, no la trayectoria. La aproximacion
-(trailing cierra en MFE - distancia) se aplica IGUAL a todas las variantes,
-por lo que la comparacion RELATIVA entre distancias es valida.
+- Propósito original: optimización de la distancia de trailing basada en
+  datos MFE/MAE. Barre distintas distancias de trailing y activaciones
+  para justificar objetivamente el parámetro, en vez de fijarlo por
+  intuición — un tamizado rápido (aproximación MFE) antes de una
+  validación bar-a-barra completa, mucho más cara de correr sobre muchas
+  combinaciones.
+- Los parámetros de gestión que este script ayudó a justificar ya fueron
+  incorporados al sistema de validación: al momento del archivado
+  correspondían a la configuración "V3-A" que corre `backtest.py`. Esa
+  referencia puntual puede quedar desactualizada si la implementación de
+  backtesting cambia — lo que no cambia es que el propósito de este
+  script (informar una elección de parámetros de gestión) ya se cumplió
+  y su resultado ya está incorporado al sistema, se llame como se llame
+  la config vigente en el momento en que se lea esta nota.
+- Por qué quedó fuera del flujo activo: no tiene consumidores (nada en el
+  repo lo importa ni lee su output); su CSV de entrada no es reproducible
+  desde el código actual (llegó ya commiteado en el commit inicial del
+  repo, ningún script vigente lo regenera); usa un esquema de trade
+  record no canónico, uno de los varios ya divergentes que
+  `TARGET_ARCHITECTURE.md` documenta como brecha; y no consume
+  `research.layers` ni `dc_v1` — opera fuera del flujo
+  `market_data → dc_v1 → research → bot` que define la arquitectura
+  objetivo.
+- Reincorporación futura: solo tendría sentido retomar esta metodología
+  (tamizado rápido antes de simulación completa) cuando existan el
+  esquema canónico de trade record y `research/simulate.py` — Fases C2/D
+  del roadmap, "Pendiente" al momento de este archivado. No adaptar antes
+  de que esas piezas existan.
+
+Limitacion original del método: el CSV tiene MFE final, no la trayectoria.
+La aproximacion (trailing cierra en MFE - distancia) se aplica IGUAL a
+todas las variantes, por lo que la comparacion RELATIVA entre distancias
+es valida.
 """
+
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -14,7 +46,7 @@ from itertools import product
 
 import research
 
-CSV_PATH = "t1_trades_multiasset.csv"
+CSV_PATH = Path(__file__).parent / "t1_trades_multiasset.csv"
 
 
 def simulate_trailing(row, be_trigger, trail_activation, trail_distance):

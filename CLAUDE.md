@@ -26,9 +26,12 @@ An SMC (Smart Money Concepts) crypto futures trading bot for Binance, currently 
 research/validation phase (no live capital yet). There are two layers of code at very
 different levels of rigor — know which one you're touching:
 
-1. **Legacy/exploratory scripts** at the repo root (`bot.py`, `backtest.py`,
-   `analisis_mfe_mae.py`) — a first-pass liquidity-sweep + BOS + pullback strategy with
-   inline EMA/ATR math, used to explore the idea and drive the live paper-trading loop.
+1. **Legacy/exploratory scripts** at the repo root (`bot.py`, `backtest.py`) — a
+   first-pass liquidity-sweep + BOS + pullback strategy, used to explore the idea and
+   drive the live paper-trading loop. (`analisis_mfe_mae.py`, an early trailing-stop
+   parameter sweep tool, was archived to `archive/` once its job — informing
+   `backtest.py`'s current exit-management parameters — was already done; see
+   `archive/README.md`.)
 2. **DC-v1 (`dc_v1/`)** — a formally governed data pipeline ("Data Contract v1") that
    produces the canonical "Research Engine Input" DataFrame used for rigorous
    backtesting/validation. This is the direction the project is moving toward; new
