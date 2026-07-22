@@ -27,6 +27,8 @@ import numpy as np
 from dataclasses import dataclass, field
 from binance.client import Client
 
+import research
+
 COST_PER_TRADE = 0.0009   # 0.04% comision + 0.05% slippage, en fraccion del precio
 
 @dataclass
@@ -72,6 +74,15 @@ def build_features(df1h_raw, df4h_raw, cfg):
     h_idx = df.index.hour
     df["in_session"] = [any(s <= hh < e for s, e in cfg.sessions) for hh in h_idx]
 
+    # Bias NO se enruta por research.BIAS_LAYERS["A_ema200_neutral"] (decision
+    # explicita, Tarea 7): esa funcion clasifica una vez por vela 4H (cierre
+    # 4H vs su propio EMA200 4H, replica fiel de bot.py::htf_bias), mientras
+    # que esta formula reclasifica cada hora comparando el cierre 1H (que
+    # cambia) contra un nivel de EMA200 4H sostenido fijo (shift+ffill) —
+    # son dos formulas de Capa 1 distintas bajo el mismo nombre de candidato,
+    # no una y su transcripcion. Migrarla habria cambiado el comportamiento
+    # observable de backtest.py (ver hallazgo registrado en memoria post-
+    # Fase-B). Se deja igual que antes de la Tarea 7.
     df4h["ema200"] = df4h["close"].ewm(span=200, adjust=False).mean()
     df4h_s = df4h[["ema200","close"]].shift(1)
     df4h_s.columns = ["ema200_4h","close_4h"]
@@ -85,23 +96,38 @@ def build_features(df1h_raw, df4h_raw, cfg):
 
 
 def find_entries(df, cfg):
-    """Devuelve lista de dicts con la señal de entrada T1 (sin gestionar salida)."""
+    """Devuelve lista de dicts con la señal de entrada T1 (sin gestionar salida).
+
+    Capa 2 (research.TRIGGER_LAYERS["T1_ema_cross"]) y Capa 3
+    (research.ENTRY_LAYERS["C_market_close"]) reemplazan la deteccion de
+    cruce y el precio de entrada que vivian inline aca (Tarea 7). El trigger
+    no filtra por bias/sesion (ver nota de composicion en research/layers.py)
+    asi que ese filtro se reaplica aca, comparando el bias ya resuelto en
+    build_features contra la direccion del evento — exactamente el chequeo
+    "bias == long y no hay cross_up -> descartar" que hacia el codigo
+    original, solo que expresado como una comparacion de igualdad.
+
+    El SL/risk_pts sigue siendo "Gestion" (FRAMEWORK.md) y no vive en el
+    registro: se recalcula aca igual que antes, con la misma formula que
+    trigger_T1_ema_cross ya replica internamente solo para decidir si el
+    evento existe (ver su docstring) — es una redundancia de calculo
+    aceptada, no eliminada, porque research/layers.py no se modifica en
+    esta tarea.
+    """
+    raw_events = research.TRIGGER_LAYERS["T1_ema_cross"](
+        df, atr_period=cfg.atr_period, atr_mult=cfg.atr_mult,
+    )
+    entry_fn = research.ENTRY_LAYERS["C_market_close"]
+
     entries = []
-    n = len(df)
-    for i in range(25, n - 2):
-        row, prev = df.iloc[i], df.iloc[i-1]
-        bias = row["bias"]
-        if not row["in_session"] or bias == "neutral": continue
-        if pd.isna(row["ema9"]) or pd.isna(row["ema200_4h"]): continue
+    for ev in raw_events:
+        row = df.iloc[ev.entry_idx]
+        if not row["in_session"] or row["bias"] != ev.direction:
+            continue
 
-        cross_up   = prev["ema9"] <= prev["ema21"] and row["ema9"] > row["ema21"]
-        cross_down = prev["ema9"] >= prev["ema21"] and row["ema9"] < row["ema21"]
-        if bias == "long"  and not cross_up:   continue
-        if bias == "short" and not cross_down: continue
-
-        entry = row["close"]
+        entry = entry_fn(df, ev).price
         atr   = row["atr"]
-        if bias == "long":
+        if ev.direction == "long":
             sl = min(row["low"], entry - cfg.atr_mult*atr)
         else:
             sl = max(row["high"], entry + cfg.atr_mult*atr)
@@ -109,7 +135,7 @@ def find_entries(df, cfg):
         if risk_pts < 1e-9: continue
 
         entries.append({
-            "entry_idx": i, "direction": bias,
+            "entry_idx": ev.entry_idx, "direction": ev.direction,
             "entry": entry, "sl0": sl, "risk_pts": risk_pts,
         })
     return entries
