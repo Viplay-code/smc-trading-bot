@@ -258,22 +258,17 @@ def metrics(trades, cfg, initial_equity=500.0):
     total = len(pnl)
     wins  = (pnl > 0).sum()
     losses= (pnl < 0).sum()
-    be    = (pnl == 0).sum()
-    wr    = round(wins/total*100, 1)
-    gp    = pnl[pnl > 0].sum()
-    gl    = pnl[pnl < 0].abs().sum()
-    pf    = round(gp/gl, 3) if gl > 0 else float("inf")
-    exp_r = round(pnl.mean(), 3)
-    total_r = round(pnl.sum(), 2)
     avg_win  = round(pnl[pnl > 0].mean(), 3) if wins > 0 else 0
     avg_loss = round(pnl[pnl < 0].mean(), 3) if losses > 0 else 0
+
+    # Núcleo compartido con analisis_mfe_mae.py (Iniciativa D): pf/exp_r/wr/
+    # total_r/max_dd/be.
+    core = research.compute_core_metrics(pnl, cfg.risk, initial_equity)
 
     eq = [initial_equity]
     for r in pnl:
         eq.append(eq[-1]*(1 + cfg.risk*r))
-    eq_s = pd.Series(eq)
-    max_dd = round(((eq_s-eq_s.cummax())/eq_s.cummax()).min()*100, 2)
-    ret    = round((eq[-1]-initial_equity)/initial_equity*100, 2)
+    ret = round((eq[-1]-initial_equity)/initial_equity*100, 2)
 
     months = max(1, (trades["entry_time"].max()-trades["entry_time"].min()).days/30)
     freq   = round(total/months, 1)
@@ -281,9 +276,9 @@ def metrics(trades, cfg, initial_equity=500.0):
     # desglose por razon de salida
     reasons = trades["reason"].value_counts().to_dict()
 
-    return {"trades":total, "wins":wins, "losses":losses, "be":be, "wr":wr,
-            "pf":pf, "exp_r":exp_r, "avg_win":avg_win, "avg_loss":avg_loss,
-            "total_r":total_r, "max_dd":max_dd, "ret":ret, "freq":freq,
+    return {"trades":total, "wins":wins, "losses":losses, "be":core["be"], "wr":core["wr"],
+            "pf":core["pf"], "exp_r":core["exp_r"], "avg_win":avg_win, "avg_loss":avg_loss,
+            "total_r":core["total_r"], "max_dd":core["max_dd"], "ret":ret, "freq":freq,
             "reasons":reasons, "eq_final":round(eq[-1],2)}
 
 

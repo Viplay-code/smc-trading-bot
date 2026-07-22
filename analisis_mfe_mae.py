@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 from itertools import product
 
+import research
+
 CSV_PATH = "t1_trades_multiasset.csv"
 
 
@@ -55,26 +57,10 @@ def simulate_trailing(row, be_trigger, trail_activation, trail_distance):
 
 
 def metrics(pnl_series, risk=0.005, initial=500.0):
-    pnl = pd.Series(pnl_series)
-    total = len(pnl)
-    wins  = (pnl > 0).sum()
-    losses= (pnl < 0).sum()
-    be    = (pnl == 0).sum()
-    wr    = round(wins/total*100, 1)
-    gp    = pnl[pnl > 0].sum()
-    gl    = pnl[pnl < 0].abs().sum()
-    pf    = round(gp/gl, 3) if gl > 0 else float("inf")
-    exp_r = round(pnl.mean(), 3)
-    total_r = round(pnl.sum(), 2)
-
-    eq = [initial]
-    for r in pnl:
-        eq.append(eq[-1]*(1+risk*r))
-    eq_s = pd.Series(eq)
-    max_dd = round(((eq_s-eq_s.cummax())/eq_s.cummax()).min()*100, 2)
-
-    return {"pf":pf, "exp_r":exp_r, "wr":wr, "total_r":total_r,
-            "max_dd":max_dd, "be":be}
+    # Núcleo compartido con backtest.py (Iniciativa D) — mismo cálculo, sin
+    # guard de muestra chica ni manejo especial de entrada vacía, igual que
+    # antes de esta consolidación.
+    return research.compute_core_metrics(pnl_series, risk, initial)
 
 
 if __name__ == "__main__":

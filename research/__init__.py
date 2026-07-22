@@ -14,6 +14,7 @@ from .layers import (
     TRIGGER_LAYERS,
     ENTRY_LAYERS,
 )
+from .metrics import compute_core_metrics
 
 __all__ = [
     "BiasFn",
@@ -24,4 +25,5 @@ __all__ = [
     "BIAS_LAYERS",
     "TRIGGER_LAYERS",
     "ENTRY_LAYERS",
+    "compute_core_metrics",
 ]
