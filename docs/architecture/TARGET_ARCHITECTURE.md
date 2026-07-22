@@ -1,7 +1,7 @@
 # Arquitectura Objetivo — SMC Trading Bot
 
-**Estado:** Referencia oficial de arquitectura (v5)
-**Última revisión:** 2026-07-21
+**Estado:** Referencia oficial de arquitectura (v6)
+**Última revisión:** 2026-07-22
 
 Este documento describe la arquitectura **objetivo** del proyecto — cómo debería
 verse el sistema, no cómo está hoy. El estado actual y el roadmap de migración
@@ -66,15 +66,27 @@ entre ambos se documentan por separado dentro de este mismo archivo (§3 y §6).
 
 ## 3. Arquitectura actual (resumen)
 
-- Dos flujos de datos y señal **completamente desconectados**: el legacy
-  (`bot.py` + `backtest.py`, cada uno con su propia lógica inline de
-  indicadores/señal) y `dc_v1` (contrato de datos, sin nada que lo consuma
-  todavía).
-- **`bot.py` y `backtest.py` no implementan la misma estrategia.** `bot.py`
-  usa *Liquidity Sweep + BOS + pullback 50%*; `backtest.py` (`find_entries`)
-  usa un *cruce EMA9/EMA21 con filtro de bias 4H* ("T1"). El riesgo de "dos
-  implementaciones de señal que divergen" no es hipotético — ya es el estado
-  del repo.
+- `dc_v1` sigue sin consumidor: ni `research` ni `bot`/`backtest.py` leen su
+  output todavía (eso es Fase D). `bot.py`/`backtest.py` siguen con su propio
+  fetch de datos contra Binance, no contra `dc_v1`.
+- **`bot.py` y `backtest.py` ya no tienen dos implementaciones de señal
+  completamente desconectadas para Capa 2 (Trigger) y Capa 3 (Entry)** — desde
+  la migración de unificación del motor de señales (2026-07-21/22), ambos
+  obtienen esas dos capas de un registro único, `research/layers.py`
+  (`bot.py`: `A_sweep_bos`/`A_pullback_50`; `backtest.py`: `T1_ema_cross`/
+  `C_market_close`). Que usen candidatos *distintos* es intencional — son dos
+  variantes separadas que `FRAMEWORK.md` define para evaluar, no una
+  divergencia a corregir.
+- **Capa 1 (Bias) sigue siendo la excepción, deliberadamente.** `bot.py` ya
+  obtiene su bias del mismo registro (`A_ema200_neutral`), pero `backtest.py`
+  mantiene su fórmula de bias inline en `build_features` — no es una copia
+  sin migrar, es una fórmula de Capa 1 genuinamente distinta (reclasifica
+  cada vela 1H contra un nivel de EMA200 4H sostenido, en vez de clasificar
+  una sola vez por vela 4H como hace el candidato registrado). Migrarla
+  cambiaría las señales observables de `backtest.py`. La reconciliación de
+  ambas fórmulas queda registrada como un ítem de backlog independiente, con
+  criterios funcionales y validación histórica propios — no una continuación
+  directa de esta migración.
 - `simulate_v3` en `backtest.py` **ya acepta una configuración de salida como
   parámetro** (`exit_cfg`) y ya corre variantes desde un diccionario
   (`EXIT_CONFIGS`) — el patrón de "registro de variantes" que necesita el
@@ -151,7 +163,7 @@ bot                              (mismo research.layers + circuit breaker +
 | `market_data` | Sí (Fase A cerrada) | — (cerrado) |
 | `dc_v1` | Sí, conectado a datos reales (Fase B cerrada) | — (cerrado) |
 | Contrato de señal (columnas requeridas por capa) | No (implícito, no declarado) | Declarado en `research/layers.py` |
-| Registro de capas 1/2/3 intercambiables | No — dos implementaciones fijas y **distintas** entre sí | Un registro único, consumido por `research` y `bot` |
+| Registro de capas 1/2/3 intercambiables | Parcial — Trigger y Entry ya vienen de un registro único (`research/layers.py`), consumido por `bot.py` y `backtest.py`; Bias de `backtest.py` sigue con fórmula propia, distinta de la registrada (backlog independiente, ver §3) | Un registro único, consumido por `research` y `bot` |
 | Simulador de gestión genérico | Ya existe dentro de `backtest.py`, acoplado a una sola señal | Extraído a `research/simulate.py` |
 | Métricas + Gate | Duplicado (2 versiones casi idénticas) | Consolidado en `research/metrics.py` |
 | Esquema canónico de trade record | No — 4 esquemas distintos ya en el repo | Un esquema fijo, usado por todas las corridas |
@@ -170,7 +182,7 @@ bot                              (mismo research.layers + circuit breaker +
 | **B** | `dc_v1` conectado a datos reales vía `market_data`; cerrar `versions.py` | A | Cerrada — 9/9 datasets reales (3 activos × 2022/2023/2024) generados y validados vía `scripts/build_dc_v1_datasets.py`, `pipeline_version`/`dataset_version` consistentes |
 | **C1** | Consolidar métricas + gate en `research/metrics.py` | — (independiente, puede empezar ya) | Pendiente |
 | **C2** | Extraer el simulador de gestión a `research/simulate.py`, probado primero contra la ruta de datos legacy que ya funciona hoy | — (independiente de A/B) | Pendiente |
-| **C3** | Construir `research/layers.py` (registro de capas + contrato de señal + esquema canónico de trade record) | — (independiente de A/B) | Pendiente |
+| **C3** | Construir `research/layers.py` (registro de capas + contrato de señal + esquema canónico de trade record) | — (independiente de A/B) | Parcial — registro de capas construido y consumido por `bot.py` y `backtest.py` para Trigger+Entry (Bias de `backtest.py` sigue inline, ver §3); esquema canónico de trade record aún no |
 | **D** | `research/runner.py`: barrido completo 2022→2023→2024 con disciplina de blind set | A, B, C1, C2, C3 | Pendiente |
 | **E** | Artefacto de configuración ganadora + refactor de `bot` (separación interna + circuit breaker + persistencia) | D | Pendiente |
 | **F** | Paper trading operativo endurecido (monitoreo del circuit breaker en producción) | E | Pendiente |
@@ -246,7 +258,8 @@ Fase C3 (registro de capas + contrato de señal)     ─────┘         
 | v2 | Reordenamiento de fases para permitir paralelismo real (C en paralelo con A/B); corrección de componentes sobredimensionados (el simulador y el motor de backtest no se construyen desde cero, se extraen). |
 | v3 | Reducción de 9 a 4 componentes nombrados; TA-Lib movido a "Decisiones Pendientes" (§10) por requerir validación técnica antes de ratificarse; se agregan principios de gobernanza (§0) y reglas de dependencias (§2); se documenta el hallazgo de los 4 esquemas de trade record ya divergentes como justificación del esquema canónico en `research/runner.py`. |
 | v4 | Fase A dada por cerrada: §3 y §5 actualizados (`market_data` existe y está versionado, `versions.py` es importable). ADR-001 (§10) ratificado — TA-Lib queda fijado como dependencia de runtime para EMA/ATR, consistente con `DC-v1_Precisiones_Implementacion.md` P-7. |
-| v5 (este documento) | Fase B dada por cerrada: los 9 datasets reales (3 activos × 2022/2023/2024) se generaron y validaron vía `scripts/build_dc_v1_datasets.py` (`pipeline_version=dc-v1`, `dataset_version=market-data-v1` consistentes en los 9). §3, §5 y §6.1 (nueva columna "Estado") actualizados. |
+| v5 | Fase B dada por cerrada: los 9 datasets reales (3 activos × 2022/2023/2024) se generaron y validaron vía `scripts/build_dc_v1_datasets.py` (`pipeline_version=dc-v1`, `dataset_version=market-data-v1` consistentes en los 9). §3, §5 y §6.1 (nueva columna "Estado") actualizados. |
+| v6 (este documento) | Migración de unificación del motor de señales (backlog post-Fase-B, ítem 1) reflejada: `bot.py` y `backtest.py` ya consumen `research/layers.py` para Trigger+Entry (Capa 2/3); Bias permanece inline en `backtest.py` por una fórmula genuinamente distinta a la registrada, no por trabajo pendiente — su reconciliación queda como backlog independiente. §3, §5 y §6.1 (Fase C3 → Parcial) actualizados. |
 
 ---
 

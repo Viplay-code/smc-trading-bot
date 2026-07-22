@@ -87,9 +87,12 @@ There is no lint/format tooling configured in this repo.
 
 ### Legacy strategy (`bot.py`, `backtest.py`)
 
-Liquidity Sweep → BOS (break of structure) → 50% pullback entry, filtered by EMA200 on
-the 4H timeframe, traded only during London (07-11 UTC) and New York (13-17 UTC)
-sessions, one position per asset at a time.
+`bot.py` trades Liquidity Sweep → BOS (break of structure) → 50% pullback entry;
+`backtest.py` trades "T1", an EMA9/EMA21 crossover — two different FRAMEWORK.md
+candidates being evaluated in parallel, not one strategy under two names. Both are
+filtered by an EMA200 4H bias and traded only during London (07-11 UTC) and New York
+(13-17 UTC) sessions, one position per asset at a time. See "Signal engine (`research/`)"
+below for how each currently sources its Trigger/Entry logic.
 
 - `bot.py`: live loop against `python-binance`'s `Client` (testnet by default,
   `paper_trade=True` simulates fills without sending orders). State machine per iteration:
@@ -101,6 +104,27 @@ sessions, one position per asset at a time.
   favorable-move update can move the stop, so intrabar movement never protects itself
   within the same bar. Two exit variants (V3-A, V3-B) are run side-by-side per asset/
   period for comparison; `passes()` encodes the same accept/reject gate as `FRAMEWORK.md`.
+
+### Signal engine (`research/`)
+
+`research/layers.py` is a registry of interchangeable FRAMEWORK.md signal-layer
+candidates (Capa 1 bias, Capa 2 trigger, Capa 3 entry), keyed by candidate name in
+`BIAS_LAYERS`/`TRIGGER_LAYERS`/`ENTRY_LAYERS`. Import only from `research`'s public entry
+point (`research/__init__.py`), never `research.layers` directly. It exists to give
+`bot.py` and `backtest.py` a shared source for signal logic instead of each maintaining
+its own inline copy.
+
+Current wiring: `bot.py` sources Bias (`A_ema200_neutral`), Trigger (`A_sweep_bos`), and
+Entry (`A_pullback_50`) from the registry. `backtest.py` sources Trigger (`T1_ema_cross`)
+and Entry (`C_market_close`) from the registry, but its Bias stays inline in
+`build_features` — it's a materially different Capa 1 formula (reclassifies every 1H bar
+against a held 4H EMA200 level, instead of classifying once per 4H bar like
+`A_ema200_neutral`), and routing it through the registry would change `backtest.py`'s
+observable signals. Reconciling the two Bias formulas is a separate, not-yet-scheduled
+backlog item — don't assume it's a drop-in swap.
+
+Gestión (SL/TP/sizing) is deliberately outside this registry (`FRAMEWORK.md` treats it as
+fixed, not a layer variant) and stays inline in each consumer.
 
 ### DC-v1 pipeline (`dc_v1/`)
 
