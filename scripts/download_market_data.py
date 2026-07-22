@@ -14,6 +14,8 @@ Uso (desde la raíz del repo):  python scripts/download_market_data.py
 """
 import sys
 
+sys.path.insert(0, ".")   # ejecutar desde la raíz del repo
+
 from binance.client import Client
 
 from market_data import (

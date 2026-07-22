@@ -100,6 +100,14 @@ def compute_atr(df: pd.DataFrame, period: int) -> pd.Series:
 
 
 # ─── Lógica de señales ──────────────────────────────────────────────────────
+# htf_bias/detect_bos (abajo): sin call sites en run_bot desde la Tarea 6 —
+# se conservan a propósito (Iniciativa A, higiene de arquitectura), no por
+# descuido. research/tests/test_layers.py las usa como referencia real para
+# validar que research.layers.bias_A_ema200_neutral/trigger_A_sweep_bos
+# reproducen el comportamiento original del sistema (test_bias_matches_legacy,
+# test_trigger_matches_legacy) — no una transcripción mantenida a mano, sino
+# el código real. Eliminarlas rompería esa comparación. Mismo criterio de
+# compute_ema, usada solo dentro de htf_bias.
 def htf_bias(df4h: pd.DataFrame, cfg: Config) -> str:
     """Devuelve 'long', 'short' o 'neutral' según EMA200 4H."""
     ema = compute_ema(df4h["close"], cfg.ema_period)
@@ -253,9 +261,10 @@ def run_bot(client: Client, cfg: Config):
 
             # ── 2. Filtro HTF ───────────────────────────────────────────────
             # Delega a research.layers (Tarea 6) — misma fórmula que htf_bias()
-            # (que queda definida más abajo, ya sin uso, ver nota de la Tarea 6
-            # en CLAUDE.md/plan). Se mapea int{-1,0,1} -> string porque el resto
-            # del loop compara contra "long"/"short"/"neutral".
+            # (definida más abajo, sin call sites en el loop pero conservada a
+            # propósito como referencia de test — ver nota junto a su
+            # definición, Iniciativa A). Se mapea int{-1,0,1} -> string porque
+            # el resto del loop compara contra "long"/"short"/"neutral".
             bias_int = int(research.BIAS_LAYERS["A_ema200_neutral"](df4h).iloc[-1])
             bias = {1: "long", -1: "short", 0: "neutral"}[bias_int]
             if bias == "neutral":

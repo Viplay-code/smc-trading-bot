@@ -68,8 +68,6 @@ def build_features(df1h_raw, df4h_raw, cfg):
     h, l, cp = df["high"], df["low"], df["close"].shift(1)
     tr = pd.concat([h-l, (h-cp).abs(), (l-cp).abs()], axis=1).max(axis=1)
     df["atr"]  = tr.ewm(alpha=1/cfg.atr_period, adjust=False).mean()
-    df["ema9"]  = df["close"].ewm(span=9,  adjust=False).mean()
-    df["ema21"] = df["close"].ewm(span=21, adjust=False).mean()
 
     h_idx = df.index.hour
     df["in_session"] = [any(s <= hh < e for s, e in cfg.sessions) for hh in h_idx]
