@@ -13,6 +13,7 @@ from .layers import (
     BIAS_LAYERS,
     TRIGGER_LAYERS,
     ENTRY_LAYERS,
+    bias_A2_ema200_neutral_1h_held,
 )
 from .metrics import compute_core_metrics
 
@@ -26,4 +27,5 @@ __all__ = [
     "TRIGGER_LAYERS",
     "ENTRY_LAYERS",
     "compute_core_metrics",
+    "bias_A2_ema200_neutral_1h_held",
 ]
