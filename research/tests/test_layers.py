@@ -37,6 +37,7 @@ from research.layers import (
     entry_A_pullback_50,
     trigger_T1_ema_cross,
     entry_C_market_close,
+    entry_D_next_candle_open,
 )
 
 Path("smc_bot.log").unlink(missing_ok=True)
@@ -279,6 +280,32 @@ def test_entry_matches_shared_implementation():
 
 
 # --------------------------------------------------------------------------- #
+# Comportamiento (no paridad — D nunca existió en bot.py/backtest.py) —       #
+# entry_D_next_candle_open: precio = open de la vela en entry_idx+1,          #
+# cualquiera sea el candidato de Capa 2 que produjo el evento (mismo criterio #
+# de agnosticismo ya probado para C).                                        #
+# --------------------------------------------------------------------------- #
+def test_entry_d_next_candle_open_behavior():
+    df1h = make_synthetic_1h()
+    events_sweep_bos = trigger_A_sweep_bos(df1h)
+    events_t1 = trigger_T1_ema_cross(df1h)
+    assert events_sweep_bos and events_t1, "se necesitan eventos reales de ambos triggers"
+
+    ok = True
+    for events in (events_sweep_bos, events_t1):
+        for ev in events:
+            if ev.entry_idx + 1 >= len(df1h):
+                continue
+            expected = float(df1h["open"].iloc[ev.entry_idx + 1])
+            got = entry_D_next_candle_open(df1h, ev).price
+            if got != expected:
+                ok = False
+
+    return _p("entry_D_next_candle_open == open(entry_idx+1), agnóstico al candidato de Capa 2 "
+               f"({len(events_sweep_bos)} eventos A_sweep_bos + {len(events_t1)} eventos T1)", ok)
+
+
+# --------------------------------------------------------------------------- #
 # Paridad T1 — trigger_T1_ema_cross + entry_C_market_close vs                 #
 # backtest.py::find_entries real, reaplicando el mismo filtro de bias/sesión  #
 # que find_entries hace inline (trigger_T1_ema_cross deliberadamente no lo    #
@@ -323,6 +350,7 @@ ALL_TESTS = [
     test_bias_a2_matches_backtest_exact,
     test_trigger_matches_legacy,
     test_entry_matches_shared_implementation,
+    test_entry_d_next_candle_open_behavior,
     test_t1_matches_legacy,
 ]
 

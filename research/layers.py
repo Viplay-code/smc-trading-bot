@@ -402,6 +402,23 @@ def entry_C_market_close(df1h: pd.DataFrame, event: TriggerEvent) -> EntrySignal
 
 
 # --------------------------------------------------------------------------- #
+# Capa 3 — candidato D: apertura de la vela siguiente al evento de Capa 2     #
+# (FRAMEWORK.md: "apertura de vela siguiente al BOS"). Generalizado a         #
+# "vela siguiente al evento" con el mismo criterio ya aplicado a C: el        #
+# mecanismo no depende de qué candidato de Capa 2 produjo el evento. Nunca    #
+# existió en bot.py/backtest.py — candidato declarado en FRAMEWORK.md pero    #
+# no implementado hasta ahora (a diferencia de A/C, no hay legacy que portar; #
+# ver research/tests/test_layers.py para su test de comportamiento en vez de  #
+# paridad).                                                                   #
+# --------------------------------------------------------------------------- #
+def entry_D_next_candle_open(df1h: pd.DataFrame, event: TriggerEvent) -> EntrySignal:
+    """Precio de entrada = apertura de la vela siguiente a `event.entry_idx`
+    (orden a mercado, un paso después que C). No usa `event.meta` — igual que
+    entry_C_market_close, el precio no depende de niveles de sweep/BOS."""
+    return EntrySignal(price=float(df1h["open"].iloc[event.entry_idx + 1]))
+
+
+# --------------------------------------------------------------------------- #
 # Registros: nombre de candidato (FRAMEWORK.md) -> función.                  #
 # --------------------------------------------------------------------------- #
 BIAS_LAYERS: dict[str, BiasFn] = {
@@ -414,4 +431,5 @@ TRIGGER_LAYERS: dict[str, TriggerFn] = {
 ENTRY_LAYERS: dict[str, EntryFn] = {
     "A_pullback_50": entry_A_pullback_50,
     "C_market_close": entry_C_market_close,
+    "D_next_candle_open": entry_D_next_candle_open,
 }

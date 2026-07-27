@@ -101,7 +101,10 @@ Candidatos a evaluar:
   "cierre de vela BOS": no depende de qué candidato de Capa 2 produjo el
   evento. Implementado en `research.layers::entry_C_market_close`
   (2026-07-21); es el precio de entrada que usa T1 hoy en `backtest.py`.
-- D: Apertura de vela siguiente al BOS
+- D: Apertura de vela siguiente al BOS — generalizado a "apertura de la vela
+  siguiente al evento de Capa 2" (mismo criterio que C: no depende de qué
+  candidato lo produjo). Implementado en
+  `research.layers::entry_D_next_candle_open` (2026-07-27).
 
 ### Gestión (fija para todas las variantes)
 - Stop Loss: mínimo entre estructura y ATR(14) × 1.5
