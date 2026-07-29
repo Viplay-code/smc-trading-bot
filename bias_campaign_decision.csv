@@ -1,0 +1,13 @@
+asset,candidate,exit_config,pf_2022,pf_2023,gate_2022,gate_2023,survives_both_years,rank_within_asset
+BTCUSDT,A,V3-A (1R/2R/1R),0.895,0.713,False,False,False,
+BTCUSDT,A,V3-B (0.75R/1.5R/0.75R),1.208,0.811,False,False,False,
+BTCUSDT,A2,V3-A (1R/2R/1R),0.861,0.756,False,False,False,
+BTCUSDT,A2,V3-B (0.75R/1.5R/0.75R),1.186,0.797,False,False,False,
+ETHUSDT,A,V3-A (1R/2R/1R),0.971,0.952,False,False,False,
+ETHUSDT,A,V3-B (0.75R/1.5R/0.75R),0.867,0.908,False,False,False,
+ETHUSDT,A2,V3-A (1R/2R/1R),1.044,0.854,False,False,False,
+ETHUSDT,A2,V3-B (0.75R/1.5R/0.75R),0.956,0.833,False,False,False,
+SOLUSDT,A,V3-A (1R/2R/1R),1.152,1.138,False,False,False,
+SOLUSDT,A,V3-B (0.75R/1.5R/0.75R),1.226,1.312,False,False,False,
+SOLUSDT,A2,V3-A (1R/2R/1R),1.231,1.069,False,False,False,
+SOLUSDT,A2,V3-B (0.75R/1.5R/0.75R),1.386,1.241,False,False,False,

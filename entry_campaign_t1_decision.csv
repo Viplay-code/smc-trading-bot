@@ -1,0 +1,13 @@
+asset,candidate,exit_config,pf_2022,pf_2023,gate_2022,gate_2023,survives_both_years,rank_within_asset
+BTCUSDT,C_market_close,V3-A (1R/2R/1R),0.895,0.713,False,False,False,
+BTCUSDT,C_market_close,V3-B (0.75R/1.5R/0.75R),1.208,0.811,False,False,False,
+BTCUSDT,D_next_candle_open,V3-A (1R/2R/1R),0.895,0.713,False,False,False,
+BTCUSDT,D_next_candle_open,V3-B (0.75R/1.5R/0.75R),1.207,0.811,False,False,False,
+ETHUSDT,C_market_close,V3-A (1R/2R/1R),0.971,0.952,False,False,False,
+ETHUSDT,C_market_close,V3-B (0.75R/1.5R/0.75R),0.867,0.908,False,False,False,
+ETHUSDT,D_next_candle_open,V3-A (1R/2R/1R),0.971,0.952,False,False,False,
+ETHUSDT,D_next_candle_open,V3-B (0.75R/1.5R/0.75R),0.866,0.908,False,False,False,
+SOLUSDT,C_market_close,V3-A (1R/2R/1R),1.152,1.138,False,False,False,
+SOLUSDT,C_market_close,V3-B (0.75R/1.5R/0.75R),1.226,1.312,False,False,False,
+SOLUSDT,D_next_candle_open,V3-A (1R/2R/1R),1.145,1.137,False,False,False,
+SOLUSDT,D_next_candle_open,V3-B (0.75R/1.5R/0.75R),1.361,1.311,False,False,False,
