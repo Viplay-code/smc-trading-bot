@@ -124,6 +124,29 @@ Candidatos a evaluar:
   evaluables) — esto documenta el estado de la evidencia, no implica que
   la configuración actual esté mal elegida.
 - Una posición a la vez por activo
+- Búsqueda de mejora en gestión (BE/trailing): diagnóstico MFE/MAE sobre datos
+  reales 2022/2023 (2026-07-30, baseline Bias=A/Trigger=T1/Entry=C/
+  atr_mult=1.5/sesión control_8h/salida V3-A) encontró un margen positivo y
+  consistente entre `avg_win` realizado y la media de MFE_R de los trades
+  ganadores en los 6 combos activo×año evaluados (Paso 1) — evidencia
+  compatible con que la gestión activa limita la captura del movimiento
+  favorable disponible, en los tres activos. Comparado contra el `avg_win`
+  que exigiría el gate PF≥1.50 de este documento (Paso 2, umbral derivado
+  algebraicamente, no arbitrario), el techo teórico lo alcanza en 5 de 6
+  combos: ETHUSDT y SOLUSDT en ambos años, BTCUSDT solo en 2022 (en 2023 el
+  margen es negativo, -0.43R sobre un requerido de 3.58R). Esto no
+  demuestra que una implementación realista de BE/trailing desacoplados
+  ("H2") sea incapaz de cerrar esa diferencia en BTCUSDT — solo que la
+  evidencia previa es más fuerte en ETHUSDT/SOLUSDT. Habilita una futura
+  campaña H2 sobre los tres activos, con BTCUSDT evaluado por separado
+  dentro de esa campaña (no excluido de antemano) dado su resultado más
+  débil en 2023. Todavía no implementada. El baseline usado (sesión
+  control_8h) ya reprueba el gate de frecuencia de FRAMEWORK.md en los 6
+  combos evaluados (campaña de sesión, 2026-07-29); superar el Paso 2 no
+  implica que este baseline pasaría los 4 gates — eso lo determina el
+  `gate_check()` de la futura campaña H2. Detalle:
+  `scripts/gestion_mfe_diagnostico.py`, `gestion_mfe_diagnostico_summary.csv`/
+  `_trades.csv`.
 
 ---
 
