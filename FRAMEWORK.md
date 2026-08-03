@@ -147,6 +147,62 @@ Candidatos a evaluar:
   `gate_check()` de la futura campaña H2. Detalle:
   `scripts/gestion_mfe_diagnostico.py`, `gestion_mfe_diagnostico_summary.csv`/
   `_trades.csv`.
+- Familia H2 (BE/trailing desacoplados) — cierre de las dos primeras
+  campañas aisladas, cada una con Bias=A/Trigger=T1/Entry=C/atr_mult=1.5/
+  sesión control_8h fijos (mismo baseline que la campaña de sesión ya
+  reprobó en frecuencia, 2026-07-29 — heredado a propósito para preservar
+  comparabilidad dentro de la familia, no por desconocimiento):
+  - **H2.1 — distancia de trailing** (`distance`; `be`=1.0R/`activation`=2.0R
+    fijos en su ancla V3-A; 2026-07-30/31, `scripts/gestion_campaign_
+    trailing_distance.py`, cerrada commit `9e05c96`). Grilla base
+    {0.5, 0.75, 1.0, 1.5} + extensiones por contingencia {0.25, 1.25}.
+    Ninguna combinación superó los 4 gates en 2022+2023 en ningún activo
+    — la frecuencia, idéntica para todo el rango de `distance` dentro de
+    cada (activo, año) por construcción (las entradas no dependen de esta
+    variable), nunca alcanzó el piso de 6 bajo `control_8h`. Se observó
+    una asociación entre valores de `distance` más ajustados (0.25R-0.5R)
+    y PF más alto, consistente en 2022 y 2023, en ETHUSDT y SOLUSDT; en
+    BTCUSDT el signo de esa asociación se invirtió entre 2022 y 2023, sin
+    dirección estable. Sin evidencia suficiente para promover ningún
+    valor de `distance` — ninguna combinación superó los 4 gates.
+  - **H2.2 — activación del trailing** (`activation`; `be`=1.0R/
+    `distance`=1.0R fijos en su ancla V3-A — explícitamente NO el valor
+    asociado con PF más alto en H2.1, para no promover un candidato nunca
+    validado por gates; 2026-07-31 a 2026-08-03, `scripts/gestion_
+    campaign_activation.py`, cerrada commit `c0add0a`). Grilla base
+    {1.5, 2.0, 2.5} + extensiones por contingencia {1.25, 3.0} (disparadas
+    en BTCUSDT 2022/superior, SOLUSDT 2022/superior, ETHUSDT 2023/
+    superior, BTCUSDT 2023/inferior, SOLUSDT 2023/inferior; ETHUSDT 2022
+    no disparó ninguna — el mejor PF observado entre los 3 puntos base
+    coincidió con el propio ancla). Ninguna combinación superó los 4
+    gates en ningún activo — mismo mecanismo estructural que H2.1: la
+    frecuencia es idéntica dentro de cada (activo, año) sin importar
+    `activation` (verificado: las entradas no dependen de esta variable
+    por construcción del motor) y nunca cruza el piso de 6 bajo
+    `control_8h` — el gate de frecuencia no dependía de `activation` en
+    absoluto. Se observó una asociación monótona y consistente en las 6
+    combinaciones activo×año entre valores más altos de `activation` y WR
+    más bajo junto con `avg_win` más alto — consistente con el mecanismo
+    determinístico del motor (`simulate_v3`): a mayor umbral de
+    activación, menos operaciones lo alcanzan antes de revertir, y las
+    que lo alcanzan lo hacen tras un movimiento favorable mayor. `avg_loss`
+    también se observó levemente menor en magnitud en el mismo sentido. A
+    diferencia de H2.1, esta asociación no se acompañó de una dirección de
+    PF consistente entre 2022 y 2023 en ningún activo: en BTCUSDT y
+    SOLUSDT el signo de la asociación entre `activation` y PF se invirtió
+    entre años; en ETHUSDT el mejor PF observado coincidió con el ancla en
+    2022, mientras que en 2023 el ancla fue el peor PF observado entre los
+    3 puntos base. Sin evidencia suficiente para promover ningún valor de
+    `activation` — ninguna combinación superó los 4 gates.
+  - Ninguno de los dos cierres autoriza adoptar un valor de `distance` o
+    `activation` para el sistema integrado, precisamente porque ninguna
+    configuración superó los 4 gates de FRAMEWORK.md en ninguna de las dos
+    campañas. La selección entre los candidatos que cada campaña no
+    descartó objetivamente (dominados en las 4 métricas de `gate_check()`
+    por otro candidato) queda diferida a la futura Fase de Integración,
+    bajo la regla de eliminación-no-promoción acordada 2026-07-31. H2.3
+    (`be`) queda como siguiente campaña de la familia, todavía no
+    implementada.
 
 ---
 
