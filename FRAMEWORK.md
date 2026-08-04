@@ -194,15 +194,48 @@ Candidatos a evaluar:
     2022, mientras que en 2023 el ancla fue el peor PF observado entre los
     3 puntos base. Sin evidencia suficiente para promover ningún valor de
     `activation` — ninguna combinación superó los 4 gates.
-  - Ninguno de los dos cierres autoriza adoptar un valor de `distance` o
-    `activation` para el sistema integrado, precisamente porque ninguna
-    configuración superó los 4 gates de FRAMEWORK.md en ninguna de las dos
-    campañas. La selección entre los candidatos que cada campaña no
-    descartó objetivamente (dominados en las 4 métricas de `gate_check()`
-    por otro candidato) queda diferida a la futura Fase de Integración,
-    bajo la regla de eliminación-no-promoción acordada 2026-07-31. H2.3
-    (`be`) queda como siguiente campaña de la familia, todavía no
-    implementada.
+  - **H2.3 — nivel de breakeven** (`be`; `activation`=2.0R/`distance`=1.0R
+    fijos en su ancla V3-A — explícitamente NO los hallazgos de H2.1/H2.2,
+    misma regla de no-promoción; 2026-08-03/04, `scripts/gestion_
+    campaign_be.py`, cerrada commit `b5cee18`). Grilla base
+    {0.5, 1.0, 1.5} + extensiones por contingencia {0.25, 2.0} (disparadas
+    en BTCUSDT 2022/inferior, SOLUSDT 2022/inferior, ETHUSDT 2022/
+    superior, BTCUSDT 2023/superior, ETHUSDT 2023/inferior; SOLUSDT 2023
+    no disparó ninguna — el mejor PF observado entre los 3 puntos base
+    coincidió con el propio ancla). Ninguna combinación superó los 4
+    gates en ningún activo — mismo mecanismo estructural que H2.1/H2.2:
+    la frecuencia es idéntica dentro de cada (activo, año) sin importar
+    `be` y nunca cruza el piso de 6 bajo `control_8h`. A diferencia de
+    H2.1, no se observó una dirección de PF que se repita entre 2022 y
+    2023 en ningún activo — ni siquiera en ETHUSDT/SOLUSDT, donde
+    `distance` sí la había mostrado: en BTCUSDT y ETHUSDT el signo de la
+    asociación entre `be` y PF se invirtió entre años; en SOLUSDT el
+    mejor PF observado se ubicó en extremos distintos cada año. Se
+    observaron dos asociaciones monótonas y consistentes en las 6
+    combinaciones activo×año: WR más alto y `avg_loss` de mayor magnitud
+    a medida que aumenta `be`. Una interpretación consistente con la
+    lógica de `simulate_v3` (`backtest.py:192-198`) — no una demostración
+    causal derivada de esta campaña — es que un `be` más bajo mueve el
+    stop a la entrada antes, lo que podría limitar tanto la magnitud de
+    las pérdidas de operaciones que nunca alcanzan ese nivel como el
+    conteo de ganadoras (operaciones que hubieran seguido a favor
+    quedarían cortadas en breakeven). `avg_win` no mostró una asociación
+    monótona en ninguna de las 6 combinaciones. Sin evidencia suficiente
+    para promover ningún valor de `be` — ninguna combinación superó los
+    4 gates.
+  - La familia H2 queda formalmente cerrada: `distance`, `activation` y
+    `be` quedaron caracterizadas de forma aislada, cada una bajo el mismo
+    protocolo homogéneo (Bias=A/Trigger=T1/Entry=C/atr_mult=1.5/sesión
+    control_8h fijos, grilla simétrica con reglas de contingencia
+    pre-especificadas, gates literales de FRAMEWORK.md). Ninguna de las
+    tres campañas produjo una configuración que superara los 4 gates, por
+    lo que ninguno de los tres cierres autoriza adoptar un valor de
+    `distance`, `activation` o `be` para el sistema integrado. La
+    selección de una configuración integrada — entre los candidatos que
+    cada campaña no descartó objetivamente (dominados en las 4 métricas
+    de `gate_check()` por otro candidato) — queda diferida a la futura
+    Fase de Integración, bajo la regla de eliminación-no-promoción
+    acordada 2026-07-31.
 
 ---
 
