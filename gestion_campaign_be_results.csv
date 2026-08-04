@@ -1,0 +1,24 @@
+asset,year,candidate,exit_config,n_entries,n_trades,entries_per_month,fill_rate,gate_pass,triggered_by,pf,wr,exp_r,avg_win,avg_loss,total_r,max_dd,freq,be,reason_stop,reason_timeout
+BTCUSDT,2022,0.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,62,5.28,0.984,False,,1.014,21.0,0.006,1.851,-0.484,0.34,-3.01,5.2,0,59,3
+BTCUSDT,2022,1.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,62,5.28,0.984,False,,0.895,27.4,-0.052,1.629,-0.688,-3.25,-4.63,5.2,0,54,8
+BTCUSDT,2022,1.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,62,5.28,0.984,False,,0.866,33.9,-0.074,1.405,-0.831,-4.57,-5.26,5.2,0,50,12
+BTCUSDT,2022,0.25,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,62,5.28,0.984,False,lower_contingency,1.38,19.4,0.098,1.835,-0.319,6.06,-2.03,5.2,0,61,1
+ETHUSDT,2022,0.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",49,48,4.08,0.98,False,,0.888,20.8,-0.046,1.735,-0.514,-2.19,-2.44,4.0,0,45,3
+ETHUSDT,2022,1.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",49,48,4.08,0.98,False,,0.971,33.3,-0.014,1.397,-0.719,-0.67,-1.95,4.0,0,38,10
+ETHUSDT,2022,1.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",49,48,4.08,0.98,False,,1.207,43.8,0.107,1.42,-0.915,5.12,-1.68,4.0,0,35,13
+ETHUSDT,2022,2.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",49,48,4.08,0.98,False,upper_contingency,1.256,45.8,0.137,1.463,-0.985,6.57,-1.68,4.0,0,35,13
+SOLUSDT,2022,0.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,61,5.37,0.968,False,,1.471,23.0,0.138,1.881,-0.381,8.44,-2.15,5.2,0,59,2
+SOLUSDT,2022,1.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,61,5.37,0.968,False,,1.152,32.8,0.071,1.649,-0.698,4.35,-4.6,5.2,0,56,5
+SOLUSDT,2022,1.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,61,5.37,0.968,False,,1.162,42.6,0.083,1.392,-0.89,5.05,-3.97,5.2,0,49,12
+SOLUSDT,2022,0.25,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",63,61,5.37,0.968,False,lower_contingency,1.339,16.4,0.067,1.617,-0.237,4.09,-2.95,5.2,0,60,1
+BTCUSDT,2023,0.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",62,61,5.39,0.984,False,,0.644,18.0,-0.167,1.679,-0.574,-10.22,-5.83,5.3,0,57,4
+BTCUSDT,2023,1.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",62,61,5.39,0.984,False,,0.713,24.6,-0.169,1.702,-0.779,-10.29,-5.18,5.3,0,53,8
+BTCUSDT,2023,1.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",62,61,5.39,0.984,False,,0.892,31.1,-0.066,1.754,-0.89,-4.05,-3.16,5.3,0,48,13
+BTCUSDT,2023,2.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",62,61,5.39,0.984,False,upper_contingency,0.921,34.4,-0.051,1.719,-0.98,-3.1,-3.62,5.3,0,46,15
+ETHUSDT,2023,0.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",69,67,5.77,0.971,False,,1.071,22.4,0.024,1.634,-0.44,1.63,-5.51,5.6,0,63,4
+ETHUSDT,2023,1.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",69,67,5.77,0.971,False,,0.952,29.9,-0.025,1.636,-0.731,-1.65,-7.21,5.6,0,56,11
+ETHUSDT,2023,1.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",69,67,5.77,0.971,False,,1.056,37.3,0.031,1.553,-0.875,2.05,-7.01,5.6,0,55,12
+ETHUSDT,2023,0.25,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",69,67,5.77,0.971,False,lower_contingency,1.206,16.4,0.05,1.78,-0.29,3.35,-4.32,5.6,0,65,2
+SOLUSDT,2023,0.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",56,56,4.7,1.0,False,,0.819,16.1,-0.073,2.053,-0.48,-4.08,-6.49,4.7,0,54,2
+SOLUSDT,2023,1.0,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",56,56,4.7,1.0,False,,1.138,28.6,0.072,2.088,-0.734,4.04,-6.3,4.7,0,46,10
+SOLUSDT,2023,1.5,"H2.3 anchor (activation=2.0R/distance=1.0R, be variable)",56,56,4.7,1.0,False,,1.134,30.4,0.073,2.023,-0.777,4.08,-6.29,4.7,0,45,11
