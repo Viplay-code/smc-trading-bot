@@ -236,6 +236,55 @@ Candidatos a evaluar:
     de `gate_check()` por otro candidato) — queda diferida a la futura
     Fase de Integración, bajo la regla de eliminación-no-promoción
     acordada 2026-07-31.
+- Fase de Integración (I1) — primera prueba conjunta de sesión y un
+  parámetro de Gestión, motivada porque toda campaña de la familia H2 fijó
+  sesión=`control_8h` (que por sí sola ya garantiza freq<6) mientras que la
+  campaña de sesión solo probó `dcv1_activo_15h` bajo la Gestión por
+  defecto, nunca bajo un valor de `distance`/`activation`/`be` con
+  evidencia de PF real — la celda del espacio de búsqueda que ningún
+  experimento anterior había tocado:
+  - **Paso 0 — congelamiento del espacio experimental** (2026-08-04,
+    análisis sobre CSV ya publicados, sin campaña nueva): dominación
+    Pareto sobre (pf, max_dd, exp_r) por (activo, año), sin comparar entre
+    activos, aplicada a los resultados ya publicados de H2.1/H2.2/H2.3.
+    `distance` se poda de 6 a 3 valores no-dominados ({0.25, 0.5, 1.5} —
+    el ancla V3-A, `distance`=1.0, queda dominada en TODOS los contextos
+    probados); `activation` y `be` no se podan en absoluto (los 5 valores
+    probados en cada campaña sobreviven en algún contexto — reflejo
+    directo de que ninguno de los dos mostró una dirección de PF estable
+    entre años). Este conjunto queda congelado: I1 no recalcula
+    dominación, cualquier cambio exige repetir formalmente el Paso 0 y
+    aprobar un nuevo contrato.
+  - **I1-distance** (`distance` ∈ {0.25, 0.5, 1.5} × sesión ∈
+    {`control_8h`, `dcv1_activo_15h`}, `be`=1.0R/`activation`=2.0R fijos
+    en su ancla V3-A; 2026-08-04/05, `scripts/integration_campaign_
+    distance.py`, cerrada commit `8688020`). Protocolo con Fase A
+    (verificación de integridad, obligatoria antes de cualquier resultado
+    experimental) + Fase B (barrido). Fase A verificada de forma
+    independiente antes de aceptar cualquier fila experimental: las 12
+    filas de control (`distance`=1.0 × 2 sesiones × 3 activos × 2 años)
+    coinciden EXACTO, sin un solo mismatch, con `gestion_campaign_
+    trailing_distance_results.csv` (H2.1) y `gestion_campaign_session_
+    results.csv` (V3-A). Ninguna de las 6 combinaciones candidatas superó
+    los 4 gates en ningún activo — de las 36 filas candidatas evaluadas,
+    ninguna alcanzó siquiera PF≥1.50 en un solo año (máximo observado:
+    1.417, SOLUSDT 2023, `0.5 | dcv1_activo_15h`). Bajo `dcv1_activo_15h`
+    la frecuencia pasó siempre (18/18 en [6,12]) y `max_dd`/`exp_r`
+    pasaron la mayoría de las veces (15/18 y 11/18) — PF queda
+    establecido como el gate universalmente vinculante en esta rama del
+    espacio, ya no la frecuencia. Se observó una asociación entre
+    `distance` más ajustado (0.25R-0.5R) y PF más alto en 7 de los 12
+    contextos activo×año×sesión, monótona en ambas sesiones (cero
+    contextos con la dirección opuesta) — reproduce y extiende la
+    asociación ya vista en H2.1 a la sesión `dcv1_activo_15h`, pero su
+    magnitud es insuficiente para cerrar el gate incluso en la mejor
+    combinación observada. El efecto de la sesión sobre PF (a `distance`
+    fijo) no mostró dirección estable entre años en ningún activo.
+    Hipótesis I1-distance falsificada: ninguna combinación (`distance`,
+    sesión) del conjunto no-dominado supera los 4 gates en 2022 Y 2023
+    para ningún activo. Sin evidencia suficiente para promover ninguna
+    combinación — quedan pendientes I1-activation e I1-be, mismo
+    protocolo, sobre los conjuntos ya congelados en el Paso 0.
 
 ---
 
