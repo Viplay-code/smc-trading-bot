@@ -285,6 +285,51 @@ Candidatos a evaluar:
     para ningún activo. Sin evidencia suficiente para promover ninguna
     combinación — quedan pendientes I1-activation e I1-be, mismo
     protocolo, sobre los conjuntos ya congelados en el Paso 0.
+  - **I1-activation** (`activation` ∈ {1.25, 1.5, 2.0, 2.5, 3.0} × sesión
+    ∈ {`control_8h`, `dcv1_activo_15h`}, `be`=1.0R/`distance`=1.0R fijos
+    en su ancla V3-A — anclas de H2.2, NO los hallazgos de H2.1/H2.3;
+    2026-08-06, `scripts/integration_campaign_activation.py`, cerrada
+    commit `d3930ff`). Protocolo idéntico a I1-distance, con dos
+    verificaciones adicionales por el rol dual del ancla (`activation`=2.0
+    es simultáneamente candidato no-dominado del Paso 0 y valor de
+    control, a diferencia de `distance`=1.0 en I1-distance): Fase A (12
+    verificaciones independientes — 6 contra `gestion_campaign_
+    activation_results.csv` (H2.2) y 6 contra `gestion_campaign_session_
+    results.csv` (V3-A)) y verificación de rol dual (la fila control de
+    `activation`=2.0 y su fila candidata equivalente, misma sesión, deben
+    coincidir exacto en TODAS las métricas publicadas, no solo PF/
+    gate_pass). Ambas verificadas de forma independiente antes de aceptar
+    cualquier resultado: 12/12 coincidencias exactas en cada una. Ninguna
+    de las 10 combinaciones candidatas superó los 4 gates en ningún activo
+    — de las 60 filas candidatas evaluadas, ninguna alcanzó siquiera
+    PF≥1.50 en un solo año (máximo observado: 1.360, SOLUSDT 2023,
+    `1.25 | dcv1_activo_15h`). Bajo `dcv1_activo_15h` la frecuencia pasó
+    siempre (30/30 en [6,12]) y `max_dd`/`exp_r` pasaron la mayoría de las
+    veces (21/30 y 17/30) — PF vuelve a quedar como el gate universalmente
+    vinculante, mismo patrón que I1-distance. El efecto de la sesión sobre
+    PF (a `activation` fijo) mostró el mismo signo para los 5 valores de
+    `activation` dentro de cada (activo, año) — BTCUSDT y SOLUSDT
+    favorecen `control_8h` en 2022 y `dcv1_activo_15h` en 2023; ETHUSDT
+    muestra el patrón invertido — más nítido que en I1-distance, donde el
+    signo variaba también dentro de un mismo (activo, año). La evidencia
+    respalda que ese efecto depende del contexto (activo, año) y no de
+    `activation`; su causa queda como hipótesis abierta, explícitamente
+    sin atribuir — no se interpreta como régimen de mercado ni ningún otro
+    mecanismo sin evidencia adicional que lo sustente. La asociación de PF
+    con `activation` fue no-monótona en 10 de los 12 contextos
+    activo×año×sesión (a diferencia de la mayoría monótona que mostró
+    `distance` en I1-distance) — reconfirma la falta de dirección estable
+    ya vista en H2.2, ahora también bajo la sesión nueva. En cambio, el
+    patrón mecánico de H2.2 (WR más bajo / `avg_win` más alto con
+    `activation` más alto) se reprodujo con alta consistencia: WR
+    monótonamente decreciente en 12/12 contextos, `avg_win` monótonamente
+    creciente en 10/12 — coherente con el mecanismo determinístico de
+    `simulate_v3` ya documentado, confirmado ahora bajo ambas sesiones.
+    Hipótesis I1-activation falsificada: ninguna combinación (`activation`,
+    sesión) del conjunto no-dominado supera los 4 gates en 2022 Y 2023
+    para ningún activo. Sin evidencia suficiente para promover ninguna
+    combinación — queda pendiente `I1-be`, mismo protocolo, sobre el
+    conjunto ya congelado en el Paso 0.
 
 ---
 
