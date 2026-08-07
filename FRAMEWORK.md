@@ -330,6 +330,80 @@ Candidatos a evaluar:
     para ningún activo. Sin evidencia suficiente para promover ninguna
     combinación — queda pendiente `I1-be`, mismo protocolo, sobre el
     conjunto ya congelado en el Paso 0.
+  - **I1-be** (`be` ∈ {0.25, 0.5, 1.0, 1.5, 2.0} × sesión ∈ {`control_8h`,
+    `dcv1_activo_15h`}, `activation`=2.0R/`distance`=1.0R fijos en su
+    ancla V3-A — anclas de H2.3, NO los hallazgos de H2.1/H2.2; 2026-08-07,
+    `scripts/integration_campaign_be.py`, cerrada commit `dfe595e`).
+    Protocolo idéntico a I1-activation, incluida la verificación de rol
+    dual (`be`=1.0 es simultáneamente candidato no-dominado del Paso 0 y
+    valor de control, igual que `activation`=2.0 en el bloque anterior):
+    Fase A (12 verificaciones independientes — 6 contra `gestion_campaign_
+    be_results.csv` (H2.3) y 6 contra `gestion_campaign_session_
+    results.csv` (V3-A)) y verificación de rol dual (la fila control de
+    `be`=1.0 y su fila candidata equivalente, misma sesión, coinciden
+    exacto en las 13 métricas publicadas). Ambas verificadas de forma
+    independiente antes de aceptar cualquier resultado: 12/12 coincidencias
+    exactas en cada una. Ninguna de las 10 combinaciones candidatas superó
+    los 4 gates en ningún activo — de las 60 filas candidatas evaluadas,
+    ninguna alcanzó siquiera PF≥1.50 en un solo año (máximo observado:
+    1.471, SOLUSDT 2022, `0.5 | control_8h`). Bajo `dcv1_activo_15h` la
+    frecuencia pasó siempre (30/30 en [6,12]) y `max_dd`/`exp_r` pasaron
+    una fracción similar a la de I1-activation (22/30 y 18/30) — PF vuelve
+    a quedar como el gate universalmente vinculante, mismo patrón que
+    I1-distance e I1-activation. La sesión con mejor PF a `be` fijo fue
+    consistente para los 5 valores dentro de cada (activo, año) en 5 de 6
+    combinaciones (todas salvo ETHUSDT 2022); entre años, esa sesión
+    favorecida se mantuvo igual solo en ETHUSDT (`control_8h` ambos años),
+    mientras que en BTCUSDT y SOLUSDT se invirtió (`control_8h` en 2022,
+    `dcv1_activo_15h` en 2023) — mismo patrón de dependencia de contexto
+    (activo, año) ya visto en I1-activation, sin atribuir causa. La
+    asociación entre `be` y PF no mostró una dirección estable entre 2022
+    y 2023 en 5 de los 6 contextos activo×sesión; la única excepción
+    (BTCUSDT, `dcv1_activo_15h`) mantuvo el mismo signo pero con magnitud
+    muy distinta entre años (correlación ≈0.88 en 2022 vs ≈0.22 en 2023) —
+    evidencia débil, no una dirección confiable. El patrón mecánico ya
+    visto en H2.3 se reprodujo con alta consistencia bajo ambas sesiones:
+    WR monótonamente no decreciente en 12/12 contextos activo×año×sesión
+    y `avg_loss` (magnitud) monótonamente no decreciente en 12/12;
+    `avg_win` no mostró asociación monótona en ninguno de los 12 contextos.
+    Hipótesis I1-be falsificada: ninguna combinación (`be`, sesión) del
+    conjunto no-dominado supera los 4 gates en 2022 Y 2023 para ningún
+    activo. Sin evidencia suficiente para promover ninguna combinación.
+  - **Cierre integrado de la Fase I1** (2026-08-07): con `I1-distance`,
+    `I1-activation` e `I1-be` cerrados bajo el mismo protocolo (Fase A de
+    verificación de integridad obligatoria + Fase B de barrido, ambas
+    verificadas de forma independiente en los tres bloques, sin un solo
+    mismatch en ninguna de las verificaciones), el espacio experimental
+    congelado en el Paso 0 (un parámetro de Gestión de la familia H2 ×
+    sesión, con los otros dos parámetros de Gestión fijos en su ancla
+    V3-A) queda agotado: de las 156 filas candidatas evaluadas en total
+    (36 + 60 + 60), ninguna superó los 4 gates y ninguna combinación
+    sobrevivió 2022 Y 2023 en ningún activo, en ningún bloque. El gate de
+    frecuencia se resolvió, en los tres bloques por igual, exclusivamente
+    en función de la sesión (0% bajo `control_8h`, 100% bajo
+    `dcv1_activo_15h`, independiente de cuál parámetro de Gestión se
+    varió) — el mismo patrón ya visto en la campaña de sesión aislada,
+    ahora confirmado bajo tres interacciones independientes distintas. El
+    PF observado no cruzó el gate de 1.50 en ninguna de las 156 filas; el
+    máximo observado en toda la Fase I1 (1.476, I1-distance, SOLUSDT 2022,
+    `0.25 | control_8h`) es consistente con los máximos ya vistos en
+    H1/H2.1/H2.2/H2.3 bajo `control_8h` en solitario — un máximo empírico
+    que se repite de forma consistente a través de todas las campañas
+    realizadas hasta ahora, sin que la evidencia disponible permita
+    identificar su causa; se documenta como observación abierta, no como
+    límite estructural demostrado. Los trade-offs mecánicos ya vistos en
+    H2.1/H2.2/H2.3 (asociaciones monótonas y consistentes entre cada
+    parámetro de Gestión y WR/avg_win/avg_loss) se reprodujeron bajo ambas
+    sesiones en I1-activation e I1-be, pero en ningún bloque se tradujeron
+    en una dirección de PF estable entre 2022 y 2023 para ningún activo.
+    Los tres cierres son consistentes entre sí: la hipótesis de que variar
+    un único parámetro de Gestión junto con la sesión sea suficiente para
+    producir una configuración que supere los 4 gates queda falsificada en
+    sus tres instancias (`distance`, `activation`, `be`). Esto no
+    determina por sí solo cuál es el siguiente espacio experimental a
+    explorar (Gestión multivariable, revisión de Capa 1/2/3, u otra
+    alternativa) — esa elección queda diferida a una decisión posterior,
+    fuera del alcance de este cierre.
 
 ---
 
