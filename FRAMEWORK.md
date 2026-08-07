@@ -405,6 +405,118 @@ Candidatos a evaluar:
     alternativa) — esa elección queda diferida a una decisión posterior,
     fuera del alcance de este cierre.
 
+### Espacio 3 — Trigger × Sesión (`A_sweep_bos`) — cerrado
+
+Bloque independiente de la Fase de Integración (I1): I1 varió sesión × un
+parámetro de Gestión con Trigger fijo en `T1_ema_cross`; Espacio 3 varía
+sesión con Trigger fijo en `A_sweep_bos` y Gestión fija en su ancla V3-A —
+pregunta científica distinta (Capa 2/sesión, no Gestión de salidas), por lo
+que se documenta en un bloque propio en vez de integrarse al cierre de I1.
+Aprobado y ejecutado 2026-08-07 tras una fase de planificación metodológica
+que comparó los espacios experimentales abiertos post-I1 por valor de
+información esperado, costo experimental y riesgo metodológico, y priorizó
+este espacio primero por su mayor VoI de primer y segundo orden.
+
+- **Objetivo**: `trigger_campaign.py` había probado `A_sweep_bos`
+  únicamente bajo `control_8h`, con PF extremos en 2022 (0.79-4.02 según
+  activo) pero una muestra de apenas 2-4 trades/año en 2023 — insuficiente
+  para que `backtest.metrics()` calculara ninguna métrica
+  (`n_trades<5 → None`). Nunca se había probado si `A_sweep_bos` produce una
+  muestra evaluable, y si el PF se sostiene, bajo una sesión más ancha —
+  la celda que este bloque cierra.
+- **Contrato experimental**: Bias=A/Entry=`C_market_close`/Gestión V3-A
+  única (`be`=1.0R/`activation`=2.0R/`distance`=1.0R, sin V3-A y V3-B en
+  paralelo)/`atr_mult`=1.5 fijos; una sola variable libre, sesión, 2
+  niveles — `control_8h` (rol="control", NO candidato — resultado ya
+  publicado en `trigger_campaign_results.csv`/`entry_campaign_sweep_bos_
+  results.csv`) y `dcv1_activo_15h` (rol="candidate", única celda
+  experimental; `sin_filtro_24h` quedó fuera, ya dominada objetivamente en
+  la campaña de sesión bajo `T1_ema_cross`). Sin Paso 0 de dominación
+  Pareto ni reglas de contingencia (a diferencia de H2/I1): con un solo
+  nivel candidato no hay grilla que podar ni borde al que escalar.
+  Hipótesis a falsificar: existe al menos un activo donde `A_sweep_bos` ×
+  `dcv1_activo_15h` supera los 4 gates en 2022 Y 2023. Implementado en
+  `scripts/trigger_campaign_sweep_bos_session.py` (commit `31a58ab`),
+  resultados en `trigger_campaign_sweep_bos_session_results.csv`/
+  `_decision.csv` (commit `76980f0`).
+- **Verificación de integridad (Fase A)**: para los 6 combos (activo, año),
+  la fila `control_8h` se comparó EXACTO (comparación NaN-consciente, los 3
+  combos de 2023 tienen referencia NaN por el piso de `metrics()`) contra
+  `trigger_campaign_results.csv` y `entry_campaign_sweep_bos_results.csv`
+  — 12 verificaciones totales, sin rol dual (`control_8h` nunca es
+  candidato en este espacio). Reproducidas de forma independiente
+  (`pandas`, recalculando desde las métricas crudas del CSV, no
+  confiando en la ausencia de `AssertionError` del script): **12/12
+  coincidencias exactas, 0 mismatches**. Suite de tests estructural
+  (`research/tests/test_trigger_campaign_sweep_bos_session.py`, 15
+  funciones `test_*`) corrida en su totalidad: **15/15 pasan**, incluida
+  la verificación de que las dos referencias históricas siguen
+  coincidiendo entre sí sobre datos reales. La decisión publicada
+  (`trigger_campaign_sweep_bos_session_decision.csv`) se recalculó de
+  forma independiente desde las métricas crudas (`gate_check` +
+  `summarize_decision`, sin modificar): 0 mismatches en los 5 campos
+  publicados.
+- **Resultados (Fase B)**: de las 6 celdas candidatas, 5/6 resultaron
+  computables (n_trades≥5) — la sesión ancha resolvió computabilidad
+  respecto de `control_8h` (donde los 3 combos de 2023 eran no
+  computables); solo ETHUSDT/2023 permanece no computable (n_trades=4). El
+  gate de frecuencia (6-12 trades/mes) **nunca se satisface, en ninguna de
+  las 6 celdas** — freq observado 0.5-1.6/mes, un factor ~4x-24x por debajo
+  del piso, pese a casi duplicar la ventana horaria (8h→15h). PF≥1.50 se
+  cumple en 2/6 celdas (ETHUSDT 2022: 2.966; SOLUSDT 2022: 2.729, ambas
+  también con `max_dd`/`exp_r` en regla) — únicamente el gate de
+  frecuencia las bloquea. En las 4 celdas restantes PF no alcanza 1.50
+  (0.637-1.395), con `exp_r`≤0 adicional en 2 de ellas (BTCUSDT 2022,
+  SOLUSDT 2023). Ninguna celda supera los 4 gates simultáneamente; ningún
+  activo sobrevive 2022 Y 2023 (`survives_both_years=False` en los 3
+  activos).
+- **Interpretación basada en evidencia**: patrón observado, no una
+  explicación causal — en los tres activos, el PF de 2022 bajó al pasar de
+  `control_8h` a `dcv1_activo_15h` (BTCUSDT 0.790→0.637, ETHUSDT
+  3.203→2.966, SOLUSDT 4.022→2.729), dirección consistente en los tres
+  casos. Con solo dos anchos de sesión probados no hay base para atribuir
+  esa dirección a ningún mecanismo específico; se documenta como
+  observación abierta y sin atribuir, no como explicación causal — mismo
+  estándar aplicado en los cierres de I1-activation/I1-be. El gate de
+  frecuencia es, con claridad, el factor universalmente vinculante en este
+  espacio — a diferencia de I1 (donde `dcv1_activo_15h` resolvía
+  frecuencia siempre y PF era el gate vinculante), acá ni la sesión más
+  ancha alcanza a resolver frecuencia para `A_sweep_bos`. Esto es, en sí
+  mismo, otra observación (no una explicación): es consistente con que el
+  problema de este trigger sea de tasa de generación de eventos y no
+  únicamente de ventana horaria, pero esta campaña no aísla esa causa —
+  distinguirla exigiría un experimento propio, fuera de este contrato.
+- **Conclusión**: hipótesis de Espacio 3 **falsificada bajo el contrato
+  experimental evaluado** — dentro de esta configuración exacta (Bias=A/
+  Entry=`C_market_close`/Gestión V3-A única/`atr_mult`=1.5, sesiones
+  `control_8h` vs `dcv1_activo_15h`), ningún activo supera los 4 gates en
+  2022 Y 2023 bajo `A_sweep_bos` × `dcv1_activo_15h`. Esto no generaliza
+  que `A_sweep_bos` sea inviable en términos absolutos — otra Gestión,
+  otra sesión, u otra combinación de Capa 1/3 podrían producir un
+  resultado distinto y quedan fuera del alcance de lo que este contrato
+  evaluó. Dentro de lo evaluado, predominantemente el caso "falsificación
+  con muestra ya computable" (5/6 celdas), con la salvedad de que
+  ETHUSDT/2023 permanece en el caso más débil (computabilidad no
+  resuelta). La evidencia fortalece la elección actual de `T1_ema_cross`
+  como trigger de trabajo, al reducir significativamente la incertidumbre
+  sobre `A_sweep_bos` bajo esta configuración, sin demostrar por sí sola
+  que `T1_ema_cross` sea el trigger óptimo ni que `A_sweep_bos` esté
+  descartado en general.
+- **Lecciones aprendidas**: (1) ampliar la ventana de sesión resuelve
+  computabilidad de forma parcial pero no garantiza resolver el gate de
+  frecuencia — depende de la tasa de generación de eventos del trigger
+  subyacente, no solo de cuántas horas se observan; (2) el patrón "PF
+  vinculante bajo sesión ancha" que dominó los tres bloques de I1 no se
+  repite automáticamente para otro trigger — acá el gate vinculante volvió
+  a ser frecuencia, contrario a lo esperado por analogía directa con I1.
+- **Estado**: **CERRADO** (2026-08-07). No se continuará explorando este
+  espacio experimental bajo el contrato actual — el resultado queda
+  registrado como definitivo para esta configuración exacta, sin más
+  iteraciones pendientes. Reabrir `A_sweep_bos` bajo una sesión distinta,
+  otra Gestión, u otra combinación con Capa 1/3 requeriría un contrato
+  nuevo explícitamente propuesto y aprobado, no una extensión ni una
+  reapertura de este cierre.
+
 ---
 
 ## Parada automática del bot (circuit breaker)
