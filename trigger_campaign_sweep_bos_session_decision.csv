@@ -1,0 +1,4 @@
+asset,candidate,exit_config,pf_2022,pf_2023,gate_2022,gate_2023,survives_both_years,rank_within_asset
+BTCUSDT,dcv1_activo_15h,"Espacio 3 — A_sweep_bos (V3-A anchor: be=1.0R/activation=2.0R/distance=1.0R, session variable)",0.637,1.395,False,False,False,
+ETHUSDT,dcv1_activo_15h,"Espacio 3 — A_sweep_bos (V3-A anchor: be=1.0R/activation=2.0R/distance=1.0R, session variable)",2.966,,False,False,False,
+SOLUSDT,dcv1_activo_15h,"Espacio 3 — A_sweep_bos (V3-A anchor: be=1.0R/activation=2.0R/distance=1.0R, session variable)",2.729,0.996,False,False,False,
