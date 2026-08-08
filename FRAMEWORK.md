@@ -517,6 +517,14 @@ este espacio primero por su mayor VoI de primer y segundo orden.
   nuevo explícitamente propuesto y aprobado, no una extensión ni una
   reapertura de este cierre.
 
+El plan experimental completo post-cierre I1 (los cuatro espacios
+evaluados en la sesión de planificación de 2026-08-08, el orden de
+exploración aprobado y su justificación por valor de información
+esperado/costo/riesgo, y el estado vivo del programa) se documenta en
+`docs/research/EXPERIMENTAL_ROADMAP.md` — no se repite acá para no
+duplicar contenido; este documento mantiene el registro retrospectivo por
+campaña cerrada, aquel mantiene el mapa prospectivo de qué sigue.
+
 ---
 
 ## Parada automática del bot (circuit breaker)
