@@ -19,7 +19,8 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | H2 (familia: `distance`/`activation`/`be` aislados) | Cerrado con datos reales, documentado en `FRAMEWORK.md` |
 | I1 (Integración: sesión × un parámetro H2) | Cerrado con datos reales, documentado en `FRAMEWORK.md` |
 | Espacio 3 (`A_sweep_bos` bajo `dcv1_activo_15h`) | Cerrado con datos reales, documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (commits `31a58ab` implementación, `76980f0` resultados, `38fa696` cierre) |
-| **Espacio 2** (`max_hold`/`atr_period`/`risk`) | **Siguiente paso** — contrato metodológico todavía sin diseñar |
+| **Espacio 2** (`max_hold`, sesión × parámetro; `risk` y `atr_period` excluidos del objetivo principal) | **Siguiente paso** — diseño metodológico resuelto 2026-08-08 (alcance reducido a `max_hold` en solitario); contrato aprobado, implementación en curso |
+| Iniciativa pendiente — ATR de período arbitrario en el pipeline de investigación | Identificada 2026-08-08 durante el diseño de Espacio 2, no implementada — ver nota bajo Espacio 2 |
 | Espacio 4 (`A_pullback_50` bajo `T1_ema_cross`) | Pendiente, sin diseñar |
 | Espacio 1 (Gestión multivariable) | Pendiente, sin diseñar |
 | Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — sin criterio de priorización no-arbitrario entre sus 6 sub-candidatos |
@@ -37,15 +38,111 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 - **Costo experimental**: Alto (grilla combinatoria hasta 3×5×5=75 combos × 2 sesiones × 3 activos × 2 años; exige reglas de contingencia nuevas).
 - **Riesgo metodológico**: Medio-Alto (expansión combinatoria sobre la misma muestra fija; riesgo de comparaciones múltiples).
 
-### Espacio 2 — Parámetros de Gestión nunca variados (`max_hold`, `atr_period`, `risk`)
+### Espacio 2 — Parámetros de Gestión nunca variados (`max_hold`)
 
-- **Objetivo/hipótesis**: ¿alguno de estos tres parámetros —fijos en 20 velas/14 períodos/0.5% en absolutamente todas las campañas hasta ahora— tiene efecto sobre PF?
-- **Variable(s) que cambia**: `max_hold`, `atr_period`, `risk`, un parámetro a la vez, mismo aislamiento univariable que H1/H2.
-- **Pregunta científica**: si estos tres parámetros "periféricos" de Gestión importan en absoluto para el PF — hoy es una laguna total, ni siquiera indiferencia demostrada.
-- **Evidencia que respalda**: `reason_timeout` representa 14-17% de todos los trades en los tres bloques de I1 (511/2997, 834/4995, 718/5007) — mecanismo activo, nunca variado.
-- **Evidencia que contradice/matiza**: "mecanismo activo" no equivale a "relevante para PF" — `distance`/`activation`/`be` son mecanismos *más* activos (WR/`avg_win`/`avg_loss` verificados 12/12-18/18 en sus respectivas campañas) y aun así solo 0-1 de 3 mostraron señal de PF estable entre años — tasa base interna del programa desfavorable. Correlación adicional verificada entre `timeout_frac` y PF sobre las 156 filas de I1: global 0.13, `control_8h`≈0.003, `dcv1_activo_15h`≈0.27 — débil y además confundida (subproducto de variar `distance`/`activation`/`be`, no de `max_hold` en sí).
-- **Costo experimental**: Medio (reutiliza el patrón de aislamiento univariable probado 6 veces).
-- **Riesgo metodológico**: Bajo en ejecución (patrón más probado del programa), pero **no independiente del trigger vigente** como se planteó inicialmente — `max_hold` depende de la distribución de duración de trade, que es trigger-dependiente; comparte parcialmente el riesgo de retrabajo que en un principio se atribuyó solo a Espacio 1.
+**Alcance y diseño resueltos en sesión de planificación metodológica,
+2026-08-08.** Tres decisiones de diseño quedaron fijadas explícitamente, no
+como supuestos heredados de H2:
+
+- **`risk` excluido del objetivo científico principal** — no como "hipótesis
+  no explorada", sino como exclusión justificada por el propio diseño del
+  sistema bajo estudio. Verificado en código (`research/metrics.py:19-43`,
+  `backtest.py:254-282`): `pf`/`wr`/`exp_r`/`total_r`/`freq` se calculan
+  sobre `pnl_r` sin que `risk` intervenga; `risk` solo entra en la curva de
+  equity (`eq[-1]*(1+cfg.risk*r)`), afectando únicamente `max_dd`/`ret`.
+  Confirmado empíricamente (`research.compute_core_metrics` sobre la misma
+  secuencia sintética de `pnl_r`, barriendo `risk` de 0.0025 a 0.04):
+  `pf`/`exp_r`/`total_r` exactamente invariantes; `max_dd` monótono en
+  `risk`. Escaneados los 12 CSV de resultados ya publicados del programa
+  completo (H1, H2.1-H2.3, I1×3, Espacio 3): **cero filas** bloqueadas
+  *exclusivamente* por `max_dd` (con `pf`/`exp_r`/`freq` ya en regla) — hoy
+  no existe ninguna configuración que un ajuste de `risk` pudiera rescatar.
+  Esta conclusión es válida para la arquitectura actual del backtest
+  (sizing por `risk` fijo aplicado geométricamente a una curva de equity
+  simple); si el modelo de sizing o gestión monetaria cambia en el futuro,
+  la exclusión debe revisarse, no darse por heredada.
+- **`atr_period` excluido de Espacio 2 (decisión 2026-08-08, tras verificación
+  empírica adicional al aprobar el contrato)** — no por "sin efecto", sino
+  porque el pipeline de investigación actual (`bias_campaign.to_backtest_frame`
+  + `trigger_campaign.find_entries_for_trigger`, el que usan todas las
+  campañas de este programa) no puede medir su efecto. Verificado en código:
+  `to_backtest_frame` fija `out["atr"] = df["atr14"]` — la columna ATR14 ya
+  calculada por `dc_v1` (período 14, pin ratificado en
+  `DC-v1_Precisiones_Implementacion.md` P-7, deliberado para que el esquema
+  3×3 sea determinista). `find_entries_for_trigger` construye `risk_pts` de
+  cada entrada leyendo esa columna fija, nunca `cfg.atr_period`; `simulate_v3`
+  solo consume `entry["risk_pts"]` ya congelado. `cfg.atr_period` sí llega a
+  `research.TRIGGER_LAYERS["T1_ema_cross"]`, pero únicamente alimenta el
+  chequeo interno de descarte por SL degenerado — no la condición del cruce
+  ni el `risk_pts` real. Confirmado empíricamente sobre datos sintéticos:
+  `n_entries`/`n_trades`/`pf`/`freq`/`risk_pts` bit-idénticos barriendo
+  `atr_period` ∈ {7, 14, 21, 28}, todo lo demás fijo. La causa raíz es una
+  decisión de gobernanza deliberada a nivel del contrato `dc_v1` (P-7, no
+  revisada acá) combinada con una laguna no examinada del adaptador de
+  investigación (nunca declaró que `atr_period` quedaba sin efecto). Estudiar
+  `atr_period` de forma válida requeriría una evolución acotada del pipeline
+  de investigación — recalcular ATR de período arbitrario sobre la serie
+  **continua** (antes del corte de período, disciplina P-3), reutilizando
+  `dc_v1.atr()` (ya genérica y validada desde la Iniciativa B del backlog
+  post-Fase-B), marcada explícitamente como auxiliar de investigación fuera
+  del contrato `dc_v1`, con su propio test de equivalencia en `atr_period`=14
+  contra la columna `atr14` publicada y su propio test de disciplina P-3 —
+  fuera del alcance de Espacio 2. Se propone como **iniciativa de
+  infraestructura independiente**, con su propio contrato, antes de que
+  `atr_period` pueda reabrirse como sub-bloque experimental futuro.
+- **Patrón de sesión: sesión × parámetro (protocolo I1)** — no el patrón "un
+  solo `control_8h`" que usó H2. La precondición que permitió a H2 correr
+  solo bajo `control_8h` sin perder información — que las entradas no
+  dependen del parámetro que se varía, verificada explícitamente en cada uno
+  de sus 3 bloques — se reverifica acá para `max_hold` y **no se cumple**:
+  `run_config` bloquea nuevas entradas hasta `busy_until = exit_idx` de la
+  operación abierta, y `simulate_v3` limita el timeout a
+  `min(i0+cfg.max_hold+1, n)`: reducir `max_hold` solo puede adelantar o
+  igualar el `exit_time` de cada trade, nunca atrasarlo, por lo que puede
+  aumentar `freq` por un mecanismo estructural distinto al de cualquier
+  parámetro de H2. El freq base bajo `control_8h`/`T1_ema_cross`
+  (`gestion_campaign_trailing_distance_results.csv`) es 4.0-5.6/mes — cerca
+  del piso de 6, no un orden de magnitud por debajo como en Espacio 3 — lo
+  que hace plausible que `max_hold` por sí solo mueva algún combo por
+  encima del piso. Probar `max_hold` solo bajo una sesión fija arriesgaba
+  subestimar su efecto (`control_8h` sin margen para observarlo si nunca
+  cruza 6) o enmascararlo (`dcv1_activo_15h` ya resuelve freq por sí sola,
+  sin poder aislar el aporte de `max_hold`) — se aplica sesión × parámetro,
+  reutilizando el protocolo de I1 ya validado 3 veces sin desviaciones.
+- **Objetivo/hipótesis**: ¿`max_hold` —fijo en 20 velas en absolutamente
+  todas las campañas hasta ahora— tiene efecto sobre PF, bajo sesión
+  `control_8h` o `dcv1_activo_15h`?
+- **Variable(s) que cambia**: `max_hold` × sesión (`control_8h`/
+  `dcv1_activo_15h`), mismo aislamiento univariable que H2/I1. `risk` y
+  `atr_period` fuera del alcance (ver arriba).
+- **Pregunta científica**: si este parámetro "periférico" de Gestión importa
+  en absoluto para el PF — hoy es una laguna total, ni siquiera indiferencia
+  demostrada.
+- **Evidencia que respalda**: `reason_timeout` representa 14-17% de todos
+  los trades en los tres bloques de I1 (511/2997, 834/4995, 718/5007) —
+  mecanismo activo, nunca variado; `max_hold` además tiene, a diferencia de
+  `distance`/`activation`/`be`, un mecanismo estructural verificado de
+  interacción con `freq` (ver arriba).
+- **Evidencia que contradice/matiza**: "mecanismo activo" no equivale a
+  "relevante para PF" — `distance`/`activation`/`be` son mecanismos *más*
+  activos (WR/`avg_win`/`avg_loss` verificados 12/12-18/18 en sus
+  respectivas campañas) y aun así solo 0-1 de 3 mostraron señal de PF
+  estable entre años — tasa base interna del programa desfavorable.
+  Correlación adicional verificada entre `timeout_frac` y PF sobre las 156
+  filas de I1: global 0.13, `control_8h`≈0.003, `dcv1_activo_15h`≈0.27 —
+  débil y además confundida (subproducto de variar `distance`/`activation`/
+  `be`, no de `max_hold` en sí — esta correlación es de I1, no de Espacio 2,
+  y no se hereda como evidencia directa).
+- **Costo experimental**: Medio (1 sub-bloque univariable × 2 sesiones,
+  protocolo Fase A/B completo de I1 — más caro que el patrón de H2 de un
+  solo `control_8h`, pero del mismo orden que cada bloque individual de I1,
+  ya ejecutado 3 veces sin problemas).
+- **Riesgo metodológico**: Bajo en ejecución (protocolo más probado del
+  programa junto con H2). El riesgo de "no independiente del trigger
+  vigente" identificado en el análisis original queda mitigado, no
+  eliminado, por el diseño sesión × parámetro: cubre ambos regímenes de
+  sesión para el trigger vigente (`T1_ema_cross`), pero sigue sin decir
+  nada sobre un trigger distinto si este cambiara en el futuro.
 
 ### Espacio 3 — `A_sweep_bos` revisitado bajo `dcv1_activo_15h`
 
