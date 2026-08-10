@@ -646,6 +646,92 @@ en el roadmap para el detalle completo del razonamiento).
   contrato nuevo explícitamente propuesto y aprobado. Este cierre no
   reabre ni reinterpreta ninguna conclusión de H1, H2, I1 o Espacio 3.
 
+### Espacio 4 — Entry (Capa 3) bajo `T1_ema_cross` — cerrado
+
+Espacio 4, tal como fue planteado en `docs/research/EXPERIMENTAL_ROADMAP.md`
+("`A_pullback_50` bajo `T1_ema_cross`"), se cierra **sin ejecutar ninguna
+campaña nueva**: la auditoría de 2026-08-10 encontró que (a) la comparación
+computable bajo T1 (`C_market_close` vs `D_next_candle_open`) ya está
+corrida con datos reales desde 2026-07-27 (`scripts/entry_campaign_t1.py`,
+commits `9588277`/`487beb8`), nunca formalizada en este documento, y (b)
+`A_pullback_50` no es computable bajo `T1_ema_cross` con su definición
+vigente — un hallazgo estructural, no un resultado experimental.
+
+- **Qué parte del espacio fue realmente evaluada**: únicamente la
+  sub-pregunta "¿el timing de ejecución a mercado (cierre de la vela de
+  señal vs. apertura de la vela siguiente) importa bajo `T1_ema_cross`?" —
+  los dos únicos candidatos de Entry agnósticos al candidato de Capa 2
+  (`research/layers.py`: `entry_C_market_close`, `entry_D_next_candle_open`).
+  La sub-pregunta "¿esperar un retroceso antes de entrar cambia algo bajo
+  T1?" — la que motivaba originalmente incluir `A_pullback_50` — **no fue
+  evaluada**, por la incompatibilidad estructural descrita abajo.
+- **Verificación independiente de la evidencia histórica**:
+  `entry_campaign_t1_results.csv`/`_decision.csv` (24 y 12 filas)
+  reauditados sin confiar en `gate_pass` ni en la decisión ya publicada.
+  `gate_check` recalculado desde métricas crudas sobre las 24 filas: 0
+  mismatches. `summarize_decision` recalculado independientemente: 0
+  diferencias contra la decisión publicada, 0 sobrevivientes confirmados.
+  Verificación adicional, no presente en el script original (anterior al
+  patrón de Fase A introducido con I1): las 6 filas `C_market_close`/`V3-A`
+  coinciden EXACTO, 0 mismatches, con las filas `T1_ema_cross`/`V3-A` ya
+  publicadas en `trigger_campaign_results.csv` (script independiente,
+  misma computación). Suite estructural
+  (`research/tests/test_entry_campaign_t1.py`): 3/3 pasan.
+- **Qué quedó demostrado**: con datos reales, `C_market_close` y
+  `D_next_candle_open` muestran comportamiento prácticamente indiferente
+  bajo `T1_ema_cross` — diferencia de PF entre ambos de 0.000 a 0.135 en
+  los 12 combos (activo×año×exit_config), mediana 0.0005; `freq` idéntico
+  entre ambos en cada fila. 0/24 filas superan los 4 gates; ningún activo
+  sobrevive 2022 Y 2023 bajo ninguno de los dos candidatos. Esto demuestra
+  indiferencia dentro del conjunto evaluado (ejecución inmediata, dos
+  variantes de timing de ≤1 vela) — no que "el Entry no importa bajo T1"
+  en términos generales.
+- **Qué quedó abierto**: si un mecanismo de entrada cualitativamente
+  distinto de la ejecución inmediata a mercado — específicamente, esperar
+  un retroceso antes de entrar — cambiaría el comportamiento bajo
+  `T1_ema_cross`. No hay evidencia directa en ningún sentido; es un hueco
+  de diseño genuino, no una hipótesis ya puesta a prueba y sin resolver.
+  Esta celda ("Entry de retroceso bajo T1") no forma parte de ningún
+  espacio experimental actualmente aprobado.
+- **Por qué `A_pullback_50` no puede considerarse un resultado negativo**:
+  `entry_A_pullback_50` (`research/layers.py:282-304`) lee
+  `event.meta["bos_level"]`/`swing_low`/`swing_high` — campos que produce
+  únicamente `trigger_A_sweep_bos`. `trigger_T1_ema_cross` emite
+  `TriggerEvent(..., meta={})` siempre — invocar `entry_A_pullback_50`
+  sobre un evento de T1 lanza `KeyError`, no calcula un PF bajo. No hay
+  corrida, no hay métrica, no hay gate evaluado — es una incompatibilidad
+  de definición (el candidato depende semánticamente de niveles de
+  sweep/BOS que un cruce de EMA no produce), verificada en código y ya
+  documentada, antes de este roadmap, en `scripts/trigger_campaign.py` y
+  en el propio `scripts/entry_campaign_t1.py`. Tratarlo como "falsificado"
+  atribuiría al candidato una derrota empírica que nunca ocurrió.
+- **Por qué no corresponde inventar una variante**: diseñar una fórmula de
+  "pullback" nueva para eventos de cruce EMA (ej. sobre el rango de la
+  vela de cruce o una referencia ATR) dejaría de ser una prueba de
+  `A_pullback_50` — sería un candidato de Capa 3 distinto, con su propio
+  mecanismo, su propia justificación científica y su propio contrato, no
+  una extensión mecánica de lo ya definido. Motivado únicamente por
+  completar una celda de la matriz Trigger×Entry, sería exactamente el
+  tipo de diseño ad hoc que este programa ha evitado en cada campaña
+  anterior (mismo principio que impidió promover candidatos nunca
+  validados por gates en H2/I1).
+- **Determinación**: Espacio 4 cerrado como espacio experimental bajo el
+  contrato/alcance aprobado, con evidencia parcial sobre Entry bajo T1 y
+  una incompatibilidad estructural no resuelta de `A_pullback_50`; **no se
+  falsifica la hipótesis general sobre Entry**.
+- **Implicaciones para el roadmap**: la matriz Trigger×Entry bajo
+  `T1_ema_cross` queda con una celda genuinamente vacía (Entry de
+  retroceso), no una celda ya explorada y descartada — cualquier interés
+  futuro en esa pregunta requeriría diseñar un candidato nuevo desde cero,
+  con su propio contrato, no reabrir este cierre. No cambia nada de lo ya
+  cerrado en H1/H2/I1/Espacio 3/Espacio 2.
+- **Estado**: **CERRADO** (2026-08-10), sin campaña nueva ejecutada —
+  cierre basado en auditoría de evidencia histórica ya publicada más un
+  hallazgo estructural verificado en código. Este estado significa que el
+  espacio tal como fue definido no requiere más trabajo — NO significa que
+  "la cuestión de Entry bajo T1 quedó completamente resuelta": la celda de
+  Entry de retroceso permanece abierta, fuera del alcance de este cierre.
+
 El plan experimental completo post-cierre I1 (los cuatro espacios
 evaluados en la sesión de planificación de 2026-08-08, el orden de
 exploración aprobado y su justificación por valor de información

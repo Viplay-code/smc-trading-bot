@@ -21,9 +21,8 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | Espacio 3 (`A_sweep_bos` bajo `dcv1_activo_15h`) | Cerrado con datos reales, documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (commits `31a58ab` implementación, `76980f0` resultados, `38fa696` cierre) |
 | **Espacio 2** (`max_hold`, sesión × parámetro; `risk` y `atr_period` excluidos del objetivo principal) | **Cerrado con datos reales** (2026-08-10), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (commits `f467f50` implementación, `a9f1dbd` resultados) |
 | Iniciativa pendiente — ATR de período arbitrario en el pipeline de investigación | Identificada 2026-08-08 durante el diseño de Espacio 2, **sigue sin implementarse** — separada del cierre de Espacio 2, no reabierta por él |
-| **Siguiente paso del orden aprobado** | Espacio 4 (`A_pullback_50` bajo `T1_ema_cross`) |
-| Espacio 4 (`A_pullback_50` bajo `T1_ema_cross`) | Pendiente, sin diseñar |
-| Espacio 1 (Gestión multivariable) | Pendiente, sin diseñar |
+| Espacio 4 (Entry bajo `T1_ema_cross`) | **Cerrado sin campaña nueva** (2026-08-10), documentado en `FRAMEWORK.md` — evidencia histórica ya publicada (`C_market_close` vs `D_next_candle_open`, 2026-07-27) reauditada y formalizada; `A_pullback_50` **no computable** bajo T1 (incompatibilidad estructural, NO resultado negativo ni hipótesis falsificada). **La celda "Entry de retroceso bajo T1" permanece genuinamente abierta** — este cierre NO significa que la cuestión de Entry bajo T1 quedó completamente resuelta, solo que el espacio tal como estaba definido no requiere más trabajo |
+| **Siguiente paso del orden aprobado** | Espacio 1 (Gestión multivariable) |
 | Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — sin criterio de priorización no-arbitrario entre sus 6 sub-candidatos |
 | Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden |
 
@@ -166,15 +165,23 @@ como supuestos heredados de H2:
 - **Riesgo metodológico**: Medio (posible que la frecuencia siga siendo insuficiente incluso bajo `dcv1_activo_15h`).
 - **Estado**: CERRADO (2026-08-07), hipótesis falsificada bajo el contrato evaluado — el gate vinculante resultó ser frecuencia, no PF (a diferencia de I1). El trigger vigente (`T1_ema_cross`) se mantiene sin cambios, por lo que los Espacios 1/2/4 no requieren rediseño por este motivo. Resultados, interpretación y conclusión completos: **`FRAMEWORK.md`, sección "Espacio 3"** (no repetidos acá, para evitar una segunda fuente de los mismos números).
 
-### Espacio 4 — `A_pullback_50` bajo `T1_ema_cross`
+### Espacio 4 — Entry (Capa 3) bajo `T1_ema_cross` — CERRADO (2026-08-10)
 
-- **Objetivo/hipótesis**: ¿el candidato de Entry `A_pullback_50` (nunca probado junto con `T1_ema_cross`, solo junto con `A_sweep_bos`) tiene comportamiento distinto de `C_market_close`/`D_next_candle_open` bajo el trigger de mayor muestra?
+Planteado originalmente como "`A_pullback_50` bajo `T1_ema_cross`". Cerrado
+sin ejecutar ninguna campaña nueva, mediante auditoría de evidencia
+histórica ya publicada (`scripts/entry_campaign_t1.py`, 2026-07-27) más un
+hallazgo estructural verificado en código. Detalle completo, verificación
+independiente y determinación exacta: **`FRAMEWORK.md`, sección "Espacio
+4"** (no repetidos acá).
+
+- **Objetivo/hipótesis original**: ¿el candidato de Entry `A_pullback_50` (nunca probado junto con `T1_ema_cross`, solo junto con `A_sweep_bos`) tiene comportamiento distinto de `C_market_close`/`D_next_candle_open` bajo el trigger de mayor muestra?
 - **Variable(s) que cambia**: candidato de Entry (`A_pullback_50` agregado bajo Trigger=`T1_ema_cross`).
 - **Pregunta científica**: si la elección del punto de entrada exacto importa bajo el trigger de mayor muestra — completa la matriz Trigger×Entry que quedó parcialmente vacía.
 - **Evidencia que respalda**: ninguna directa — hueco de diseño puro.
 - **Evidencia que contradice**: `C_market_close` y `D_next_candle_open` ya mostraron indiferencia casi exacta bajo `T1_ema_cross` (PF idéntico a 2-3 decimales) — sugiere que el precio exacto de entrada podría no ser palanca relevante bajo este trigger.
-- **Costo experimental**: Bajo (el más barato del mapa).
-- **Riesgo metodológico**: Bajo (mismo patrón que Espacio 2).
+- **Costo experimental**: Bajo (el más barato del mapa) — en la práctica, costo final CERO: se cerró con evidencia ya existente, sin campaña nueva.
+- **Riesgo metodológico**: subestimado en el diseño original ("mismo patrón que Espacio 2") — la auditoría de 2026-08-10 encontró que `A_pullback_50` no es computable bajo `T1_ema_cross` con su definición vigente (`event.meta["bos_level"]`/`swing_low`/`swing_high`, que solo produce `trigger_A_sweep_bos`), un riesgo estructural no identificado al escribir esta sección originalmente.
+- **IMPORTANTE — alcance del cierre**: "CERRADO" significa que el espacio tal como fue definido no requiere más trabajo, NO que la cuestión de Entry bajo `T1_ema_cross` quedó completamente resuelta. La celda "Entry de retroceso bajo T1" (esperar un retroceso antes de entrar, un mecanismo cualitativamente distinto de `C_market_close`/`D_next_candle_open`) permanece **genuinamente abierta** — no forma parte de ningún espacio experimental actualmente aprobado, y reabrirla exigiría diseñar un candidato nuevo desde cero con su propio contrato, no reinterpretar este cierre.
 
 ## Orden de exploración aprobado
 
@@ -193,8 +200,17 @@ falsificada bajo el contrato evaluado (ver tabla de estado y `FRAMEWORK.md`,
 sección "Espacio 2") — `max_hold` no produjo ninguna combinación que
 superara los 4 gates, y el mecanismo de `freq` que motivó el diseño
 sesión × parámetro se confirmó en dirección pero no en magnitud suficiente.
-El orden aprobado no cambia por este motivo; el siguiente paso es
-**Espacio 4**, según lo ya decidido.
+El orden aprobado no cambia por este motivo.
+
+**Actualización tras el cierre de Espacio 4 (2026-08-10)**: cerrado sin
+campaña nueva, mediante auditoría de evidencia histórica ya publicada
+(`entry_campaign_t1`) más un hallazgo estructural (`A_pullback_50` no
+computable bajo `T1_ema_cross`) — ver tabla de estado y `FRAMEWORK.md`,
+sección "Espacio 4". Este cierre NO resuelve la cuestión de Entry bajo T1
+en general, solo el espacio tal como estaba definido; la celda "Entry de
+retroceso bajo T1" permanece abierta, fuera de cualquier espacio
+actualmente aprobado. El orden aprobado no cambia por este motivo; el
+siguiente paso es **Espacio 1**, según lo ya decidido.
 
 ## Justificación metodológica del orden (VoI, costo, riesgo)
 
