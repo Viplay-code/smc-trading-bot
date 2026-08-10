@@ -11,7 +11,7 @@ un contrato congelado como los de cada campaña individual (esos viven en
 Acordado en sesión de planificación metodológica, 2026-08-08, inmediatamente
 después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 
-## Estado actual del programa (2026-08-08)
+## Estado actual del programa (2026-08-10)
 
 | Fase/espacio | Estado |
 |---|---|
@@ -19,8 +19,9 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | H2 (familia: `distance`/`activation`/`be` aislados) | Cerrado con datos reales, documentado en `FRAMEWORK.md` |
 | I1 (Integración: sesión × un parámetro H2) | Cerrado con datos reales, documentado en `FRAMEWORK.md` |
 | Espacio 3 (`A_sweep_bos` bajo `dcv1_activo_15h`) | Cerrado con datos reales, documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (commits `31a58ab` implementación, `76980f0` resultados, `38fa696` cierre) |
-| **Espacio 2** (`max_hold`, sesión × parámetro; `risk` y `atr_period` excluidos del objetivo principal) | **Siguiente paso** — diseño metodológico resuelto 2026-08-08 (alcance reducido a `max_hold` en solitario); contrato aprobado, implementación en curso |
-| Iniciativa pendiente — ATR de período arbitrario en el pipeline de investigación | Identificada 2026-08-08 durante el diseño de Espacio 2, no implementada — ver nota bajo Espacio 2 |
+| **Espacio 2** (`max_hold`, sesión × parámetro; `risk` y `atr_period` excluidos del objetivo principal) | **Cerrado con datos reales** (2026-08-10), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (commits `f467f50` implementación, `a9f1dbd` resultados) |
+| Iniciativa pendiente — ATR de período arbitrario en el pipeline de investigación | Identificada 2026-08-08 durante el diseño de Espacio 2, **sigue sin implementarse** — separada del cierre de Espacio 2, no reabierta por él |
+| **Siguiente paso del orden aprobado** | Espacio 4 (`A_pullback_50` bajo `T1_ema_cross`) |
 | Espacio 4 (`A_pullback_50` bajo `T1_ema_cross`) | Pendiente, sin diseñar |
 | Espacio 1 (Gestión multivariable) | Pendiente, sin diseñar |
 | Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — sin criterio de priorización no-arbitrario entre sus 6 sub-candidatos |
@@ -143,6 +144,16 @@ como supuestos heredados de H2:
   eliminado, por el diseño sesión × parámetro: cubre ambos regímenes de
   sesión para el trigger vigente (`T1_ema_cross`), pero sigue sin decir
   nada sobre un trigger distinto si este cambiara en el futuro.
+- **Estado**: CERRADO (2026-08-10), hipótesis falsificada bajo el contrato
+  evaluado — 47/47 filas candidatas computables, 0/47 alcanzó PF≥1.50, el
+  gate vinculante volvió a ser PF (mismo patrón que los 3 bloques de I1).
+  El mecanismo estructural sobre `freq` se confirmó en dirección (12/12
+  contextos) pero su magnitud fue insuficiente para cruzar el gate bajo
+  `control_8h`. `atr_period` permanece sin caracterizar — separado como
+  iniciativa de infraestructura pendiente, no reabierto por este cierre.
+  Resultados, verificación y análisis completos: **`FRAMEWORK.md`, sección
+  "Espacio 2"** (no repetidos acá, para evitar una segunda fuente de los
+  mismos números).
 
 ### Espacio 3 — `A_sweep_bos` revisitado bajo `dcv1_activo_15h`
 
@@ -175,8 +186,15 @@ como supuestos heredados de H2:
 confirmó que `T1_ema_cross` se mantiene como trigger vigente (ver tabla de
 estado) — el riesgo de segundo orden que motivó explorar Espacio 3 primero
 (que su resultado obligara a rediseñar los Espacios 1/2/4 bajo un trigger
-distinto) no se materializó. El orden aprobado no cambia por este motivo;
-el siguiente paso es **Espacio 2**, según lo ya decidido.
+distinto) no se materializó. El orden aprobado no cambia por este motivo.
+
+**Actualización tras el cierre de Espacio 2 (2026-08-10)**: hipótesis
+falsificada bajo el contrato evaluado (ver tabla de estado y `FRAMEWORK.md`,
+sección "Espacio 2") — `max_hold` no produjo ninguna combinación que
+superara los 4 gates, y el mecanismo de `freq` que motivó el diseño
+sesión × parámetro se confirmó en dirección pero no en magnitud suficiente.
+El orden aprobado no cambia por este motivo; el siguiente paso es
+**Espacio 4**, según lo ya decidido.
 
 ## Justificación metodológica del orden (VoI, costo, riesgo)
 

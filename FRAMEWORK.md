@@ -517,6 +517,135 @@ este espacio primero por su mayor VoI de primer y segundo orden.
   nuevo explícitamente propuesto y aprobado, no una extensión ni una
   reapertura de este cierre.
 
+### Espacio 2 — `max_hold` (parámetro de Gestión nunca variado) — cerrado
+
+Bloque independiente, segundo en el orden de exploración aprobado
+(Espacio 3 → Espacio 2 → Espacio 4 → Espacio 1, `docs/research/
+EXPERIMENTAL_ROADMAP.md`). Contrato acordado 2026-08-08, tras una fase de
+refinamiento metodológico previa a la implementación (ver esa misma fecha
+en el roadmap para el detalle completo del razonamiento).
+
+- **Objetivo e hipótesis**: `max_hold` (20 velas, fijo en absolutamente
+  todas las campañas anteriores del programa) nunca había sido variado —
+  laguna total de evidencia, ni siquiera indiferencia demostrada. Hipótesis
+  a falsificar: bajo Bias=A/Trigger=`T1_ema_cross`/Entry=`C_market_close`/
+  Gestión V3-A completa (`be`=1.0R/`activation`=2.0R/`distance`=1.0R)/
+  `atr_mult`=1.5/`atr_period`=14 fijos, existe al menos un activo donde,
+  bajo la combinación experimental (`max_hold`, sesión), el candidato
+  supera los 4 gates de `FRAMEWORK.md` en 2022 Y 2023. Falsificada si,
+  evaluados los 3 activos, ninguno sobrevive ambos años.
+- **Contrato y alcance final**: originalmente concebido con dos
+  parámetros (`max_hold`, `atr_period`); reducido a `max_hold` en
+  solitario durante el refinamiento previo a la implementación (ver
+  exclusiones abajo). Diseño sesión × parámetro (protocolo I1, no el
+  patrón de un solo `control_8h` de H2) — justificado porque, a diferencia
+  de `distance`/`activation`/`be`, `max_hold` sí tiene un mecanismo
+  estructural verificado de interacción con `freq` (`run_config`/
+  `simulate_v3`: reducir `max_hold` solo puede adelantar o igualar el
+  `exit_time` de cada trade, nunca atrasarlo). Grilla: `max_hold` ∈
+  {5, 10, 20(ancla), 30, 40} — proporciones 0.25x/0.5x/1x/1.5x/2.0x
+  reutilizadas de H2.3, contingencia simétrica (`_is_extreme_best`,
+  PF-only) evaluada independientemente por (activo, año, sesión) — ×
+  sesión ∈ {`control_8h`, `dcv1_activo_15h`}. Implementado en
+  `scripts/gestion_campaign_max_hold_session.py` (commit `f467f50`),
+  resultados en `gestion_campaign_max_hold_session_results.csv`/
+  `_decision.csv` (commit `a9f1dbd`).
+- **Exclusión justificada de `risk`**: no una hipótesis sin explorar, sino
+  una exclusión determinada por el propio diseño del sistema. Verificado en
+  código (`research/metrics.py`, `backtest.py::metrics`) y confirmado
+  empíricamente: `pf`/`wr`/`exp_r`/`total_r`/`freq` son exactamente
+  invariantes a `risk` — solo afecta `max_dd`/`ret` vía la curva de equity.
+  Escaneados los 12 CSV de resultados ya publicados del programa completo
+  (previos a este cierre): cero filas bloqueadas exclusivamente por
+  `max_dd`. Válida para la arquitectura actual de sizing; revisitable si
+  cambia el modelo de gestión monetaria.
+- **Exclusión justificada de `atr_period`**: no por "sin efecto", sino
+  porque el pipeline de investigación vigente (`bias_campaign.
+  to_backtest_frame` + `trigger_campaign.find_entries_for_trigger`) no
+  puede medirlo — `risk_pts` de cada entrada se calcula desde la columna
+  `atr14` de `dc_v1` (pin ratificado, `DC-v1_Precisiones_Implementacion.md`
+  P-7), nunca desde `cfg.atr_period`. Confirmado empíricamente sobre datos
+  sintéticos: `n_entries`/`n_trades`/`pf`/`freq`/`risk_pts` bit-idénticos
+  barriendo `atr_period` ∈ {7,14,21,28}. Queda como iniciativa de
+  infraestructura independiente (ATR de período arbitrario sobre la serie
+  continua, con su propio test de equivalencia y de disciplina P-3),
+  documentada en `docs/research/EXPERIMENTAL_ROADMAP.md`, no como hipótesis
+  cerrada.
+- **Verificación de integridad**: Fase A (24 verificaciones — 2 sesiones ×
+  2 referencias × 6 combos, contra `trigger_campaign_results.csv`/
+  `gestion_campaign_atr_mult_results.csv` para `control_8h` y
+  `gestion_campaign_session_results.csv`/`integration_campaign_
+  activation_results.csv` para `dcv1_activo_15h`) y verificación de rol
+  dual (`max_hold`=20, ambas sesiones, 13 campos publicados). Ambas
+  reproducidas de forma independiente antes de aceptar cualquier
+  resultado, sin confiar en la ausencia de `AssertionError` del script:
+  **24/24 y 12/12 coincidencias exactas, 0 mismatches**. `gate_check`
+  recalculado desde métricas crudas sobre las 47 filas candidatas: 0
+  mismatches. `summarize_decision` recalculado independientemente: 0
+  diferencias contra la decisión publicada.
+- **Resultados**: 47 filas candidatas, **47/47 computables** (n_trades≥5
+  en todas — a diferencia de Espacio 3, acá la computabilidad nunca fue el
+  problema). `max_dd` pasa 41/47, `exp_r` 27/47, `freq` 23/47 (siempre bajo
+  `dcv1_activo_15h`, 0/24 bajo `control_8h` — mismo patrón que los 3
+  bloques de I1), **`pf`≥1.50 pasa 0/47** — PF vuelve a ser el gate
+  universalmente vinculante. Máximo PF observado: 1.364 (SOLUSDT 2023,
+  `10 | dcv1_activo_15h`), dentro de la misma banda estrecha (~1.36-1.48)
+  ya vista en los 3 bloques de I1. Ningún activo sobrevive 2022 Y 2023
+  (`survives_both_years=False` en los 3 activos).
+- **Análisis**: el mecanismo estructural sobre `freq` se confirma en
+  **dirección** — monótonamente no-creciente en `max_hold` en **12/12**
+  contextos (activo, año, sesión), exactamente como predice `busy_until`/
+  `simulate_v3` — pero es **demasiado débil en magnitud**: bajo
+  `control_8h`, el delta máximo observado en toda la grilla (5→40) es
+  0.6 trades/mes, frente a una brecha real hacia el piso de 6 de entre
+  +0.4 y +2.0 según el combo — nunca suficiente para cruzar el gate. La
+  justificación metodológica de correr sesión × parámetro fue correcta
+  *ex ante* (no había forma de conocer la magnitud sin ejecutar el
+  contrato); el resultado específico que la motivó no se materializó. La
+  dirección de la asociación PF-`max_hold` es específica de cada activo,
+  sin atribución de causa: BTCUSDT decreciente en las 4 combinaciones
+  año×sesión, ETHUSDT creciente en las 4, SOLUSDT mixto (positivo ambos
+  años bajo `control_8h`; bajo `dcv1_activo_15h`, -0.27 en 2022 y +0.12 en
+  2023) — se documenta como observación contextual, no como relación
+  causal, mismo estándar que I1-activation/I1-be. Patrones mecánicos
+  deterministas de `simulate_v3` (no requieren atribución causal, son
+  consecuencia directa de la lógica de salida): `avg_win` monótonamente
+  no-decreciente en `max_hold` en 12/12 contextos, `timeout_frac`
+  monótonamente no-creciente en 12/12, `wr` no-creciente en 10/12 —
+  coherente con "más tiempo de holding permite que los ganadores se
+  desarrollen más, a costa de que más operaciones marginales reviertan
+  antes del timeout" (mismo tipo de trade-off ya visto en H2.2 con
+  `activation`). Estos patrones mecánicos son consecuencias observadas del
+  mecanismo de gestión, no la conclusión principal del cierre.
+- **Determinación**: hipótesis de Espacio 2 (`max_hold`) **falsificada
+  bajo el contrato experimental evaluado** — ningún activo supera los 4
+  gates en 2022 Y 2023 bajo ninguna combinación (`max_hold`, sesión),
+  dentro de esta configuración exacta (Gestión V3-A completa salvo
+  `max_hold`, `atr_mult`=1.5, `atr_period`=14 fijo, Trigger=`T1_ema_cross`,
+  sesiones `control_8h`/`dcv1_activo_15h`). El 100% de las filas candidatas
+  (47/47) fue computable — la forma más fuerte de falsificación
+  ("falsificación con muestra ya computable") vista hasta ahora en el
+  programa. Esto no generaliza que `max_hold` sea irrelevante en términos
+  absolutos: otra Gestión, otro trigger, u otra combinación de sesión
+  podrían producir un resultado distinto y quedan fuera del alcance de lo
+  que este contrato evaluó.
+- **Limitaciones y observaciones secundarias**: (1) el mecanismo de `freq`
+  quedó confirmado en dirección pero no en magnitud suficiente — no
+  descarta que un rango de `max_hold` más extremo (fuera de la grilla
+  5-40 probada) pudiera cruzar el gate, algo que este contrato no evaluó;
+  (2) `atr_period` permanece sin caracterizar, no por hallazgo negativo
+  sino por una limitación estructural del pipeline de investigación
+  vigente, documentada como iniciativa de infraestructura separada; (3)
+  las asociaciones de dirección PF-`max_hold` por activo y los patrones
+  mecánicos de `avg_win`/`wr`/`timeout_frac` se reportan como evidencia
+  descriptiva, explícitamente no como explicaciones causales ni como
+  fundamento para promover ningún valor de `max_hold`.
+- **Estado**: **CERRADO** (2026-08-10). No se continuará explorando este
+  espacio experimental bajo el contrato actual. Reabrir `max_hold` bajo
+  otra Gestión, otro trigger, u otro rango de grilla requeriría un
+  contrato nuevo explícitamente propuesto y aprobado. Este cierre no
+  reabre ni reinterpreta ninguna conclusión de H1, H2, I1 o Espacio 3.
+
 El plan experimental completo post-cierre I1 (los cuatro espacios
 evaluados en la sesión de planificación de 2026-08-08, el orden de
 exploración aprobado y su justificación por valor de información
