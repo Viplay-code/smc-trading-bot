@@ -1,0 +1,13 @@
+asset,candidate,exit_config,pf_2022,pf_2023,gate_2022,gate_2023,survives_both_years,rank_within_asset
+BTCUSDT,A | control_8h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",0.895,0.713,False,False,False,
+BTCUSDT,A | dcv1_activo_15h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",0.681,1.021,False,False,False,
+BTCUSDT,A2 | control_8h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",0.861,0.756,False,False,False,
+BTCUSDT,A2 | dcv1_activo_15h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",0.712,0.994,False,False,False,
+ETHUSDT,A | control_8h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",0.971,0.952,False,False,False,
+ETHUSDT,A | dcv1_activo_15h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",1.033,0.782,False,False,False,
+ETHUSDT,A2 | control_8h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",1.044,0.854,False,False,False,
+ETHUSDT,A2 | dcv1_activo_15h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",1.098,0.827,False,False,False,
+SOLUSDT,A | control_8h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",1.152,1.138,False,False,False,
+SOLUSDT,A | dcv1_activo_15h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",1.003,1.272,False,False,False,
+SOLUSDT,A2 | control_8h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",1.231,1.069,False,False,False,
+SOLUSDT,A2 | dcv1_activo_15h,"Iniciativa G x sesión (Bias A vs A2, be=1.0R/activation=2.0R/distance=1.0R, atr_mult=1.5; bias & sesión variable)",1.044,1.148,False,False,False,
