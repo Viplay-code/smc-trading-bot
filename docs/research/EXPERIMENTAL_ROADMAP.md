@@ -11,11 +11,12 @@ un contrato congelado como los de cada campaña individual (esos viven en
 Acordado en sesión de planificación metodológica, 2026-08-08, inmediatamente
 después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 
-## Estado actual del programa (2026-08-10)
+## Estado actual del programa (2026-08-12)
 
 | Fase/espacio | Estado |
 |---|---|
 | H1 (`atr_mult`) | Cerrado con datos reales, documentado en `FRAMEWORK.md` |
+| `atr_mult` × sesión (extensión residual de H1, NO uno de los 4 espacios) | **Cerrado con datos reales** (2026-08-12), documentado en `FRAMEWORK.md` — hipótesis primaria (`atr_mult`=3.0 × `dcv1_activo_15h`) **no respaldada**; grid secundario tampoco produce sobrevivientes (commits `a806d38` implementación, `3630f4d` resultados). No cambia el orden de exploración aprobado ni reabre Espacio 1/Espacio 2 — ver nota en "Orden de exploración aprobado" |
 | H2 (familia: `distance`/`activation`/`be` aislados) | Cerrado con datos reales, documentado en `FRAMEWORK.md` |
 | I1 (Integración: sesión × un parámetro H2) | Cerrado con datos reales, documentado en `FRAMEWORK.md` |
 | Espacio 3 (`A_sweep_bos` bajo `dcv1_activo_15h`) | Cerrado con datos reales, documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (commits `31a58ab` implementación, `76980f0` resultados, `38fa696` cierre) |
@@ -211,6 +212,14 @@ en general, solo el espacio tal como estaba definido; la celda "Entry de
 retroceso bajo T1" permanece abierta, fuera de cualquier espacio
 actualmente aprobado. El orden aprobado no cambia por este motivo; el
 siguiente paso es **Espacio 1**, según lo ya decidido.
+
+**Nota tras el cierre de `atr_mult` × sesión (2026-08-12)**: campaña
+independiente, NO uno de los cuatro espacios de este roadmap — extensión
+residual de H1 hacia `dcv1_activo_15h`, explícitamente no una reapertura
+de Espacio 1 ni de Espacio 2. Hipótesis primaria (`atr_mult`=3.0) no
+respaldada; grid secundario sin sobrevivientes. No cambia el orden
+aprobado ni el siguiente paso (Espacio 1). Detalle completo: `FRAMEWORK.md`,
+sección "`atr_mult` × sesión" (no repetido acá).
 
 ## Justificación metodológica del orden (VoI, costo, riesgo)
 

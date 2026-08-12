@@ -732,6 +732,105 @@ vigente — un hallazgo estructural, no un resultado experimental.
   "la cuestión de Entry bajo T1 quedó completamente resuelta": la celda de
   Entry de retroceso permanece abierta, fuera del alcance de este cierre.
 
+### `atr_mult` × sesión (extensión residual de H1) — cerrado
+
+Bloque independiente, NO parte de los cuatro espacios de `docs/research/
+EXPERIMENTAL_ROADMAP.md` — explícitamente no una reapertura de Espacio 1
+(Gestión multivariable) ni de Espacio 2 (`max_hold`, cerrado). Contrato
+acordado 2026-08-11, motivado porque H1 (`atr_mult` ∈ {1.0, 1.5(ancla), 2.0,
+3.0}, cerrado, `gestion_campaign_atr_mult_results.csv`) solo se había
+probado bajo `control_8h`, y el PF máximo de todo el programa hasta esa
+fecha (1.567, SOLUSDT/2023, `atr_mult`=3.0) estaba bloqueado
+exclusivamente por frecuencia — la única celda de `atr_mult` bajo
+`dcv1_activo_15h` que ningún bloque anterior había tocado.
+
+- **Objetivo e hipótesis primaria**: `atr_mult`=3.0 × `dcv1_activo_15h`
+  supera los 4 gates de FRAMEWORK.md en 2022 Y 2023 para al menos un
+  activo — motivada por el PF=1.567 de H1, no evidencia de edge en sí
+  misma. Grid secundario preespecificado, no motivador: `atr_mult` ∈
+  {1.0, 1.5, 2.0} × `dcv1_activo_15h`, mismo protocolo y gates.
+- **Contrato**: Bias=A/Trigger=`T1_ema_cross`/Entry=`C_market_close`/
+  Gestión V3-A única (`be`=1.0R/`activation`=2.0R/`distance`=1.0R)/
+  `atr_period`=14/`max_hold`=20/`risk`=0.005 fijos. `control_8h` (24 filas)
+  leído directamente de `gestion_campaign_atr_mult_results.csv` (H1), sin
+  recomputar. `dcv1_activo_15h` (24 filas) computado con el código de hoy;
+  `atr_mult`=1.5 en rol dual (celda de verificación + fila candidata,
+  misma función, sin doble cómputo). Implementado en `scripts/
+  gestion_campaign_atr_mult_session.py` (commit `a806d38`), resultados en
+  `gestion_campaign_atr_mult_session_results.csv`/`_decision.csv`/
+  `_deltas.csv` (commit `3630f4d`).
+- **Verificación de integridad**: Fase A (12 verificaciones — 6 combos
+  activo/año × 2 referencias independientes: `gestion_campaign_session_
+  results.csv` y `gestion_campaign_max_hold_session_results.csv`, ambas
+  ya coincidentes entre sí) más `assert_trigger_invariant_to_atr_mult`
+  (H1, reutilizada literal) sobre el frame de `dcv1_activo_15h`.
+  Auditoría independiente completa (2026-08-12): Fase A 12/12 exactas;
+  `gate_check` recalculado sobre las 24 filas candidatas, 0 mismatches;
+  `summarize_decision` recalculado, 0 mismatches contra las 12 filas de
+  `_decision.csv`; `compute_deltas` recalculado, 0 mismatches contra las
+  24 filas de `_deltas.csv`; sin contaminación de Bias/Trigger/Entry/
+  Gestión/`atr_period`/`max_hold`/`risk` verificada en código; 27/27 tests
+  de `research/tests/test_gestion_campaign_atr_mult_session.py` pasan.
+  Dictamen de auditoría: **APTO para análisis científico**.
+- **Resultados**: **la hipótesis primaria (`atr_mult`=3.0 ×
+  `dcv1_activo_15h`) no está respaldada** — 0/6 celdas cumplen los 4
+  gates; `max_dd`/`freq` pasan 6/6, `exp_r` 4/6, **`pf`≥1.50 0/6**.
+  `ΔPF` (dcv1 − control) negativo en 4/6 celdas. La celda histórica que
+  motivó la hipótesis (SOLUSDT/2023) tampoco reproduce el PF requerido
+  bajo `dcv1_activo_15h`: 1.408 < 1.50. El grid secundario tampoco
+  produce ninguna celda que cumpla los 4 gates (0/18). Sobre las 24 filas
+  candidatas completas (los 4 valores de `atr_mult`): **0/24 alcanzan
+  `pf`≥1.50** — de hecho, 0 de las 12 combinaciones candidatas
+  (4 `atr_mult` × 3 activos) alcanzan `pf`≥1.50 siquiera en un solo año
+  aislado. `dcv1_activo_15h` sí resuelve el gate de frecuencia de forma
+  consistente: **24/24 filas candidatas dentro de [6,12]**, con `Δfreq`
+  positivo en las 24/24 filas (rango +3.2 a +5.0/mes) — efecto
+  independiente de `atr_mult`. Ningún activo sobrevive 2022 Y 2023 bajo
+  ningún valor de `atr_mult` (`survives_both_years`=False en las 12
+  filas de la decisión).
+- **Análisis**: cambiar `atr_mult` entre 1.0 y 3.0 bajo `dcv1_activo_15h`
+  no produce el salto de PF necesario para cruzar el gate en ninguna
+  combinación — el `ΔPF` medio por valor de `atr_mult` (1.0: −0.069; 1.5:
+  −0.005; 2.0: −0.017; 3.0: −0.039) no muestra a la hipótesis primaria
+  como la de mejor preservación relativa de PF; ese lugar lo ocupa
+  `atr_mult`=1.5 (réplica, no la hipótesis primaria). La dirección
+  2022→2023 del PF es consistente dentro de cada activo (ETHUSDT baja en
+  los 4 valores; SOLUSDT sube en los 4; BTCUSDT sube en 3 de 4, con
+  `atr_mult`=3.0 como única excepción) — observación descriptiva, sin
+  atribución de causa a `atr_mult` ni a régimen de mercado, mismo
+  estándar que el resto del programa.
+- **Comparaciones múltiples**: se evaluaron 12 combinaciones candidatas
+  (4 `atr_mult` × 3 activos). Este riesgo **existe**, pero **no altera la
+  conclusión de esta campaña porque ningún candidato alcanzó el criterio
+  de aceptación** (supervivencia 2022+2023) — el mejor resultado
+  observado (SOLUSDT/`atr_mult`=3.0/2023, PF=1.408) no se interpreta como
+  evidencia confirmatoria aislada; es, dentro de 12 comparaciones
+  simultáneas, el máximo esperable por muestreo sobre esa cantidad de
+  combinaciones, no una señal validada por `gate_check`/
+  `summarize_decision`.
+- **Contabilidad de la evidencia**: de las 48 filas totales, 24 son
+  lectura histórica de H1 (`control_8h`, sin recómputo, no evidencia
+  nueva), 6 son réplica/verificación de una celda ya publicada
+  (`atr_mult`=1.5 × `dcv1_activo_15h`, no evidencia nueva) y **18 son
+  evidencia genuinamente nueva** (`atr_mult` ∈ {1.0, 2.0, 3.0} ×
+  `dcv1_activo_15h` × 3 activos × 2 años) — 6 de esas 18 corresponden a
+  la hipótesis primaria, 12 al grid secundario preespecificado.
+- **Determinación**: hipótesis primaria (`atr_mult`=3.0 ×
+  `dcv1_activo_15h`) **no respaldada bajo el contrato experimental
+  evaluado**; grid secundario sin ninguna combinación que cumpla los 4
+  gates tampoco. `dcv1_activo_15h` resuelve el gate de frecuencia de
+  forma robusta e independiente de `atr_mult`, pero el gate de PF
+  permanece universalmente cerrado bajo esta configuración exacta — mismo
+  patrón ya visto en I1 y Espacio 2. Esto no generaliza que `atr_mult`
+  sea irrelevante en términos absolutos, ni reabre H1, Espacio 1 o
+  Espacio 2 — queda fuera del alcance de lo que este contrato evaluó.
+- **Estado**: **CERRADO** (2026-08-12). No se continuará explorando esta
+  celda residual bajo el contrato actual. Reabrirla bajo otro rango de
+  `atr_mult`, otra Gestión, u otro trigger requeriría un contrato nuevo
+  explícitamente propuesto y aprobado. Este cierre no reabre ni
+  reinterpreta ninguna conclusión de H1, H2, I1, Espacio 2, Espacio 3 o
+  Espacio 4.
+
 El plan experimental completo post-cierre I1 (los cuatro espacios
 evaluados en la sesión de planificación de 2026-08-08, el orden de
 exploración aprobado y su justificación por valor de información
