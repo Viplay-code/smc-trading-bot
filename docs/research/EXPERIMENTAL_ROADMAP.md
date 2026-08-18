@@ -23,8 +23,10 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | **Espacio 2** (`max_hold`, sesión × parámetro; `risk` y `atr_period` excluidos del objetivo principal) | **Cerrado con datos reales** (2026-08-10), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (commits `f467f50` implementación, `a9f1dbd` resultados) |
 | Iniciativa pendiente — ATR de período arbitrario en el pipeline de investigación | Identificada 2026-08-08 durante el diseño de Espacio 2, **sigue sin implementarse** — separada del cierre de Espacio 2, no reabierta por él |
 | Espacio 4 (Entry bajo `T1_ema_cross`) | **Cerrado sin campaña nueva** (2026-08-10), documentado en `FRAMEWORK.md` — evidencia histórica ya publicada (`C_market_close` vs `D_next_candle_open`, 2026-07-27) reauditada y formalizada; `A_pullback_50` **no computable** bajo T1 (incompatibilidad estructural, NO resultado negativo ni hipótesis falsificada). **La celda "Entry de retroceso bajo T1" permanece genuinamente abierta** — este cierre NO significa que la cuestión de Entry bajo T1 quedó completamente resuelta, solo que el espacio tal como estaba definido no requiere más trabajo |
-| **Siguiente paso del orden aprobado** | Espacio 1 (Gestión multivariable) |
-| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — sin criterio de priorización no-arbitrario entre sus 6 sub-candidatos |
+| **Espacio 1** (Gestión multivariable, `distance`×`activation`×`be` simultáneos) | **Cerrado con datos reales** (2026-08-17), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (0/216 filas candidatas con `pf`≥1.50; commits `3b1f843` implementación, `bf2de24` resultados). Con este cierre, los cuatro espacios del orden aprobado quedan completos — ver "Orden de exploración aprobado" |
+| Rama B (Trigger/Entry: `D_range_breakout`, `A_sweep_bos`+`A_pullback_50`) | **Cerrado** (2026-08-18), documentado en `FRAMEWORK.md` — `D_range_breakout`+`C_market_close` **descartada**; `A_sweep_bos`+`A_pullback_50` **candidata congelada / evidencia insuficiente** (0/12 filas cumplen los 4 gates; ninguna combinación elegible para ciego 2024). **No es uno de los 4 espacios de este roadmap** ni una extensión residual de H1 (a diferencia de `atr_mult`×sesión) — línea surgida de una revisión estratégica posterior a estos 4 espacios, no documentada formalmente en este archivo hasta ahora. Ver nota de ambigüedad en "Espacios explícitamente fuera del orden" sobre su relación con Espacio 5/Espacio 6 |
+| **Próxima línea de investigación** | **Sin decidir** — los 4 espacios del orden aprobado y Rama B están cerrados; la elección de qué sigue queda pendiente de una decisión explícita posterior, no determinada por este documento en su estado actual (ver ambigüedades señaladas abajo) |
+| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — sin criterio de priorización no-arbitrario entre sus 6 sub-candidatos. **Uno de sus 6 sub-candidatos (`D` de Trigger) ya fue evaluado, vía Rama B, no vía este espacio** — ver nota abajo |
 | Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden |
 
 ## Los cuatro espacios experimentales
@@ -38,6 +40,16 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 - **Evidencia que contradice**: los 3 parámetros mostraron trade-offs mecánicos consistentes (WR↑ con `be`↑/`activation`↑) que nunca se tradujeron en dirección de PF estable ni variando uno solo — no hay señal previa de sinergia esperable.
 - **Costo experimental**: Alto (grilla combinatoria hasta 3×5×5=75 combos × 2 sesiones × 3 activos × 2 años; exige reglas de contingencia nuevas).
 - **Riesgo metodológico**: Medio-Alto (expansión combinatoria sobre la misma muestra fija; riesgo de comparaciones múltiples).
+- **Estado**: **CERRADO** (2026-08-17), hipótesis falsificada bajo el
+  contrato evaluado — 0/216 filas candidatas con `pf`≥1.50, ningún activo
+  sobrevive 2022 Y 2023 bajo ninguna de las 36 combinaciones evaluadas
+  (grid final: `distance`×`activation`×`be`, bajo sesión `dcv1_activo_15h`
+  única, sin extensiones por contingencia — más acotado que el costo
+  "Alto"/75 combos estimado arriba al momento del diseño original de esta
+  sección). Resultados, verificación y análisis completos: **`FRAMEWORK.md`,
+  sección "Espacio 1"** (no repetidos acá, para evitar una segunda fuente
+  de los mismos números). Con este cierre, los cuatro espacios del orden
+  aprobado quedan completos.
 
 ### Espacio 2 — Parámetros de Gestión nunca variados (`max_hold`)
 
@@ -211,15 +223,39 @@ sección "Espacio 4". Este cierre NO resuelve la cuestión de Entry bajo T1
 en general, solo el espacio tal como estaba definido; la celda "Entry de
 retroceso bajo T1" permanece abierta, fuera de cualquier espacio
 actualmente aprobado. El orden aprobado no cambia por este motivo; el
-siguiente paso es **Espacio 1**, según lo ya decidido.
+siguiente paso era, en ese momento, **Espacio 1** — cerrado desde el
+2026-08-17, ver actualización más abajo.
 
 **Nota tras el cierre de `atr_mult` × sesión (2026-08-12)**: campaña
 independiente, NO uno de los cuatro espacios de este roadmap — extensión
 residual de H1 hacia `dcv1_activo_15h`, explícitamente no una reapertura
 de Espacio 1 ni de Espacio 2. Hipótesis primaria (`atr_mult`=3.0) no
 respaldada; grid secundario sin sobrevivientes. No cambia el orden
-aprobado ni el siguiente paso (Espacio 1). Detalle completo: `FRAMEWORK.md`,
-sección "`atr_mult` × sesión" (no repetido acá).
+aprobado ni el siguiente paso, que en ese momento era Espacio 1 — cerrado
+desde el 2026-08-17, ver actualización más abajo. Detalle completo:
+`FRAMEWORK.md`, sección "`atr_mult` × sesión" (no repetido acá).
+
+**Actualización tras el cierre de Espacio 1 (2026-08-17)**: hipótesis
+falsificada bajo el contrato evaluado (ver tabla de estado y `FRAMEWORK.md`,
+sección "Espacio 1") — ninguna de las 36 combinaciones de `distance`×
+`activation`×`be` superó los 4 gates. **Con este cierre, los cuatro
+espacios del orden aprobado (Espacio 3 → Espacio 2 → Espacio 4 →
+Espacio 1) quedan completos.** Este documento, en su estado actual, no
+declara cuál es la siguiente línea de investigación — esa decisión queda
+pendiente, fuera del alcance de esta actualización.
+
+**Nota tras el cierre de Rama B (2026-08-18)**: línea de investigación
+sobre Trigger/Entry (Capa 2/Capa 3), ejecutada y cerrada **después** de
+completarse el orden aprobado de los cuatro espacios de arriba —
+**no es uno de esos cuatro espacios, ni una extensión residual de H1**
+(a diferencia de `atr_mult`×sesión). Detalle completo: `FRAMEWORK.md`,
+sección "Rama B — Trigger/Entry". `D_range_breakout`+`C_market_close`
+descartada; `A_sweep_bos`+`A_pullback_50` candidata congelada/evidencia
+insuficiente; ninguna combinación elegible para prueba ciega 2024. Su
+relación formal con Espacio 5/Espacio 6 de este documento no está resuelta
+— ver ambigüedad señalada en "Espacios explícitamente fuera del orden",
+abajo. Este documento tampoco declara, a partir de este cierre, cuál es la
+siguiente línea de investigación.
 
 ## Justificación metodológica del orden (VoI, costo, riesgo)
 
@@ -267,11 +303,64 @@ información en dos componentes:
   espacio experimental de I1) — ejecutar cualquiera ahora repetiría el
   patrón de barrido sin justificación que el programa ha evitado en cada
   campaña anterior.
+
+  **Nota de reconciliación con Rama B (2026-08-18)**: `D` de Trigger
+  (`D_range_breakout`, "ruptura y cierre fuera de rango de 10 velas") — uno
+  de los 6 sub-candidatos listados arriba como "nunca implementados" — fue
+  implementado y evaluado con datos reales en Rama B (`FRAMEWORK.md`,
+  sección "Rama B — Trigger/Entry"), en la combinación
+  `D_range_breakout`+`C_market_close`, bajo un contrato específico (Bias=A,
+  Gestión V3-A ancla, sesión `dcv1_activo_15h` única). Por lo tanto, ese
+  sub-candidato concreto **ya no está "sin evaluar"** en el sentido literal
+  de la frase de arriba. Esto **no significa que Espacio 5 como espacio
+  completo haya sido ejecutado, desbloqueado, ni que su bloqueo (falta de
+  criterio de priorización no-arbitrario entre los 6 sub-candidatos) haya
+  sido resuelto** — Rama B no pasó por ningún mecanismo de priorización
+  formal de Espacio 5 (ni un Paso 0 de dominación Pareto ni ningún criterio
+  equivalente); su justificación para elegir específicamente `D` de
+  Trigger y `A` de Entry vino de una revisión estratégica externa a este
+  espacio (ver nota siguiente). Los otros 5 sub-candidatos (B/C de Bias,
+  B/C de Trigger, B de Entry) permanecen exactamente en el estado que este
+  espacio ya documentaba: sin evidencia, sin evaluar, bloqueados por la
+  misma falta de criterio de priorización.
+
+  **Ambigüedad señalada, no resuelta**: este documento no contiene un
+  criterio explícito para clasificar qué significa que un espacio quede
+  "parcialmente" tocado por una línea de investigación ejecutada fuera de
+  su propio mecanismo de priorización. No determino acá si Espacio 5 debe
+  considerarse "5 de 6 sub-candidatos pendientes", "sin cambios en su
+  estado formal (bloqueado en su totalidad, con una nota informativa)", o
+  alguna otra clasificación — queda como pregunta abierta para una decisión
+  explícita posterior, no resuelta por esta actualización documental.
+
+  **Relación con Rama A/Rama B/Rama C** (nombres usados en la revisión
+  estratégica de sesión de trabajo que motivó Rama B, 2026-08-18): esos
+  nombres **no tienen, a la fecha, una definición formal en ningún archivo
+  de este repositorio** — ni su alcance exacto, ni la matriz de valor de
+  información que llevó a priorizar Rama B sobre las otras dos. Este
+  documento registra únicamente que Rama B fue una línea ejecutada y
+  cerrada (ver arriba), y dejar trazable su origen (candidato `D` de
+  Trigger de este mismo Espacio 5) — **no se introduce "Rama A/B/C" como
+  una nueva estructura formal de este roadmap** (al mismo nivel que
+  Espacio 1-6) sin autorización explícita posterior. Si en el futuro se
+  decide formalizar esa estructura o esa matriz de valor de información,
+  requiere su propia actualización de este documento, no se asume acá.
 - **Espacio 6** (pausa y reconsideración del armazón completo — Bias=A/
   Trigger=T1_ema_cross/Entry=C_market_close): no es un experimento
   paramétrico, es una decisión de asignación de esfuerzo. No es
   falsificable por una sola campaña; se revisita después de agotar los
   espacios de mayor valor informativo por menor costo (2, 3, 4), no antes.
+
+  **Nota (2026-08-18, no resuelta)**: al momento en que se escribió esta
+  frase, los espacios 2, 3 y 4 ya estaban cerrados pero el 1 no — la
+  condición de habilitación tal como está redactada ("agotar los espacios
+  ... (2, 3, 4)") no menciona explícitamente el Espacio 1 ni Rama B, ambos
+  cerrados después. No determino acá si esa omisión fue deliberada (el
+  Espacio 1 no cuenta para esta condición) o una imprecisión de redacción,
+  ni si Rama B —al no ser uno de los cuatro espacios— cuenta o no como
+  parte de "agotar los espacios de mayor valor informativo por menor
+  costo". Esto no decide si Espacio 6 corresponde ejecutarse ahora — esa
+  decisión queda expresamente fuera de esta actualización documental.
 
 ## Mantenimiento de este documento
 

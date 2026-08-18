@@ -87,7 +87,14 @@ Candidatos a evaluar:
 - A: Liquidity Sweep + BOS (3 velas)  ← baseline actual
 - B: Liquidity Sweep + BOS (5 velas)
 - C: Solo BOS sin sweep previo
-- D: Ruptura y cierre fuera de rango de 10 velas
+- D: Ruptura y cierre fuera de rango de 10 velas — implementado como
+  `research.layers::trigger_D_range_breakout` (2026-08-18, Rama B, ver
+  sección "Rama B — Trigger/Entry" más abajo). Evaluado en esa campaña
+  únicamente en la combinación `D_range_breakout`+`C_market_close`, bajo
+  el contrato específico documentado ahí — no bajo todas las sesiones,
+  Gestión o combinaciones de Entry posibles. Ver esa sección también para
+  la relación de este candidato con Espacio 5 (`docs/research/
+  EXPERIMENTAL_ROADMAP.md`), donde figuraba como sub-candidato sin evaluar.
 - T1: Cruce EMA9/EMA21 — implementado en `backtest.py` (validación V3
   barra-a-barra), portado a `research.layers::trigger_T1_ema_cross`
   (2026-07-21). Dirección del evento = dirección del cruce (alcista/bajista),
@@ -830,6 +837,177 @@ exclusivamente por frecuencia — la única celda de `atr_mult` bajo
   explícitamente propuesto y aprobado. Este cierre no reabre ni
   reinterpreta ninguna conclusión de H1, H2, I1, Espacio 2, Espacio 3 o
   Espacio 4.
+
+### Espacio 1 — Gestión multivariable (`distance` × `activation` × `be` simultáneos) — cerrado
+
+Último de los cuatro espacios del orden aprobado (Espacio 3 → Espacio 2 →
+Espacio 4 → Espacio 1, `docs/research/EXPERIMENTAL_ROADMAP.md`). Contrato
+acordado 2026-08-13 (versión final, tras 2 correcciones metodológicas
+explícitas: contabilidad de evidencia nueva vs. réplica, y terminología
+del punto V3-A como "ancla/referencia interna" en vez de "control", dado
+que esta campaña corre bajo una sola sesión, sin brazo de comparación bajo
+otra).
+
+- **Objetivo e hipótesis**: H2.1/H2.2/H2.3 e I1-distance/I1-activation/
+  I1-be barrieron `distance`/`activation`/`be` de a uno a la vez (156
+  filas candidatas de I1, 0 con `gate_pass`, máximo PF 1.476) — ninguna
+  campaña anterior había probado si una combinación *conjunta* de los 3
+  parámetros produce una interacción que ninguno muestra por separado.
+  Hipótesis de familia, sin combinación motivadora individual (a
+  diferencia de `atr_mult`=3.0 en la campaña anterior): existe al menos
+  una combinación (`distance`, `activation`, `be`) del grid de 36 que,
+  bajo Bias=A/Trigger=`T1_ema_cross`/Entry=`C_market_close`/`atr_mult`=1.5/
+  `atr_period`=14 (excluido, Espacio 2)/`max_hold`=20 (fijo, Espacio 2)/
+  `risk`=0.005 (excluido, Espacio 2)/sesión=`dcv1_activo_15h` única fijos,
+  supera los 4 gates de FRAMEWORK.md en 2022 Y 2023 para al menos un
+  activo.
+- **Contrato**: grid `distance` ∈ {0.5, 0.75, 1.0, 1.5} (base H2.1) ×
+  `activation` ∈ {1.5, 2.0, 2.5} (base H2.2) × `be` ∈ {0.5, 1.0, 1.5}
+  (base H2.3) = 36 combinaciones, sin extensiones por contingencia ni el
+  conjunto no-dominado de I1 — grid deliberadamente acotado a las grillas
+  base de H2 para no ampliar el riesgo de comparaciones múltiples. El
+  punto ancla V3-A (`distance`=1.0/`activation`=2.0/`be`=1.0) está dentro
+  del grid, con `role="anchor"` (nunca marcado como hipótesis primaria).
+  Solo `dcv1_activo_15h` — decisión explícita de no correr también
+  `control_8h`, ya caracterizado como estructuralmente incapaz de resolver
+  frecuencia; sin brazo de control bajo otra sesión, esta campaña no
+  calcula ΔPF/Δfreq. Implementado en `scripts/gestion_campaign_
+  multivariable.py` (commit `3b1f843`), resultados en `gestion_campaign_
+  multivariable_results.csv`/`_decision.csv` (commit `bf2de24`).
+- **Contabilidad de evidencia**: de las 216 filas candidatas físicas (36
+  combinaciones × 3 activos × 2 años), 42 (7 combinaciones × 6
+  activo/año — el ancla + los 2 bordes univariados de cada uno de los 3
+  parámetros) son réplica/verificación, no evidencia nueva; **174 son
+  evidencia genuinamente nueva** (29 combinaciones × 6 activo/año). 6
+  filas tienen `role="anchor"`, 210 `role="candidate"`.
+- **Verificación de integridad (Fase A)**: 48 verificaciones — ancla
+  contra 2 referencias independientes (`gestion_campaign_session_
+  results.csv` e `integration_campaign_activation_results.csv`, 6×2=12),
+  `distance` sola contra `integration_campaign_distance_results.csv`
+  (6×2=12), `activation` sola contra `integration_campaign_
+  activation_results.csv` (6×2=12), `be` sola contra `integration_
+  campaign_be_results.csv` (6×2=12). Reproducida de forma independiente
+  antes de aceptar cualquier resultado: **48/48 coincidencias exactas, 0
+  mismatches**. `gate_check` recalculado desde métricas crudas sobre las
+  216 filas candidatas: 0 mismatches. `summarize_decision` recalculado
+  independientemente sobre las 108 filas de decisión: 0 mismatches.
+  Integridad de commit verificada por hash: `git hash-object` de ambos CSV
+  en el working tree coincide exacto con los blobs de `git ls-tree
+  bf2de24` (`gestion_campaign_multivariable_results.csv` =
+  `e351a01524d49fc1c25580569948fc916e2b5b4f`, `gestion_campaign_
+  multivariable_decision.csv` = `f57a919a46da96ffd92d4fd0ee4837923eeeb8e2`).
+  Dictamen de auditoría técnica: **PASS**.
+- **Resultados**: de las 216 filas candidatas, **`pf`≥1.50 en 0/216** — el
+  gate universalmente vinculante vuelve a ser PF, mismo patrón que I1 y
+  Espacio 2. `max_dd`≥-10% pasa en 168/216, `exp_r`>0 en 144/216,
+  frecuencia en [6,12] en **216/216** (sesión `dcv1_activo_15h` resuelve
+  frecuencia de forma consistente, igual que en toda campaña bajo esta
+  sesión). Máximo PF observado en las 216 filas: **1.498** (SOLUSDT,
+  2023). Ningún activo sobrevive 2022 Y 2023 bajo ninguna de las 36
+  combinaciones (`survives_both_years`=False en las 108 filas de la
+  decisión).
+- **Determinación**: hipótesis de Espacio 1 (interacción multivariable
+  `distance`×`activation`×`be`) **falsificada bajo el contrato
+  experimental evaluado** — ninguna de las 36 combinaciones supera los 4
+  gates en 2022 Y 2023 para ningún activo, bajo esta configuración exacta
+  (Bias=A/Trigger=`T1_ema_cross`/Entry=`C_market_close`/`atr_mult`=1.5/
+  `max_hold`=20/sesión=`dcv1_activo_15h` única). Esto no generaliza que
+  una interacción de estos 3 parámetros sea imposible en términos
+  absolutos, ni bajo otro trigger, sesión o rango de grid — queda fuera
+  del alcance de lo que este contrato evaluó.
+- **Estado**: **CERRADO** (2026-08-17). No se continuará explorando este
+  espacio bajo el contrato actual. Reabrirlo bajo otro grid, otra sesión,
+  u otro trigger requeriría un contrato nuevo explícitamente propuesto y
+  aprobado. Este cierre no reabre ni reinterpreta ninguna conclusión de
+  H1, H2, I1, Espacio 2, Espacio 3, Espacio 4 o `atr_mult` × sesión. **Con
+  este cierre, los cuatro espacios del orden aprobado en `docs/research/
+  EXPERIMENTAL_ROADMAP.md` (Espacio 3 → Espacio 2 → Espacio 4 → Espacio 1)
+  quedan completos.**
+
+### Rama B — Trigger/Entry — cerrado
+
+Línea de investigación posterior a los cuatro espacios de arriba, **no uno
+de ellos ni una extensión residual de H1** (a diferencia de `atr_mult` ×
+sesión) — surgida de una revisión estratégica global del programa
+(2026-08-18) que identificó Trigger/Entry (Capa 2/Capa 3) como la línea de
+mayor valor de información esperado entre las alternativas consideradas en
+esa revisión. **Nota de trazabilidad**: esa revisión estratégica y su
+análisis formal de valor de información no están documentados en ningún
+archivo de este repositorio a la fecha de este cierre — la justificación
+completa de por qué se priorizó esta línea existe únicamente como decisión
+de sesión de trabajo, no como documento versionado. Ver la ambigüedad
+señalada en `docs/research/EXPERIMENTAL_ROADMAP.md` sobre cómo esta línea
+se relaciona formalmente con Espacio 5/Espacio 6.
+
+- **Objetivo e hipótesis**: evaluar si el techo de PF (~1.0-1.5) observado
+  en las líneas experimentales previas del programa (H1, H2.1-H2.3, I1,
+  Espacio 3, Espacio 2, `atr_mult`×sesión, Espacio 4, Espacio 1) es
+  específico del par Trigger/Entry vigente en la mayoría de ellas
+  (`T1_ema_cross`/`C_market_close` — Espacio 3 es la excepción, con
+  Trigger=`A_sweep_bos` fijo), o transversal. Dos celdas evaluadas, sin celda
+  `D_range_breakout`+`A_pullback_50` — incompatibilidad estructural:
+  `entry_A_pullback_50` requiere `event.meta["bos_level"]`, que
+  `trigger_D_range_breakout` no produce (`meta={}` siempre), mismo tipo de
+  incompatibilidad ya documentado para T1 en el cierre de Espacio 4:
+  - `D_range_breakout` (Capa 2, candidato "D" de la lista de arriba, nunca
+    implementado hasta esta campaña) + `C_market_close` — aísla el efecto
+    de Trigger.
+  - `A_sweep_bos` + `A_pullback_50` — aísla el efecto de Entry.
+- **Contrato**: Bias=A/Gestión V3-A ancla (`be`=1.0R/`activation`=2.0R/
+  `distance`=1.0R)/`atr_mult`=1.5/`atr_period`=14/`max_hold`=20/
+  `risk`=0.005/sesión=`dcv1_activo_15h` única fijos, BTCUSDT/ETHUSDT/
+  SOLUSDT, 2022+2023 (2024 no ejecutado). Implementado en `scripts/
+  trigger_entry_campaign_rama_b.py` (commit `3f07f10`, junto con
+  `trigger_D_range_breakout` en `research/layers.py`), resultados en
+  `trigger_entry_campaign_rama_b_results.csv`/`_decision.csv` (commit
+  `c03a82d6c3d5ef5161f1d6946f958a02b5223911`).
+- **Verificación de integridad (Fase A)**: ninguna de las 2 celdas
+  objetivo tiene antecedente histórico bajo ninguna sesión — se verificó
+  en su lugar el pipeline compartido por ambas, vía la celda auxiliar
+  `A_sweep_bos`+`C_market_close` bajo `dcv1_activo_15h`, contra la
+  referencia ya publicada de Espacio 3 (`trigger_campaign_sweep_bos_
+  session_results.csv`). 6 verificaciones (una por activo/año),
+  comparación NaN-consciente (ETHUSDT/2023 no computable en la
+  referencia). Auditoría independiente: **PASS** — cardinalidad 12/12
+  filas de resultados (2 combinaciones × 3 activos × 2 años), 6/6 filas de
+  decisión, sin 2024 en ningún registro, hash de ambos CSV en el working
+  tree coincide exacto con `git ls-tree c03a82d6c3d5ef5161f1d6946f958a02b5223911`
+  (`trigger_entry_campaign_rama_b_results.csv` =
+  `aa4fadfda6ff3e60639253e944a62924a54bcabb`, `trigger_entry_campaign_
+  rama_b_decision.csv` = `0da981872f2c722aa3f259a8e2eb18b1c6d91dde`),
+  `git status` limpio y `HEAD == origin/main` en el momento de la
+  auditoría. `gate_check`/`summarize_decision` reutilizados por identidad
+  desde `scripts/bias_campaign.py`, sin reimplementar.
+- **Resultados y determinación por combinación**:
+  - **`D_range_breakout + C_market_close` → DESCARTADA.** PF entre 0.676
+    y 1.250 en las 6 celdas (media 0.938), por debajo del gate en las
+    6/6; `exp_r`>0 solo en 2/6; `max_dd`≥-10% solo en 2/6; frecuencia por
+    encima del techo de 12/mes en las 6/6 (15.6-17.9/mes). Evidencia
+    estadísticamente sólida (1202 trades acumulados, sin celda extrema
+    aislada) de calidad de señal insuficiente bajo este contrato.
+  - **`A_sweep_bos + A_pullback_50` → CANDIDATA CONGELADA / EVIDENCIA
+    INSUFICIENTE.** PF entre 10.293 y 50.935 en las 5 celdas computables
+    (`exp_r`>0 y `max_dd`≥-10% en las 5/5), pero frecuencia entre 0.5 y
+    1.6/mes — muy por debajo del piso de 6/mes en las 5/5 celdas
+    computables, incompatible con el gate de frecuencia. Celda
+    `ETHUSDT/2023` no computable (`n_trades`=4, por debajo del piso de 5
+    de `backtest.metrics()`) — no cuenta como evidencia a favor ni en
+    contra. No se descarta (el patrón de PF alto es consistente y se
+    replicó bajo un segundo régimen de sesión distinto de su único
+    antecedente previo bajo `control_8h`), pero tampoco se promueve: la
+    baja frecuencia se evaluó como estructural (análisis conceptual, sin
+    campaña adicional), no resoluble aumentando años o activos dentro del
+    contrato actual. **Esta combinación no debe investigarse de nuevo bajo
+    el contrato actual únicamente para intentar rescatar su PF o aumentar
+    artificialmente su frecuencia** — reabrirla exigiría un contrato
+    nuevo (otra sesión, Trigger, Entry o Gestión) explícitamente propuesto
+    y aprobado, tratado como experimento distinto, no como extensión de
+    este cierre.
+- **Gate (Nivel 4)**: **0/12 filas cumplen los 4 gates de FRAMEWORK.md.**
+  Ninguna combinación fue elegible para prueba ciega en 2024 —
+  `run_blind_test` no fue invocado en ningún momento de esta campaña.
+- **Estado**: **CERRADO** (2026-08-18). No se continuará esta línea bajo
+  el contrato actual.
 
 El plan experimental completo post-cierre I1 (los cuatro espacios
 evaluados en la sesión de planificación de 2026-08-08, el orden de
