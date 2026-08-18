@@ -19,6 +19,7 @@ from __future__ import annotations
 import sys
 from dataclasses import FrozenInstanceError
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -38,6 +39,7 @@ from research.layers import (
     trigger_T1_ema_cross,
     entry_C_market_close,
     entry_D_next_candle_open,
+    trigger_D_range_breakout,
 )
 
 Path("smc_bot.log").unlink(missing_ok=True)
@@ -90,8 +92,10 @@ def test_registries_populated():
         and ENTRY_LAYERS.get("A_pullback_50") is entry_A_pullback_50
         and TRIGGER_LAYERS.get("T1_ema_cross") is trigger_T1_ema_cross
         and ENTRY_LAYERS.get("C_market_close") is entry_C_market_close
+        and TRIGGER_LAYERS.get("D_range_breakout") is trigger_D_range_breakout
     )
-    return _p("los candidatos baseline + T1 están registrados en BIAS/TRIGGER/ENTRY_LAYERS", ok)
+    return _p("los candidatos baseline + T1 + D_range_breakout están registrados en "
+              "BIAS/TRIGGER/ENTRY_LAYERS", ok)
 
 
 def test_contract_return_types():
@@ -341,6 +345,89 @@ def test_t1_matches_legacy():
     )
 
 
+# --------------------------------------------------------------------------- #
+# Comportamiento (no paridad — D_range_breakout nunca existió en              #
+# bot.py/backtest.py, candidato nuevo de Rama B) — ruptura y cierre fuera del #
+# rango de las `range_lookback` velas ANTERIORES a la vela evaluada.          #
+# --------------------------------------------------------------------------- #
+def _make_single_breakout_df(direction: Literal["long", "short"]):
+    """OHLC determinístico: 10 velas planas (rango [99,101]) seguidas de UNA
+    sola vela de ruptura — dataframe minimalista y autocontenido (sin velas
+    posteriores) para que la vela de ruptura nunca contamine la ventana de
+    ningún otro chequeo posterior."""
+    idx = pd.date_range("2022-01-01", periods=11, freq="1h", tz="UTC")
+    rows = [{"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 10.0} for _ in range(10)]
+    if direction == "long":
+        rows.append({"open": 100.0, "high": 111.0, "low": 100.0, "close": 110.0, "volume": 10.0})
+    else:
+        rows.append({"open": 100.0, "high": 100.0, "low": 89.0, "close": 90.0, "volume": 10.0})
+    return pd.DataFrame(rows, index=idx)
+
+
+def test_range_breakout_detects_upside_and_downside():
+    df_long = _make_single_breakout_df("long")
+    df_short = _make_single_breakout_df("short")
+    events_long = trigger_D_range_breakout(df_long, range_lookback=10)
+    events_short = trigger_D_range_breakout(df_short, range_lookback=10)
+    ok = (
+        len(events_long) == 1 and events_long[0].entry_idx == 10
+        and events_long[0].direction == "long" and events_long[0].meta == {}
+        and len(events_short) == 1 and events_short[0].entry_idx == 10
+        and events_short[0].direction == "short" and events_short[0].meta == {}
+    )
+    return _p("trigger_D_range_breakout detecta ruptura alcista y bajista por separado, "
+              f"meta vacío ({len(events_long)} + {len(events_short)} eventos)", ok)
+
+
+def test_range_breakout_no_event_within_range():
+    idx = pd.date_range("2022-01-01", periods=15, freq="1h", tz="UTC")
+    df1h = pd.DataFrame(
+        {"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 10.0}, index=idx,
+    )
+    events = trigger_D_range_breakout(df1h, range_lookback=10)
+    return _p("trigger_D_range_breakout no emite eventos cuando el precio nunca sale del rango "
+              f"({len(events)} eventos, esperado 0)", len(events) == 0)
+
+
+def test_range_breakout_uses_only_preceding_candles():
+    """La vela de ruptura NO debe contar como parte de su propio rango de
+    referencia — romper el máximo de las 10 anteriores debe bastar aunque la
+    propia vela de ruptura tenga un high aún mayor que no participa del
+    cálculo del rango."""
+    idx = pd.date_range("2022-01-01", periods=11, freq="1h", tz="UTC")
+    rows = [{"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 10.0} for _ in range(10)]
+    rows.append({"open": 100.0, "high": 150.0, "low": 100.0, "close": 105.0, "volume": 10.0})
+    df1h = pd.DataFrame(rows, index=idx)
+    events = trigger_D_range_breakout(df1h, range_lookback=10)
+    ok = len(events) == 1 and events[0].entry_idx == 10 and events[0].direction == "long"
+    return _p("trigger_D_range_breakout usa solo las velas ANTERIORES a la de ruptura, no su "
+              "propio high/low", ok)
+
+
+def test_range_breakout_no_index_error_on_synthetic_history():
+    df1h = make_synthetic_1h()
+    events = trigger_D_range_breakout(df1h)
+    ok = all(0 <= ev.entry_idx < len(df1h) for ev in events)
+    return _p(f"trigger_D_range_breakout corre sobre historia sintética completa sin IndexError "
+              f"({len(events)} eventos)", ok)
+
+
+def test_range_breakout_incompatible_with_pullback_entry():
+    """entry_A_pullback_50 requiere event.meta['bos_level'] — D_range_breakout
+    emite meta={} siempre, misma incompatibilidad estructural ya documentada
+    para T1 en el cierre de Espacio 4 (verificación explícita, no asumida)."""
+    df1h = _make_single_breakout_df("long")
+    events = trigger_D_range_breakout(df1h, range_lookback=10)
+    assert events, "se necesita al menos un evento para esta prueba"
+    ok = False
+    try:
+        entry_A_pullback_50(df1h, events[0])
+    except KeyError:
+        ok = True
+    return _p("entry_A_pullback_50(evento de D_range_breakout) lanza KeyError — incompatibilidad "
+              "estructural confirmada, no asumida", ok)
+
+
 ALL_TESTS = [
     test_registries_populated,
     test_contract_return_types,
@@ -352,6 +439,11 @@ ALL_TESTS = [
     test_entry_matches_shared_implementation,
     test_entry_d_next_candle_open_behavior,
     test_t1_matches_legacy,
+    test_range_breakout_detects_upside_and_downside,
+    test_range_breakout_no_event_within_range,
+    test_range_breakout_uses_only_preceding_candles,
+    test_range_breakout_no_index_error_on_synthetic_history,
+    test_range_breakout_incompatible_with_pullback_entry,
 ]
 
 

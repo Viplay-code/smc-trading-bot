@@ -385,6 +385,54 @@ def trigger_T1_ema_cross(
 
 
 # --------------------------------------------------------------------------- #
+# Capa 2 — candidato D: ruptura y cierre fuera de rango de N velas            #
+# (FRAMEWORK.md, candidato declarado pero nunca implementado hasta ahora —    #
+# Rama B / revisión estratégica global, 2026-08-13). Familia de canal/        #
+# breakout, conceptualmente distinta tanto de Sweep+BOS (A/B/C, estructura de #
+# liquidez) como de T1 (cruce de EMAs) — no depende de ningún indicador ni de #
+# niveles de sweep/BOS, solo del rango high/low de las `range_lookback`       #
+# velas ANTERIORES a la vela evaluada (la vela de ruptura no se incluye en su #
+# propio rango de referencia).                                                #
+# --------------------------------------------------------------------------- #
+def trigger_D_range_breakout(
+    df1h: pd.DataFrame, range_lookback: int = 10,
+) -> list[TriggerEvent]:
+    """Capa 2 — candidato D: ruptura y cierre fuera del rango de las
+    `range_lookback` (10, valor ya declarado en FRAMEWORK.md — no una
+    elección nueva) velas 1H inmediatamente anteriores. `direction`="long" si
+    el cierre de la vela actual supera el máximo de ese rango; "short" si cae
+    por debajo del mínimo — determinado solo por la acción del precio, sin
+    mirar bias ni sesión (mismo principio de composición que
+    `trigger_A_sweep_bos`/`trigger_T1_ema_cross`). `meta` queda vacío: a
+    diferencia de Sweep+BOS, este candidato no produce niveles de
+    sweep/bos_level, por lo que es compatible con `entry_C_market_close`/
+    `entry_D_next_candle_open` pero NO con `entry_A_pullback_50` (que
+    requiere `event.meta["bos_level"]`, ausente acá — mismo tipo de
+    incompatibilidad estructural ya documentado para T1 en el cierre de
+    Espacio 4).
+
+    Sin filtro de riesgo degenerado interno (a diferencia de
+    `trigger_T1_ema_cross`, que lo replica para preservar paridad exacta con
+    `backtest.py::find_entries`): este candidato no tiene contraparte legacy
+    que igualar, así que ese chequeo queda enteramente a cargo de quien
+    orqueste (`find_entries_for_trigger`/`find_entries_for_entry`), mismo
+    patrón ya usado por `trigger_A_sweep_bos`.
+    """
+    events: list[TriggerEvent] = []
+    for i in range(range_lookback, len(df1h)):
+        window = df1h.iloc[i - range_lookback:i]
+        candle = df1h.iloc[i]
+        range_high = window["high"].max()
+        range_low = window["low"].min()
+
+        if candle["close"] > range_high:
+            events.append(TriggerEvent(entry_idx=i, direction="long", meta={}))
+        elif candle["close"] < range_low:
+            events.append(TriggerEvent(entry_idx=i, direction="short", meta={}))
+    return events
+
+
+# --------------------------------------------------------------------------- #
 # Capa 3 — candidato C: cierre de la vela de señal, entrada a mercado         #
 # (FRAMEWORK.md, candidato declarado pero no implementado hasta ahora).       #
 # Generalizado de "cierre de vela BOS" a "cierre de la vela de señal" porque  #
@@ -427,6 +475,7 @@ BIAS_LAYERS: dict[str, BiasFn] = {
 TRIGGER_LAYERS: dict[str, TriggerFn] = {
     "A_sweep_bos": trigger_A_sweep_bos,
     "T1_ema_cross": trigger_T1_ema_cross,
+    "D_range_breakout": trigger_D_range_breakout,
 }
 ENTRY_LAYERS: dict[str, EntryFn] = {
     "A_pullback_50": entry_A_pullback_50,
