@@ -26,7 +26,7 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | **Espacio 1** (Gestión multivariable, `distance`×`activation`×`be` simultáneos) | **Cerrado con datos reales** (2026-08-17), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (0/216 filas candidatas con `pf`≥1.50; commits `3b1f843` implementación, `bf2de24` resultados). Con este cierre, los cuatro espacios del orden aprobado quedan completos — ver "Orden de exploración aprobado" |
 | Rama B (Trigger/Entry: `D_range_breakout`, `A_sweep_bos`+`A_pullback_50`) | **Cerrado** (2026-08-18), documentado en `FRAMEWORK.md` — `D_range_breakout`+`C_market_close` **descartada**; `A_sweep_bos`+`A_pullback_50` **candidata congelada / evidencia insuficiente** (0/12 filas cumplen los 4 gates; ninguna combinación elegible para ciego 2024). **No es uno de los 4 espacios de este roadmap** ni una extensión residual de H1 (a diferencia de `atr_mult`×sesión) — línea surgida de una revisión estratégica posterior a estos 4 espacios, no documentada formalmente en este archivo hasta ahora. Ver nota de ambigüedad en "Espacios explícitamente fuera del orden" sobre su relación con Espacio 5/Espacio 6 |
 | **Próxima línea de investigación** | **Sin decidir** — los 4 espacios del orden aprobado y Rama B están cerrados; la elección de qué sigue queda pendiente de una decisión explícita posterior, no determinada por este documento en su estado actual (ver ambigüedades señaladas abajo) |
-| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — sin criterio de priorización no-arbitrario entre sus 6 sub-candidatos. **Uno de sus 6 sub-candidatos (`D` de Trigger) ya fue evaluado, vía Rama B, no vía este espacio** — ver nota abajo |
+| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — **sigue sin ejecutarse como espacio completo**. `D` de Trigger ya evaluado vía Rama B (no cuenta como pendiente). Criterio de priorización **parcial** definido (2026-08-19) para los 5 sub-candidatos restantes: `Trigger C` priorizado #1, `Bias B`/`Bias C` empatados, `Trigger B`/`Entry B` relegados — ver sección "Estado de priorización — Espacio 5". **`Trigger C` priorizado, NO autorizado a ejecutarse** — el único siguiente paso es el diseño formal de su contrato, sujeto a su propia aprobación |
 | Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden |
 
 ## Los cuatro espacios experimentales
@@ -361,6 +361,82 @@ información en dos componentes:
   parte de "agotar los espacios de mayor valor informativo por menor
   costo". Esto no decide si Espacio 6 corresponde ejecutarse ahora — esa
   decisión queda expresamente fuera de esta actualización documental.
+
+## Estado de priorización — Espacio 5 (checkpoint 2026-08-19)
+
+Checkpoint de continuidad entre entornos/sesiones de trabajo — registra el
+estado estratégico alcanzado hasta este punto, no una nueva decisión
+experimental ni una autorización de ejecución. No modifica ninguna
+conclusión ya cerrada de `FRAMEWORK.md`.
+
+**Líneas cerradas hasta este checkpoint** (detalle completo en
+`FRAMEWORK.md`, no repetido acá): Espacio 1, Espacio 2, Espacio 3,
+Espacio 4, y Rama B — las cinco cerradas. Rama B en particular:
+`D_range_breakout`+`C_market_close` → **DESCARTADA**;
+`A_sweep_bos`+`A_pullback_50` → **CANDIDATA CONGELADA / EVIDENCIA
+INSUFICIENTE**, sin ninguna combinación elegible para prueba ciega 2024,
+y sin que deba reabrirse bajo el contrato actual para rescatar su PF ni
+para forzar su frecuencia.
+
+**Candidatos pendientes de Espacio 5**: Bias B, Bias C, Trigger B,
+Trigger C, Entry B. `D_range_breakout` (el sexto sub-candidato original)
+ya fue evaluado vía Rama B y **no cuenta como pendiente**. Esto **no
+significa que Espacio 5 esté cerrado, ejecutado ni desbloqueado como
+espacio completo** — los otros 5 sub-candidatos permanecen sin evaluar.
+
+**Metodología del criterio de priorización (2026-08-19)**: se evaluó
+explícitamente la posibilidad de un sistema de puntuación numérico
+ponderado y se descartó — dimensiones como "plausibilidad ex ante" o
+"valor informativo" no son convertibles a un peso numérico sin introducir
+arbitrariedad. En su lugar se usó una **lógica de 3 filtros no
+compensatorios**, aplicados en secuencia (mismo patrón metodológico que
+la dominación Pareto del Paso 0 de I1):
+1. **Ejecutabilidad inmediata** (¿requiere resolver primero una
+   limitación de infraestructura de código?) → excluye **Entry B**: el
+   contrato `EntryFn` vigente no soporta llenado no-determinístico.
+2. **Independencia mecánica genuina** (¿hipótesis distinta, o variación
+   paramétrica de un candidato ya evaluado con datos reales?) → excluye
+   **Trigger B**: comparte el 100% del requisito de sweep con
+   `A_sweep_bos` (ya evaluado en Espacio 3), solo varía la ventana de
+   confirmación del BOS.
+3. **Propiedad ex ante lógicamente demostrable** (no empírica, derivada
+   de la definición del mecanismo, no de ningún resultado de campaña) →
+   solo **Trigger C** la tiene.
+
+**Resultado**: **Bias B / Bias C** quedan elegibles pero **empatados** —
+sin un criterio ex ante disponible para desempatarlos sin introducir un
+juicio de valor no derivado de la evidencia. **Trigger C queda como
+prioridad #1.**
+
+**Fundamento de la prioridad de Trigger C — exclusivamente ex ante**:
+- elimina una condición `AND` del mecanismo Sweep+BOS;
+- por definición lógica de conjuntos, su número de eventos crudos no
+  puede ser menor que el de Sweep+BOS bajo el mismo dataset — verdadero
+  por la estructura booleana del candidato, no por ningún resultado
+  observado de Espacio 3;
+- permite investigar directamente si el requisito de sweep aporta valor
+  real o solo restringe frecuencia;
+- es una hipótesis conceptualmente distinta, no un ajuste paramétrico;
+- alto valor informativo tanto si falla como si tiene éxito.
+
+**No se utilizó** PF, `max_dd`, expectancy, frecuencia observada, ni
+ningún resultado de campañas ya cerradas (Espacio 3, Rama B u otra) para
+fundamentar esta priorización.
+
+**Estado explícito — Trigger C priorizado, NO autorizado a ejecutarse.**
+A la fecha de este checkpoint, todavía **no existen**: contrato
+experimental aprobado, campaña implementada, Fase A ejecutada, backtest
+ejecutado, resultados, ni prueba ciega. El único siguiente paso pendiente
+es **diseñar formalmente la campaña de Trigger C y someterla a revisión
+antes de cualquier implementación o ejecución** — ese diseño deberá
+determinar (en una fase futura, no en este checkpoint): definición exacta
+de BOS, Bias/Entry/sesión/Gestión/ATR/`max_hold`/riesgo/activos/años
+congelados, baseline, cardinalidad, gates y controles de contaminación
+entre capas.
+
+Este checkpoint **no define** grid, baseline, número de celdas,
+parámetros concretos, ni archivos a modificar para Trigger C — todo eso
+queda para la fase de diseño, sujeta a su propia aprobación explícita.
 
 ## Mantenimiento de este documento
 
