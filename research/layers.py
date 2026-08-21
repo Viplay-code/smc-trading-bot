@@ -433,6 +433,124 @@ def trigger_D_range_breakout(
 
 
 # --------------------------------------------------------------------------- #
+# Capa 2 — candidato C: Solo BOS, sin sweep previo (FRAMEWORK.md, candidato    #
+# declarado pero nunca implementado hasta ahora — diseño formal 2026-08-19,   #
+# Trigger C / priorización de Espacio 5). Ablación de trigger_A_sweep_bos:     #
+# conserva EXACTAMENTE la fórmula de nivel/confirmación de `_detect_bos`      #
+# (arriba), elimina la precondición de sweep previo. Función enteramente      #
+# nueva y aislada — NO modifica `_detect_sweep_at`/`_detect_bos`/             #
+# `trigger_A_sweep_bos`, que permanecen exactamente iguales.                  #
+# --------------------------------------------------------------------------- #
+def trigger_C_bos_only(
+    df1h: pd.DataFrame, bos_lookback: int = 5, bos_max_candles: int = 3,
+) -> list[TriggerEvent]:
+    """Capa 2 — candidato C: ruptura de estructura (BOS) sin requisito de
+    Liquidity Sweep previo. Diseño formal cerrado 2026-08-19 (sesión de
+    trabajo dedicada — inspección de código, formalización matemática,
+    prueba de ablación, análisis de causalidad, y resolución del filtro de
+    riesgo degenerado — antes de escribir esta implementación).
+
+    Para cada índice `i` ("ancla", `bos_lookback-1 <= i <= len(df1h)-2`): la
+    ventana de referencia es `df1h.iloc[i-bos_lookback+1 : i+1]` —
+    EXACTAMENTE las mismas `bos_lookback` velas, INCLUYENDO `i`, que usa
+    `_detect_bos` para su vela de sweep (`ref = df1h.iloc[max(0,
+    sweep_idx-bos_lookback+1):sweep_idx+1]`) — fidelidad literal a esa
+    fórmula, no una reinterpretación. `level_long` = máximo de `high` de esa
+    ventana; `level_short` = mínimo de `low`. La ventana de confirmación es
+    `df1h.iloc[i+1 : i+bos_max_candles+1]` (truncada al final de la serie),
+    misma fórmula que `_detect_bos`.
+
+    A diferencia de `trigger_A_sweep_bos` (donde la dirección viene dada por
+    el sweep, una sola evaluada), acá LONG y SHORT se evalúan de forma
+    INDEPENDIENTE en cada ancla: se busca, por separado, la primera vela de
+    la ventana de confirmación cuyo cierre rompe `level_long` (evento LONG)
+    y la primera cuyo cierre rompe `level_short` (evento SHORT). Ambos
+    pueden coexistir desde el mismo ancla `i` si ambas direcciones se
+    confirman dentro de la misma ventana (whipsaw) — un caso que no puede
+    ocurrir en `trigger_A_sweep_bos`, donde la dirección ya viene fijada de
+    antemano. Esta regla — evaluación independiente, NO "primera
+    confirmación gana" — es la que garantiza la propiedad de ablación: para
+    todo `(i, dirección)` donde `trigger_A_sweep_bos` produce un evento
+    (sweep confirmado + BOS confirmado), esta función produce el MISMO
+    evento (mismo `bos_level`, mismo `bos_idx`) para ese `(i, dirección)`,
+    porque ambas evalúan exactamente la misma fórmula sobre las mismas
+    ventanas — es decir, Eventos(`trigger_A_sweep_bos`) ⊆
+    Eventos(`trigger_C_bos_only`), una relación de subconjunto demostrable,
+    no aproximada (ver `research/tests/test_layers.py`,
+    `test_trigger_c_events_subset_property_vs_sweep_bos`). Con la regla
+    alternativa ("primera confirmación gana") esa propiedad NO se cumple en
+    casos raros de whipsaw en un ancla que además fue sweep — por eso se
+    descartó en el diseño formal.
+
+    `entry_idx` es SIEMPRE la vela de confirmación (`bos_idx`), NUNCA el
+    ancla `i` — usar `i` sería look-ahead (la ruptura todavía no está
+    confirmada en `i`). `meta` queda vacío (`{}`): a diferencia de
+    `trigger_A_sweep_bos`, este candidato no tiene un concepto de
+    `swing_low`/`swing_high` (esos provienen específicamente de la ventana
+    de swing del sweep, que no existe acá) — fabricar esos campos
+    artificialmente introduciría una convención sin respaldo, decisión
+    explícita de no hacerlo. Por tanto, igual que `trigger_D_range_breakout`
+    y `trigger_T1_ema_cross`, es compatible con `entry_C_market_close`/
+    `entry_D_next_candle_open` pero NO con `entry_A_pullback_50` (requiere
+    `event.meta["bos_level"]`/`swing_low`/`swing_high`, ausentes acá).
+
+    Sin filtro de riesgo degenerado interno (decisión explícita, ver diseño
+    formal): a diferencia de `trigger_T1_ema_cross` (que lo replica
+    ÚNICAMENTE para preservar paridad exacta con una implementación legacy
+    previa a la migración — una razón histórica específica de T1, no un
+    requisito general del contrato `TriggerFn`, ver nota de composición más
+    abajo), este candidato delega esa validación enteramente al orquestador
+    (`find_entries_for_entry`), mismo patrón que `trigger_A_sweep_bos`/
+    `trigger_D_range_breakout`: el chequeo de riesgo degenerado del
+    orquestador se aplica de forma idéntica e incondicional a cualquier
+    evento crudo, sin importar qué Trigger lo produjo — agregarlo acá no
+    cambiaría ningún trade final (`n_trades`), solo introduciría en Capa 2
+    una dependencia de ATR/Gestión que el contrato del módulo asigna a otra
+    capa (ver docstring del módulo, arriba). Esta función no recibe
+    `atr_mult`/`atr_period`/`cfg` en su firma — verificable estructuralmente,
+    no solo por esta nota.
+
+    Orden de salida: a diferencia de `trigger_A_sweep_bos`/
+    `trigger_D_range_breakout` (donde cada ancla produce a lo sumo un
+    evento, en orden creciente de `i` casi siempre coincidente con orden
+    creciente de `entry_idx`), acá — con anclas densas (cada vela) y
+    ventanas de confirmación que se solapan entre anclas consecutivas — el
+    orden de generación (por ancla, luego por dirección) NO garantiza
+    `entry_idx` no-decreciente. `backtest.run_config` recorre `entries` en
+    el orden recibido y depende de ese orden cronológico para su lógica de
+    `busy_until` ("una posición a la vez") — por eso, antes de devolver la
+    lista, se ordena explícitamente por `entry_idx`. Decisión tomada
+    durante la implementación, no parte del contrato original: no cambia
+    ningún evento ni introduce ningún filtro, solo garantiza el orden que
+    el resto del motor ya asume.
+    """
+    events: list[TriggerEvent] = []
+    n = len(df1h)
+    for i in range(bos_lookback - 1, n - 1):
+        ref = df1h.iloc[i - bos_lookback + 1: i + 1]
+        level_long = ref["high"].max()
+        level_short = ref["low"].min()
+
+        window = df1h.iloc[i + 1: min(i + bos_max_candles + 1, n)]
+
+        for idx, row in window.iterrows():
+            if row["close"] > level_long:
+                events.append(TriggerEvent(
+                    entry_idx=df1h.index.get_loc(idx), direction="long", meta={},
+                ))
+                break
+        for idx, row in window.iterrows():
+            if row["close"] < level_short:
+                events.append(TriggerEvent(
+                    entry_idx=df1h.index.get_loc(idx), direction="short", meta={},
+                ))
+                break
+
+    events.sort(key=lambda ev: ev.entry_idx)
+    return events
+
+
+# --------------------------------------------------------------------------- #
 # Capa 3 — candidato C: cierre de la vela de señal, entrada a mercado         #
 # (FRAMEWORK.md, candidato declarado pero no implementado hasta ahora).       #
 # Generalizado de "cierre de vela BOS" a "cierre de la vela de señal" porque  #
@@ -476,6 +594,7 @@ TRIGGER_LAYERS: dict[str, TriggerFn] = {
     "A_sweep_bos": trigger_A_sweep_bos,
     "T1_ema_cross": trigger_T1_ema_cross,
     "D_range_breakout": trigger_D_range_breakout,
+    "C_bos_only": trigger_C_bos_only,
 }
 ENTRY_LAYERS: dict[str, EntryFn] = {
     "A_pullback_50": entry_A_pullback_50,

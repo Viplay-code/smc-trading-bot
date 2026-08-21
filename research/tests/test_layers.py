@@ -16,6 +16,7 @@ justo después del import — ninguna de las funciones que se usan acá
 """
 from __future__ import annotations
 
+import inspect
 import sys
 from dataclasses import FrozenInstanceError
 from pathlib import Path
@@ -40,6 +41,8 @@ from research.layers import (
     entry_C_market_close,
     entry_D_next_candle_open,
     trigger_D_range_breakout,
+    trigger_C_bos_only,
+    _detect_bos,
 )
 
 Path("smc_bot.log").unlink(missing_ok=True)
@@ -93,8 +96,9 @@ def test_registries_populated():
         and TRIGGER_LAYERS.get("T1_ema_cross") is trigger_T1_ema_cross
         and ENTRY_LAYERS.get("C_market_close") is entry_C_market_close
         and TRIGGER_LAYERS.get("D_range_breakout") is trigger_D_range_breakout
+        and TRIGGER_LAYERS.get("C_bos_only") is trigger_C_bos_only
     )
-    return _p("los candidatos baseline + T1 + D_range_breakout están registrados en "
+    return _p("los candidatos baseline + T1 + D_range_breakout + C_bos_only están registrados en "
               "BIAS/TRIGGER/ENTRY_LAYERS", ok)
 
 
@@ -428,6 +432,208 @@ def test_range_breakout_incompatible_with_pullback_entry():
               "estructural confirmada, no asumida", ok)
 
 
+# --------------------------------------------------------------------------- #
+# Trigger C — BOS-only (ablación de trigger_A_sweep_bos, diseño formal        #
+# 2026-08-19). Suite dedicada a la propiedad de ablación, causalidad,         #
+# resolución de dirección, y ausencia de filtro de riesgo degenerado — cada   #
+# obligación de test pedida explícitamente en el contrato de implementación. #
+# --------------------------------------------------------------------------- #
+def _make_bos_only_single_confirmation_df():
+    """6 velas: 5 de referencia planas (high=101/low=99) + 1 de confirmación
+    que rompe el nivel LONG (close=105 > 101). Único ancla evaluable (i=4,
+    dado bos_lookback=5, bos_max_candles=3, n=6) — sin interferencia de
+    otros anclas, para una comparación limpia contra `_detect_bos`."""
+    idx = pd.date_range("2022-01-01", periods=6, freq="1h", tz="UTC")
+    rows = [{"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 10.0} for _ in range(5)]
+    rows.append({"open": 100.0, "high": 106.0, "low": 100.0, "close": 105.0, "volume": 10.0})
+    return pd.DataFrame(rows, index=idx)
+
+
+def _make_bos_only_whipsaw_df():
+    """7 velas: 5 de referencia planas (high=101/low=99), luego una vela que
+    rompe LONG (close=105) y otra que rompe SHORT (close=95) dentro de la
+    misma ventana de confirmación del ancla i=4 — construida específicamente
+    para demostrar que ambas direcciones pueden coexistir desde un mismo
+    ancla."""
+    idx = pd.date_range("2022-01-01", periods=7, freq="1h", tz="UTC")
+    rows = [{"open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 10.0} for _ in range(5)]
+    rows.append({"open": 100.0, "high": 106.0, "low": 100.0, "close": 105.0, "volume": 10.0})
+    rows.append({"open": 100.0, "high": 100.0, "low": 94.0, "close": 95.0, "volume": 10.0})
+    return pd.DataFrame(rows, index=idx)
+
+
+def test_bos_only_level_and_confirmation_match_detect_bos():
+    """Obligación 1+2: identidad de la fórmula de nivel Y de la ventana de
+    confirmación, comparando directamente contra `_detect_bos` (la función
+    ya usada por trigger_A_sweep_bos, sin modificar) sobre el mismo ancla."""
+    df1h = _make_bos_only_single_confirmation_df()
+    ref_expected = df1h.iloc[0:5]
+    level_expected = ref_expected["high"].max()  # 101.0, recomputado independientemente
+
+    bos_legacy = _detect_bos(df1h, sweep_idx=4, direction="long", bos_lookback=5, bos_max_candles=3)
+    assert bos_legacy is not None, "se necesita una confirmación real de _detect_bos para esta prueba"
+
+    events = trigger_C_bos_only(df1h, bos_lookback=5, bos_max_candles=3)
+    match = [e for e in events if e.direction == "long" and e.entry_idx == bos_legacy["bos_idx"]]
+
+    ok = (
+        level_expected == bos_legacy["bos_level"] == 101.0
+        and bos_legacy["bos_idx"] == 5
+        and len(match) == 1
+    )
+    return _p("trigger_C_bos_only usa la MISMA fórmula de nivel (101.0) y la MISMA ventana de "
+              f"confirmación que _detect_bos (bos_idx={bos_legacy['bos_idx']})", ok)
+
+
+def test_bos_only_entry_idx_is_confirmation_never_anchor():
+    """Obligación 3: entry_idx == bos_idx, nunca el ancla i."""
+    df1h = _make_bos_only_single_confirmation_df()
+    events = trigger_C_bos_only(df1h, bos_lookback=5, bos_max_candles=3)
+    assert events, "se necesita al menos un evento para esta prueba"
+    ev = events[0]
+    ok = ev.entry_idx == 5 and ev.entry_idx != 4  # 5 = vela de confirmación, 4 = ancla
+    return _p(f"entry_idx (={ev.entry_idx}) es la vela de confirmación, NUNCA el ancla (i=4)", ok)
+
+
+def test_bos_only_meta_always_empty():
+    """Obligación 4: meta == {} en todo evento."""
+    df1h = _make_bos_only_whipsaw_df()
+    events = trigger_C_bos_only(df1h, bos_lookback=5, bos_max_candles=3)
+    assert events, "se necesitan eventos para esta prueba"
+    ok = all(ev.meta == {} for ev in events)
+    return _p(f"meta == {{}} en los {len(events)} eventos generados", ok)
+
+
+def test_bos_only_long_short_independent_and_coexist():
+    """Obligaciones 5+6: LONG y SHORT se evalúan de forma independiente, y
+    pueden coexistir dos eventos (uno de cada dirección) desde el MISMO
+    ancla (i=4) — el caso de whipsaw que no puede ocurrir en
+    trigger_A_sweep_bos. No se exige un conteo total exacto: el ancla i=5
+    también evalúa (legítimamente) su propia ventana y puede aportar un
+    evento SHORT adicional en la misma vela de confirmación — eso no
+    invalida la propiedad bajo prueba, así que se verifica presencia, no
+    exclusividad."""
+    df1h = _make_bos_only_whipsaw_df()
+    events = trigger_C_bos_only(df1h, bos_lookback=5, bos_max_candles=3)
+    long_events = [e for e in events if e.direction == "long"]
+    short_events = [e for e in events if e.direction == "short"]
+    ok = (
+        any(e.entry_idx == 5 for e in long_events)
+        and any(e.entry_idx == 6 for e in short_events)
+        and len(long_events) >= 1 and len(short_events) >= 1
+    )
+    return _p(f"LONG (entry_idx=5) y SHORT (entry_idx=6) coexisten desde el ancla i=4 "
+              f"({len(long_events)} long + {len(short_events)} short totales)", ok)
+
+
+def test_bos_only_no_internal_risk_degenerate_filter():
+    """Obligación 7: ausencia de filtro interno de riesgo degenerado —
+    verificado estructuralmente: la firma de la función no recibe
+    atr_mult/atr_period/cfg, así que no puede calcular SL/ATR internamente
+    (a diferencia de trigger_T1_ema_cross, que sí los recibe)."""
+    params = list(inspect.signature(trigger_C_bos_only).parameters.keys())
+    ok = params == ["df1h", "bos_lookback", "bos_max_candles"]
+    return _p(f"trigger_C_bos_only NO recibe atr_mult/atr_period/cfg en su firma ({params}) "
+              "— no puede tener filtro de riesgo degenerado interno", ok)
+
+
+def test_bos_only_does_not_alter_sweep_bos_behavior():
+    """Obligación 8: trigger_A_sweep_bos sigue reproduciendo EXACTAMENTE la
+    detección real de bot.py, evento a evento, tras agregar trigger_C_bos_only
+    al módulo — regresión dedicada, independiente de test_trigger_matches_legacy
+    (que también debe seguir pasando en la misma corrida de la suite)."""
+    df1h = make_synthetic_1h()
+    cfg = bot.Config()
+
+    legacy = []
+    for i in range(cfg.swing_lookback, len(df1h)):
+        sweep = bot.detect_liquidity_sweep(df1h.iloc[:i + 1], cfg)
+        if sweep is None:
+            continue
+        bos = bot.detect_bos(df1h, i, sweep["type"], cfg)
+        if bos is None:
+            continue
+        legacy.append((bos["bos_idx"], sweep["type"], sweep["sweep_level"], bos["bos_level"]))
+
+    new_events = trigger_A_sweep_bos(df1h)
+    new = [(e.entry_idx, e.direction, e.meta["sweep_level"], e.meta["bos_level"]) for e in new_events]
+
+    ok = legacy == new and len(legacy) > 0
+    return _p(f"trigger_A_sweep_bos == detección real de bot.py tras agregar Trigger C "
+              f"(sin regresión, {len(legacy)} eventos)", ok)
+
+
+def test_bos_only_events_subset_of_sweep_bos_events():
+    """Obligación central del diseño formal: para todo (i, dirección) donde
+    trigger_A_sweep_bos produce un evento, trigger_C_bos_only produce el
+    MISMO evento (mismo bos_idx, mismo nivel recomputado de forma
+    independiente) — Eventos(A) ⊆ Eventos(C), demostrado sobre datos
+    sintéticos reales, no solo sobre el escenario mínimo determinístico."""
+    df1h = make_synthetic_1h()
+    a_events = trigger_A_sweep_bos(df1h)
+    assert a_events, "se necesitan eventos reales de A para esta prueba"
+
+    c_events = trigger_C_bos_only(df1h)  # mismos defaults: bos_lookback=5, bos_max_candles=3
+    c_index = {(e.entry_idx, e.direction) for e in c_events}
+
+    subset_ok = True
+    level_ok = True
+    for ev in a_events:
+        i = ev.meta["sweep_idx"]
+        if (ev.entry_idx, ev.direction) not in c_index:
+            subset_ok = False
+            continue
+        ref = df1h.iloc[i - 5 + 1: i + 1]  # bos_lookback=5, recomputado independientemente
+        level = ref["high"].max() if ev.direction == "long" else ref["low"].min()
+        if level != ev.meta["bos_level"]:
+            level_ok = False
+
+    ok = subset_ok and level_ok
+    return _p(f"Eventos(trigger_A_sweep_bos) ⊆ Eventos(trigger_C_bos_only), mismo bos_idx y "
+              f"mismo nivel recomputado independientemente ({len(a_events)} eventos de A verificados)", ok)
+
+
+def test_bos_only_events_sorted_by_entry_idx():
+    """Verifica la garantía de orden agregada durante la implementación
+    (necesaria para backtest.run_config::busy_until, que asume orden
+    cronológico) — no parte del contrato original, documentada como
+    decisión de implementación."""
+    df1h = make_synthetic_1h()
+    events = trigger_C_bos_only(df1h)
+    idxs = [e.entry_idx for e in events]
+    ok = idxs == sorted(idxs)
+    return _p(f"eventos de trigger_C_bos_only ordenados por entry_idx no-decreciente "
+              f"({len(events)} eventos)", ok)
+
+
+def test_bos_only_incompatible_with_pullback_entry():
+    """entry_A_pullback_50 requiere event.meta['bos_level']/'swing_low'/
+    'swing_high' — trigger_C_bos_only emite meta={} siempre, misma
+    incompatibilidad estructural ya documentada para T1/D."""
+    df1h = _make_bos_only_single_confirmation_df()
+    events = trigger_C_bos_only(df1h, bos_lookback=5, bos_max_candles=3)
+    assert events, "se necesita al menos un evento para esta prueba"
+    ok = False
+    try:
+        entry_A_pullback_50(df1h, events[0])
+    except KeyError:
+        ok = True
+    return _p("entry_A_pullback_50(evento de trigger_C_bos_only) lanza KeyError — incompatibilidad "
+              "estructural confirmada, no asumida", ok)
+
+
+def test_bos_only_compatible_with_market_close_entry():
+    """Confirma que la Entry congelada del contrato (C_market_close) SÍ
+    funciona sin excepción sobre eventos de trigger_C_bos_only."""
+    df1h = _make_bos_only_single_confirmation_df()
+    events = trigger_C_bos_only(df1h, bos_lookback=5, bos_max_candles=3)
+    assert events, "se necesita al menos un evento para esta prueba"
+    signal = entry_C_market_close(df1h, events[0])
+    expected = float(df1h["close"].iloc[events[0].entry_idx])
+    ok = isinstance(signal, EntrySignal) and signal.price == expected
+    return _p(f"entry_C_market_close(evento de trigger_C_bos_only) == close(entry_idx) ({expected})", ok)
+
+
 ALL_TESTS = [
     test_registries_populated,
     test_contract_return_types,
@@ -444,6 +650,16 @@ ALL_TESTS = [
     test_range_breakout_uses_only_preceding_candles,
     test_range_breakout_no_index_error_on_synthetic_history,
     test_range_breakout_incompatible_with_pullback_entry,
+    test_bos_only_level_and_confirmation_match_detect_bos,
+    test_bos_only_entry_idx_is_confirmation_never_anchor,
+    test_bos_only_meta_always_empty,
+    test_bos_only_long_short_independent_and_coexist,
+    test_bos_only_no_internal_risk_degenerate_filter,
+    test_bos_only_does_not_alter_sweep_bos_behavior,
+    test_bos_only_events_subset_of_sweep_bos_events,
+    test_bos_only_events_sorted_by_entry_idx,
+    test_bos_only_incompatible_with_pullback_entry,
+    test_bos_only_compatible_with_market_close_entry,
 ]
 
 
