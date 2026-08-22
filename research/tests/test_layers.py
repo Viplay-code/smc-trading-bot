@@ -27,6 +27,7 @@ import pandas as pd
 
 import bot
 import backtest
+import dc_v1
 from research.layers import (
     BIAS_LAYERS,
     TRIGGER_LAYERS,
@@ -35,6 +36,7 @@ from research.layers import (
     EntrySignal,
     bias_A_ema200_neutral,
     bias_A2_ema200_neutral_1h_held,
+    bias_B_ema50_ema200_cross,
     trigger_A_sweep_bos,
     entry_A_pullback_50,
     trigger_T1_ema_cross,
@@ -97,8 +99,9 @@ def test_registries_populated():
         and ENTRY_LAYERS.get("C_market_close") is entry_C_market_close
         and TRIGGER_LAYERS.get("D_range_breakout") is trigger_D_range_breakout
         and TRIGGER_LAYERS.get("C_bos_only") is trigger_C_bos_only
+        and BIAS_LAYERS.get("B_ema50_ema200_cross") is bias_B_ema50_ema200_cross
     )
-    return _p("los candidatos baseline + T1 + D_range_breakout + C_bos_only están registrados en "
+    return _p("los candidatos baseline + T1 + D_range_breakout + C_bos_only + B están registrados en "
               "BIAS/TRIGGER/ENTRY_LAYERS", ok)
 
 
@@ -219,6 +222,95 @@ def test_bias_a2_matches_backtest_exact():
         "(paridad EXACTA, port literal, misma fuente pandas.ewm)",
         ok,
     )
+
+
+# --------------------------------------------------------------------------- #
+# Capa 1 — candidato B: EMA50+EMA200 4H, cruce de medias. Diseño formal       #
+# cerrado 2026-08-22 (Espacio 5). Suite dedicada: fórmula recomputada de      #
+# forma independiente, ausencia de zona neutral, convención NaN/warmup,      #
+# estado-por-vela (no evento), y contrato BiasFn — cada obligación pedida    #
+# explícitamente en el contrato de implementación.                           #
+# --------------------------------------------------------------------------- #
+def test_bias_b_uses_dc_v1_ema_and_matches_sign_of_diff():
+    """Obligaciones 1+2: EMA50/EMA200 vía dc_v1.ema() (recomputadas de forma
+    independiente, misma función genérica que usa bias_A_ema200_neutral) y
+    LONG/SHORT == sign(EMA50-EMA200) exacto, fila a fila."""
+    df4h = make_synthetic_4h(n=260)
+    fast = dc_v1.ema(df4h["close"], 50)
+    slow = dc_v1.ema(df4h["close"], 200)
+    diff = fast - slow
+    expected = pd.Series(
+        np.where(diff > 0, 1, np.where(diff < 0, -1, 0)), index=df4h.index,
+    ).astype("int8")
+
+    bias = bias_B_ema50_ema200_cross(df4h)
+
+    ok = bias.equals(expected)
+    return _p("bias_B_ema50_ema200_cross == sign(EMA50_4H-EMA200_4H), recomputado de forma "
+              "independiente vía dc_v1.ema() (misma función genérica que bias_A_ema200_neutral)", ok)
+
+
+def test_bias_b_no_artificial_neutral_zone():
+    """Obligación 3: a diferencia de bias_A_ema200_neutral (banda ±1%), CUALQUIER
+    diferencia no nula entre EMA50 y EMA200 resuelve direccionalmente — se
+    verifica sobre la diferencia no nula MÁS PEQUEÑA presente en la serie
+    sintética, el caso más exigente para detectar una banda de tolerancia
+    oculta."""
+    df4h = make_synthetic_4h(n=260)
+    fast = dc_v1.ema(df4h["close"], 50)
+    slow = dc_v1.ema(df4h["close"], 200)
+    diff = (fast - slow).dropna()
+    nonzero = diff[diff != 0]
+    assert len(nonzero) > 0, "se necesita al menos una diferencia no nula para esta prueba"
+    smallest_idx = nonzero.abs().idxmin()
+
+    bias = bias_B_ema50_ema200_cross(df4h)
+    resolved = bias.loc[smallest_idx]
+    expected_sign = 1 if nonzero.loc[smallest_idx] > 0 else -1
+
+    ok = resolved == expected_sign and resolved != 0
+    return _p(f"la diferencia no nula MÁS PEQUEÑA de la serie (|diff|={abs(nonzero.loc[smallest_idx]):.6f}) "
+              f"resuelve direccionalmente ({resolved}), no a 0 — sin banda de tolerancia", ok)
+
+
+def test_bias_b_nan_warmup_maps_to_zero():
+    """Obligación 4: convención NaN->0 (np.where, no np.sign) durante el
+    warmup de EMA200 (199 velas 4H) — misma convención ya documentada y
+    deliberada de bias_A_ema200_neutral."""
+    df4h = make_synthetic_4h(n=260)
+    slow = dc_v1.ema(df4h["close"], 200)
+    warmup_mask = slow.isna()
+    assert warmup_mask.sum() > 0, "se necesita warmup real para esta prueba"
+
+    bias = bias_B_ema50_ema200_cross(df4h)
+    ok = (bias[warmup_mask] == 0).all()
+    return _p(f"las {int(warmup_mask.sum())} velas de warmup de EMA200 (NaN) mapean a bias=0", ok)
+
+
+def test_bias_b_is_state_per_candle_not_event():
+    """Obligación 5: Bias B es un estado direccional POR VELA 4H (dominio
+    denso, un valor por fila), no una lista dispersa de eventos de cruce —
+    la única interpretación que encaja en el contrato BiasFn."""
+    df4h = make_synthetic_4h(n=260)
+    bias = bias_B_ema50_ema200_cross(df4h)
+    ok = len(bias) == len(df4h) and bias.index.equals(df4h.index)
+    return _p(f"bias_B_ema50_ema200_cross produce un valor por cada una de las {len(df4h)} "
+              "velas 4H (estado denso, no eventos dispersos)", ok)
+
+
+def test_bias_b_conforms_to_biasfn_contract():
+    """Obligación 6: BiasFn = Callable[[pd.DataFrame], pd.Series] -> Series
+    int8, dominio {-1,0,1}, alineada al índice de entrada."""
+    df4h = make_synthetic_4h(n=260)
+    bias = bias_B_ema50_ema200_cross(df4h)
+    ok = (
+        isinstance(bias, pd.Series)
+        and bias.dtype == np.int8
+        and set(bias.unique()).issubset({-1, 0, 1})
+        and bias.index.equals(df4h.index)
+    )
+    return _p("bias_B_ema50_ema200_cross cumple BiasFn: Series int8, dominio {-1,0,1}, "
+              "índice alineado a df4h", ok)
 
 
 # --------------------------------------------------------------------------- #
@@ -641,6 +733,11 @@ ALL_TESTS = [
     test_entry_signal_immutable,
     test_bias_matches_legacy,
     test_bias_a2_matches_backtest_exact,
+    test_bias_b_uses_dc_v1_ema_and_matches_sign_of_diff,
+    test_bias_b_no_artificial_neutral_zone,
+    test_bias_b_nan_warmup_maps_to_zero,
+    test_bias_b_is_state_per_candle_not_event,
+    test_bias_b_conforms_to_biasfn_contract,
     test_trigger_matches_legacy,
     test_entry_matches_shared_implementation,
     test_entry_d_next_candle_open_behavior,

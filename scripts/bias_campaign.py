@@ -122,7 +122,7 @@ def resample_4h(df1h: pd.DataFrame) -> pd.DataFrame:
 
 
 def apply_bias(df1h: pd.DataFrame, df4h: pd.DataFrame, candidate: str) -> pd.Series:
-    """Bias a granularidad 1H para `candidate` ("A" o "A2"), dominio
+    """Bias a granularidad 1H para `candidate` ("A", "A2" o "B"), dominio
     int8 {-1,0,1}, índice alineado a df1h.
 
     A2 (research.bias_A2_ema200_neutral_1h_held) ya opera nativamente a 1H —
@@ -137,6 +137,15 @@ def apply_bias(df1h: pd.DataFrame, df4h: pd.DataFrame, candidate: str) -> pd.Ser
     de sostenerla (ffill) sobre las filas 1H siguientes. Sin este shift se
     filtrarían señales T1 usando una vela 4H todavía en formación — el mismo
     tipo de lookahead que A2 evita con su propio shift(1) interno.
+
+    B (research.BIAS_LAYERS["B_ema50_ema200_cross"], diseño formal cerrado
+    2026-08-22) usa EXACTAMENTE el mismo mecanismo que A — mismo
+    `shift(1)`+`ffill`, mismo `fillna(0)` — porque comparte la misma firma
+    `BiasFn` (un solo argumento `df4h`, un valor de bias por vela 4H). Rama
+    deliberadamente separada de la de "A" (no unificada en un bucle sobre
+    `BIAS_LAYERS`) para no tocar ni una línea de la rama de "A", ya
+    congelada y con resultados reales publicados (`bias_campaign_results.csv`,
+    FRAMEWORK.md "Iniciativa G").
     """
     if candidate == "A2":
         return research.bias_A2_ema200_neutral_1h_held(df1h, df4h)
@@ -151,7 +160,13 @@ def apply_bias(df1h: pd.DataFrame, df4h: pd.DataFrame, candidate: str) -> pd.Ser
         # bias_A_ema200_neutral internamente (np.where sobre NaN cae en la
         # rama 0 por construcción) — no es una convención nueva acá.
         return merged["bias"].fillna(0).astype("int8")
-    raise ValueError(f"candidato de bias desconocido: {candidate!r} (esperado 'A' o 'A2')")
+    if candidate == "B":
+        bias_fn = research.BIAS_LAYERS["B_ema50_ema200_cross"]
+        bias_4h = bias_fn(df4h)
+        held = bias_4h.shift(1).rename("bias")
+        merged = df1h[[]].join(held, how="left").ffill()
+        return merged["bias"].fillna(0).astype("int8")
+    raise ValueError(f"candidato de bias desconocido: {candidate!r} (esperado 'A', 'A2' o 'B')")
 
 
 def load_asset_year(asset: str, year: int) -> pd.DataFrame:

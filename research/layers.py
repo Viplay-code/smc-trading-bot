@@ -174,6 +174,69 @@ def bias_A2_ema200_neutral_1h_held(
 
 
 # --------------------------------------------------------------------------- #
+# Capa 1 — candidato B: EMA50 + EMA200 4H, cruce de medias (FRAMEWORK.md).    #
+# Diseño formal cerrado 2026-08-22 (Espacio 5 — desempate ex ante Bias B/C,   #
+# elegido por reutilización de primitivas ya canónicas, NO por expectativa   #
+# de resultado — ver docs/research/EXPERIMENTAL_ROADMAP.md).                 #
+# --------------------------------------------------------------------------- #
+def bias_B_ema50_ema200_cross(
+    df4h: pd.DataFrame, ema_fast: int = 50, ema_slow: int = 200,
+) -> pd.Series:
+    """Capa 1 — candidato B: `sign(EMA50_4H - EMA200_4H)`. Diseño formal
+    cerrado 2026-08-22 (checkpoint de priorización de Espacio 5, elección
+    entre Bias B/Bias C — ninguno de los dos "mejor" ex ante, B elegido por
+    reutilización de primitivas ya existentes, no por expectativa de PF).
+
+    `EMA50_4H`/`EMA200_4H` se calculan vía `dc_v1.ema(df4h["close"],
+    timeperiod)` — la MISMA función genérica que ya usa
+    `bias_A_ema200_neutral` con `ema_period=200`, sin ninguna fórmula de EMA
+    nueva (P-7/ADR-001: TA-Lib es la única fuente canónica).
+
+    Clasificación:
+        LONG  (+1) si EMA50_4H > EMA200_4H
+        SHORT (-1) si EMA50_4H < EMA200_4H
+        0          si son exactamente iguales (float, prácticamente
+                   inalcanzable) o si cualquiera de las dos es NaN (warmup)
+
+    SIN zona neutral por magnitud — a diferencia de `bias_A_ema200_neutral`
+    (banda ±`neutral_pct`), acá no hay ninguna tolerancia: una diferencia
+    arbitrariamente pequeña pero no nula entre EMA50 y EMA200 resuelve
+    direccionalmente (+1/-1), nunca a 0. Decisión explícita (diseño formal
+    2026-08-22): `FRAMEWORK.md` no menciona ninguna banda para B (a
+    diferencia de A, que sí especifica "±1%" en su propia línea) — no se
+    introduce una por analogía. El único 0 es el caso estructural de
+    arriba, no una zona de indiferencia deliberada.
+
+    Convención NaN->0 vía `np.where` (nunca `np.sign`): sigue la misma
+    convención ya documentada y deliberada de `bias_A_ema200_neutral` —
+    "NaN no cumple ninguna rama y cae en 0" — porque ambas son candidatos
+    del mismo registro (`BIAS_LAYERS`) y deben comportarse igual ante
+    warmup. Distinto, a propósito, de `dc_v1.derive_htf_bias` (que usa
+    `np.sign` y LANZA ante NaN) — esa función resuelve un problema distinto
+    (la columna interna fija del pipeline `dc_v1`, no un candidato de
+    `BIAS_LAYERS`), no es la convención a imitar acá.
+
+    Estado direccional por vela 4H, NUNCA un evento puntual de cruce:
+    produce un valor para CADA fila de `df4h` (dominio continuo), como
+    exige `BiasFn = Callable[[pd.DataFrame], pd.Series]` — la
+    interpretación "evento de cruce" (bias definido solo en la vela donde
+    ocurre el cruce) no encajaría en ese contrato en absoluto (eso es lo
+    que existe Capa 2/`TriggerFn` para modelar), así que la arquitectura de
+    3 capas resuelve esa ambigüedad, no una elección de conveniencia.
+
+    Sin `shift` interno — igual que `bias_A_ema200_neutral`, el
+    desplazamiento anti-lookahead (evitar mirar la vela 4H todavía en
+    formación) lo aplica `apply_bias` externamente
+    (`scripts/bias_campaign.py`), no esta función.
+    """
+    fast = dc_v1.ema(df4h["close"], ema_fast)
+    slow = dc_v1.ema(df4h["close"], ema_slow)
+    diff = fast - slow
+    bias = np.where(diff > 0, 1, np.where(diff < 0, -1, 0))
+    return pd.Series(bias, index=df4h.index, name="bias").astype("int8")
+
+
+# --------------------------------------------------------------------------- #
 # Capa 2 — candidato A: Liquidity Sweep + BOS 3 velas (FRAMEWORK.md, baseline  #
 # actual). Portado de bot.py::detect_liquidity_sweep + bot.py::detect_bos.    #
 # --------------------------------------------------------------------------- #
@@ -589,6 +652,7 @@ def entry_D_next_candle_open(df1h: pd.DataFrame, event: TriggerEvent) -> EntrySi
 # --------------------------------------------------------------------------- #
 BIAS_LAYERS: dict[str, BiasFn] = {
     "A_ema200_neutral": bias_A_ema200_neutral,
+    "B_ema50_ema200_cross": bias_B_ema50_ema200_cross,
 }
 TRIGGER_LAYERS: dict[str, TriggerFn] = {
     "A_sweep_bos": trigger_A_sweep_bos,

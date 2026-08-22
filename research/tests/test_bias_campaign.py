@@ -89,6 +89,57 @@ def test_apply_bias_both_candidates_on_real_pipeline():
                "dominio {-1,0,1}, alineadas al índice 1H", ok)
 
 
+def test_apply_bias_candidate_b_on_real_pipeline():
+    """apply_bias('B') — misma forma/dominio que 'A'/'A2', sobre build_dc_v1()
+    real (no mockeado). Test dedicado y separado de
+    test_apply_bias_both_candidates_on_real_pipeline (que no se toca) para no
+    alterar su alcance original (solo 'A'/'A2')."""
+    raw = make_synthetic_raw_1h()
+    df_full = build_dc_v1(raw, asset="TESTUSDT", dataset_version=DATASET_VERSION,
+                           pipeline_version=PIPELINE_VERSION)
+    errs = validate_dc_v1(df_full, strict=False)
+    df4h_full = camp.resample_4h(df_full)
+
+    bias_b = camp.apply_bias(df_full, df4h_full, "B")
+
+    ok = (
+        not errs
+        and bias_b.index.equals(df_full.index)
+        and set(bias_b.dropna().unique()).issubset({-1, 0, 1})
+        and bias_b.dtype == np.int8
+    )
+    return _p("apply_bias('B') corre sobre build_dc_v1() real, dominio {-1,0,1}, "
+              "alineada al índice 1H — misma forma que 'A'/'A2'", ok)
+
+
+def test_apply_bias_b_shift_and_ffill_prevents_lookahead():
+    """apply_bias('B') usa EXACTAMENTE el mismo shift(1)+ffill que 'A' — el
+    cierre de la última vela 4H (todavía en formación desde la perspectiva de
+    cualquier vela 1H dentro de su propio slot) nunca debería influir en
+    NINGÚN valor de bias ya asignado, porque shift(1) hace que ese slot solo
+    se consuma DESPUÉS de cerrar, para el slot siguiente (que en esta serie
+    truncada no existe todavía). Se verifica alterando drásticamente ese
+    cierre y confirmando que la serie de bias completa no cambia en absoluto
+    — prueba más fuerte que solo comparar las filas del último slot."""
+    raw = make_synthetic_raw_1h()
+    df_full = build_dc_v1(raw, asset="TESTUSDT", dataset_version=DATASET_VERSION,
+                           pipeline_version=PIPELINE_VERSION)
+    df4h_full = camp.resample_4h(df_full)
+    bias_before = camp.apply_bias(df_full, df4h_full, "B")
+
+    df_mut = df_full.copy()
+    last_4h_start = df4h_full.index[-1]
+    mask = df_mut.index >= last_4h_start
+    assert mask.any(), "se necesita al menos una vela 1H en el último slot 4H para esta prueba"
+    df_mut.loc[mask, "close"] = df_mut.loc[mask, "close"] * 1.5  # shock arbitrario, no sutil
+    df4h_mut = camp.resample_4h(df_mut)
+    bias_after = camp.apply_bias(df_mut, df4h_mut, "B")
+
+    ok = bias_before.equals(bias_after)
+    return _p("apply_bias('B'): alterar el cierre de la ÚLTIMA vela 4H (en formación, +50%) no "
+              "cambia NINGÚN valor de la serie de bias completa — shift(1) protege igual que en 'A'", ok)
+
+
 def test_full_pipeline_end_to_end_on_2022_slice():
     raw = make_synthetic_raw_1h()
     df_full = build_dc_v1(raw, asset="TESTUSDT", dataset_version=DATASET_VERSION,
@@ -204,6 +255,8 @@ def test_summarize_decision_per_asset_no_cross_asset_compensation():
 ALL_TESTS = [
     test_resample_4h_matches_dcv1_convention,
     test_apply_bias_both_candidates_on_real_pipeline,
+    test_apply_bias_candidate_b_on_real_pipeline,
+    test_apply_bias_b_shift_and_ffill_prevents_lookahead,
     test_full_pipeline_end_to_end_on_2022_slice,
     test_gate_check_uses_framework_freq_range_not_passes,
     test_summarize_decision_per_asset_no_cross_asset_compensation,
