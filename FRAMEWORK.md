@@ -79,7 +79,10 @@ Candidatos a evaluar:
   validación (2022 in-sample como mínimo). Ver Iniciativa G en el backlog
   post-Fase-B para el análisis de la divergencia numérica medida sobre datos
   sintéticos.
-- B: EMA50 + EMA200 4H (cruce de medias)
+- B: EMA50 + EMA200 4H (cruce de medias) — evaluado bajo el contrato
+  Trigger=`T1_ema_cross`/Entry=`C_market_close`/sesión=`dcv1_activo_15h`/
+  Gestión V3-A, comparador principal Bias A bajo el mismo contrato. Ver
+  sección "Bias B — EMA50+EMA200 4H (cruce) — cerrado" más abajo.
 - C: Precio vs máximo/mínimo de las últimas 20 velas 4H
 
 ### Capa 2: Trigger LTF (señal de entrada)
@@ -1016,6 +1019,82 @@ esperado/costo/riesgo, y el estado vivo del programa) se documenta en
 `docs/research/EXPERIMENTAL_ROADMAP.md` — no se repite acá para no
 duplicar contenido; este documento mantiene el registro retrospectivo por
 campaña cerrada, aquel mantiene el mapa prospectivo de qué sigue.
+
+### Bias B — EMA50+EMA200 4H (cruce) — cerrado
+
+Sub-candidato de Espacio 5 (`docs/research/EXPERIMENTAL_ROADMAP.md`,
+"Estado de priorización — Espacio 5"), evaluado con datos reales contra el
+comparador Bias A bajo el mismo contrato exacto — mismo diseño que Rama B
+(celda objetivo sin antecedente, verificada vía celda auxiliar).
+
+- **Objetivo e hipótesis**: bajo un contrato idéntico en todo lo demás
+  (Trigger=`T1_ema_cross`, Entry=`C_market_close`, sesión=`dcv1_activo_15h`,
+  Gestión V3-A ancla, `atr_mult`=1.5/`atr_period`=14/`max_hold`=20/
+  `risk`=0.005 fijos), ¿el filtro de contexto HTF por cruce de medias
+  (`sign(EMA50_4H−EMA200_4H)`, sin zona neutral) produce métricas distintas
+  de las del filtro de distancia a un solo nivel de EMA200 con zona neutral
+  ±1% (Bias A)? Bias es la única variable experimental.
+- **Contrato**: implementado en `scripts/bias_b_campaign.py` (commit
+  `1f91b0205aeb6c743b4e00410d8cc998d34843d4`), resultados en
+  `bias_b_campaign_results.csv`/`_decision.csv` (commit
+  `7edd1914ab5573ecaae6dca385b87e20ae60053f`). BTCUSDT/ETHUSDT/SOLUSDT,
+  2022+2023 (2024 no ejecutado).
+- **Verificación de integridad (Fase A)**: la celda objetivo (Bias B) no
+  tiene antecedente histórico — se verificó el pipeline compartido vía la
+  celda auxiliar Bias A bajo este contrato exacto, contra la referencia ya
+  publicada (`gestion_campaign_session_results.csv`, `candidate=
+  "dcv1_activo_15h"`, `exit_config="V3-A (1R/2R/1R)"`). 6 verificaciones (una
+  por activo/año). Ejecutada en el entorno local del usuario al generar
+  estos resultados — no reproducida en este sandbox (bloqueado, HTTP 451,
+  `data/raw/` no poblado). Hash de los CSV committeados verificado contra
+  `git ls-tree 7edd191`: `bias_b_campaign_results.csv` =
+  `4bd5e0c68e68421dd4207e8169b8a36421e56ee6`, `bias_b_campaign_decision.csv`
+  = `34a820e4f83943f006e167834855dd098347b343`; recómputo independiente de
+  `gate_check`/`survives_both_years` celda por celda coincide exacto con lo
+  publicado.
+- **Resultados por celda** (n_trades / freq mensual / PF / MaxDD / exp_r):
+
+  | Activo | Año | n_trades | freq | PF | MaxDD | exp_r |
+  |---|---|---|---|---|---|---|
+  | BTCUSDT | 2022 | 125 | 10.5 | 0.683 | -13.46% | -0.179 |
+  | BTCUSDT | 2023 | 135 | 11.2 | 1.077 | -9.22% | +0.041 |
+  | ETHUSDT | 2022 | 119 | 10.0 | 0.983 | -6.52% | -0.009 |
+  | ETHUSDT | 2023 | 144 | 12.0 | 0.674 | -18.36% | -0.190 |
+  | SOLUSDT | 2022 | 118 | 9.9 | 1.025 | -6.34% | +0.012 |
+  | SOLUSDT | 2023 | 111 | 9.3 | 1.287 | -5.27% | +0.139 |
+
+- **Comparación B vs A (mismo contrato exacto, comparador:
+  `gestion_campaign_session_results.csv`)**:
+  - Disponibilidad de señal: B produce más entradas que A en las 6/6
+    celdas (+10 a +31 entradas/activo-año) — consistente con la ausencia
+    de zona neutral en la fórmula de B, a diferencia de la banda ±1% de A.
+    Efecto uniforme, no dependiente de activo/régimen.
+  - Calidad de señal (PF/exp_r/MaxDD): no mejora de forma consistente pese
+    al aumento de disponibilidad. El efecto sobre PF es dependiente del
+    activo — mejora marginal y estable en BTCUSDT (ΔPF +0.002/+0.056) y
+    SOLUSDT (ΔPF +0.022/+0.015); deterioro consistente y de mayor
+    magnitud en ETHUSDT (ΔPF −0.050/−0.108), incluyendo el peor MaxDD del
+    conjunto comparado (ETHUSDT/2023, −18.36% bajo B frente a −12.44% bajo
+    A).
+  - Ninguno de los dos Bias produce ninguna celda con PF≥1.50 bajo este
+    contrato — PF es el gate limitante en ambos, sin excepción.
+- **Gate (Nivel 4)**: **0/6 filas cumplen los 4 gates de FRAMEWORK.md.**
+  Ningún activo sobrevive 2022 Y 2023 (`survives_both_years=False` en las
+  3 filas de `bias_b_campaign_decision.csv`). Ninguna combinación fue
+  elegible para prueba ciega en 2024 — `run_blind_test` no fue invocado.
+- **Interpretación (alcance limitado a este contrato)**: no hay evidencia
+  suficiente, bajo el contrato evaluado, para sostener que sustituir Bias
+  A por Bias B mejore estructuralmente el sistema — el único efecto
+  uniforme observado (mayor disponibilidad de señal) no viene acompañado
+  de una mejora uniforme de calidad. El resultado es consistente con —
+  sin demostrarlo de forma aislada, dado que es una sola línea de
+  evidencia — la hipótesis de que Bias no es el cuello de botella
+  dominante del framework bajo el Trigger/Entry/Gestión evaluados hasta
+  ahora, y que PF/calidad de señal sí lo es.
+- **Estado**: **CERRADO** (evidencia real, 2022+2023). No se continuará
+  esta celda bajo el contrato actual. Bias C (Espacio 5, empatado con
+  Bias B en el criterio de priorización de 2026-08-19) permanece sin
+  evaluar.
 
 ---
 

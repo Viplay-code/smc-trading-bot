@@ -26,7 +26,7 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | **Espacio 1** (Gestión multivariable, `distance`×`activation`×`be` simultáneos) | **Cerrado con datos reales** (2026-08-17), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (0/216 filas candidatas con `pf`≥1.50; commits `3b1f843` implementación, `bf2de24` resultados). Con este cierre, los cuatro espacios del orden aprobado quedan completos — ver "Orden de exploración aprobado" |
 | Rama B (Trigger/Entry: `D_range_breakout`, `A_sweep_bos`+`A_pullback_50`) | **Cerrado** (2026-08-18), documentado en `FRAMEWORK.md` — `D_range_breakout`+`C_market_close` **descartada**; `A_sweep_bos`+`A_pullback_50` **candidata congelada / evidencia insuficiente** (0/12 filas cumplen los 4 gates; ninguna combinación elegible para ciego 2024). **No es uno de los 4 espacios de este roadmap** ni una extensión residual de H1 (a diferencia de `atr_mult`×sesión) — línea surgida de una revisión estratégica posterior a estos 4 espacios, no documentada formalmente en este archivo hasta ahora. Ver nota de ambigüedad en "Espacios explícitamente fuera del orden" sobre su relación con Espacio 5/Espacio 6 |
 | **Próxima línea de investigación** | **Sin decidir** — los 4 espacios del orden aprobado y Rama B están cerrados; la elección de qué sigue queda pendiente de una decisión explícita posterior, no determinada por este documento en su estado actual (ver ambigüedades señaladas abajo) |
-| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — **sigue sin ejecutarse como espacio completo**. `D` de Trigger ya evaluado vía Rama B (no cuenta como pendiente). Criterio de priorización **parcial** definido (2026-08-19) para los 5 sub-candidatos restantes: `Trigger C` priorizado #1, `Bias B`/`Bias C` empatados, `Trigger B`/`Entry B` relegados — ver sección "Estado de priorización — Espacio 5". **`Trigger C` priorizado, NO autorizado a ejecutarse** — el único siguiente paso es el diseño formal de su contrato, sujeto a su propia aprobación |
+| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — **sigue sin ejecutarse como espacio completo**. `D` de Trigger ya evaluado vía Rama B (no cuenta como pendiente). **`Bias B` evaluado con datos reales y cerrado** (2026-08-24) — evidencia insuficiente para sostener que mejora el sistema respecto de Bias A bajo el contrato comparado; ver `FRAMEWORK.md`, sección "Bias B — EMA50+EMA200 4H (cruce) — cerrado". Criterio de priorización **parcial** definido (2026-08-19) para los sub-candidatos restantes: `Trigger C` priorizado #1, `Bias C` empatado con `Bias B` sin desempate ex ante, `Trigger B`/`Entry B` relegados — ver sección "Estado de priorización — Espacio 5". **`Trigger C` priorizado, NO autorizado a ejecutarse; `Bias C` sin evaluar, tampoco autorizado** |
 | Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden |
 
 ## Los cuatro espacios experimentales
@@ -422,6 +422,15 @@ prioridad #1.**
 **No se utilizó** PF, `max_dd`, expectancy, frecuencia observada, ni
 ningún resultado de campañas ya cerradas (Espacio 3, Rama B u otra) para
 fundamentar esta priorización.
+
+**Actualización (2026-08-24)**: `Bias B` fue evaluado con datos reales
+(2022+2023) y cerrado — ver `FRAMEWORK.md`, sección "Bias B —
+EMA50+EMA200 4H (cruce) — cerrado". El empate `Bias B`/`Bias C` señalado
+arriba no fue resuelto por el criterio ex ante de este checkpoint —
+`Bias B` fue simplemente el primero en ejecutarse con datos reales, no el
+candidato que el criterio de priorización de 2026-08-19 favorecía (ese
+criterio dejó ambos empatados explícitamente, sin desempate disponible).
+`Bias C` permanece sin evaluar y sin autorización de ejecución.
 
 **Estado explícito — Trigger C priorizado, NO autorizado a ejecutarse.**
 A la fecha de este checkpoint, todavía **no existen**: contrato
