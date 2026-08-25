@@ -26,7 +26,7 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | **Espacio 1** (Gestión multivariable, `distance`×`activation`×`be` simultáneos) | **Cerrado con datos reales** (2026-08-17), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (0/216 filas candidatas con `pf`≥1.50; commits `3b1f843` implementación, `bf2de24` resultados). Con este cierre, los cuatro espacios del orden aprobado quedan completos — ver "Orden de exploración aprobado" |
 | Rama B (Trigger/Entry: `D_range_breakout`, `A_sweep_bos`+`A_pullback_50`) | **Cerrado** (2026-08-18), documentado en `FRAMEWORK.md` — `D_range_breakout`+`C_market_close` **descartada**; `A_sweep_bos`+`A_pullback_50` **candidata congelada / evidencia insuficiente** (0/12 filas cumplen los 4 gates; ninguna combinación elegible para ciego 2024). **No es uno de los 4 espacios de este roadmap** ni una extensión residual de H1 (a diferencia de `atr_mult`×sesión) — línea surgida de una revisión estratégica posterior a estos 4 espacios, no documentada formalmente en este archivo hasta ahora. Ver nota de ambigüedad en "Espacios explícitamente fuera del orden" sobre su relación con Espacio 5/Espacio 6 |
 | **Próxima línea de investigación** | **Sin decidir** — los 4 espacios del orden aprobado y Rama B están cerrados; la elección de qué sigue queda pendiente de una decisión explícita posterior, no determinada por este documento en su estado actual (ver ambigüedades señaladas abajo) |
-| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — **sigue sin ejecutarse como espacio completo**. `D` de Trigger ya evaluado vía Rama B (no cuenta como pendiente). **`Bias B` evaluado con datos reales y cerrado** (2026-08-24) — evidencia insuficiente para sostener que mejora el sistema respecto de Bias A bajo el contrato comparado; ver `FRAMEWORK.md`, sección "Bias B — EMA50+EMA200 4H (cruce) — cerrado". Criterio de priorización **parcial** definido (2026-08-19) para los sub-candidatos restantes: `Trigger C` priorizado #1, `Bias C` empatado con `Bias B` sin desempate ex ante, `Trigger B`/`Entry B` relegados — ver sección "Estado de priorización — Espacio 5". **`Trigger C` priorizado, NO autorizado a ejecutarse; `Bias C` sin evaluar, tampoco autorizado** |
+| Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — **sigue sin ejecutarse como espacio completo**. `D` de Trigger ya evaluado vía Rama B (no cuenta como pendiente). **`Bias B` evaluado con datos reales y cerrado** (2026-08-24) — evidencia insuficiente para sostener que mejora el sistema respecto de Bias A bajo el contrato comparado; ver `FRAMEWORK.md`, sección "Bias B — EMA50+EMA200 4H (cruce) — cerrado". **`Trigger C` evaluado con datos reales y cerrado** (2026-08-22, resultados publicados antes del cierre de Bias B pero documentados recién ahora) — 0/6 celdas cumplen los 4 gates; ver `FRAMEWORK.md`, sección "Trigger C — BOS-only — cerrado". Criterio de priorización **parcial** definido (2026-08-19) para los sub-candidatos restantes: `Bias C` empatado con `Bias B` sin desempate ex ante, `Trigger B`/`Entry B` relegados — ver sección "Estado de priorización — Espacio 5". **`Bias C`/`Trigger B`/`Entry B` sin evaluar, ninguno autorizado a ejecutarse** |
 | Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden |
 
 ## Los cuatro espacios experimentales
@@ -446,6 +446,23 @@ entre capas.
 Este checkpoint **no define** grid, baseline, número de celdas,
 parámetros concretos, ni archivos a modificar para Trigger C — todo eso
 queda para la fase de diseño, sujeta a su propia aprobación explícita.
+
+**Actualización (2026-08-22, documentada 2026-08-24)**: `Trigger C` fue
+implementado (`research/layers.py::trigger_C_bos_only`, `scripts/
+trigger_c_campaign.py`) y ejecutado con datos reales (2022+2023) —
+ver `FRAMEWORK.md`, sección "Trigger C — BOS-only — cerrado". El
+resultado (0/6 celdas cumplen los 4 gates; frecuencia dispara muy por
+encima del techo de 12/mes; PF converge a 0.89-1.41, el mismo rango
+observado en Espacio 1, Espacio 2 y Bias B) se incorpora al diagnóstico
+global del cuello de botella de PF como una cuarta línea de evidencia
+independiente. Esta actualización queda registrada con retraso respecto
+de la ejecución real: los resultados de Trigger C (commit `787c91a`,
+2026-08-22) predatan la implementación completa de Bias B (commit
+`1f91b02`, 2026-08-22 más tarde) — el checkpoint original de esta
+sección, arriba, describe el estado tal como era el 2026-08-19 y no se
+reescribe, pero deja de ser el estado vigente a partir de esta
+actualización. `Trigger B`/`Entry B`/`Bias C` permanecen sin evaluar y
+sin autorización de ejecución.
 
 ## Mantenimiento de este documento
 

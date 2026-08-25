@@ -89,7 +89,10 @@ Candidatos a evaluar:
 Candidatos a evaluar:
 - A: Liquidity Sweep + BOS (3 velas)  ← baseline actual
 - B: Liquidity Sweep + BOS (5 velas)
-- C: Solo BOS sin sweep previo
+- C: Solo BOS sin sweep previo — evaluado bajo el contrato Bias=A/
+  Entry=`C_market_close`/sesión=`dcv1_activo_15h`/Gestión V3-A,
+  comparador principal `A_sweep_bos` bajo el mismo contrato. Ver
+  sección "Trigger C — BOS-only — cerrado" más abajo.
 - D: Ruptura y cierre fuera de rango de 10 velas — implementado como
   `research.layers::trigger_D_range_breakout` (2026-08-18, Rama B, ver
   sección "Rama B — Trigger/Entry" más abajo). Evaluado en esa campaña
@@ -1095,6 +1098,91 @@ comparador Bias A bajo el mismo contrato exacto — mismo diseño que Rama B
   esta celda bajo el contrato actual. Bias C (Espacio 5, empatado con
   Bias B en el criterio de priorización de 2026-08-19) permanece sin
   evaluar.
+
+### Trigger C — BOS-only — cerrado
+
+Sub-candidato de Espacio 5, priorizado #1 en el checkpoint de
+2026-08-19 por criterios exclusivamente ex ante (`docs/research/
+EXPERIMENTAL_ROADMAP.md`, "Estado de priorización — Espacio 5") —
+evaluado con datos reales contra el comparador `A_sweep_bos` bajo el
+mismo contrato exacto. Mismo diseño que Rama B y Bias B (celda objetivo
+sin antecedente, verificada vía celda auxiliar).
+
+- **Objetivo e hipótesis**: bajo un contrato idéntico en todo lo demás
+  (Bias=A, Entry=`C_market_close`, sesión=`dcv1_activo_15h`, Gestión
+  V3-A ancla, `atr_mult`=1.5/`atr_period`=14/`max_hold`=20/`risk`=0.005
+  fijos), ¿eliminar el requisito de Liquidity Sweep y usar únicamente
+  BOS como Trigger (`trigger_C_bos_only`, ablación demostrable de
+  `trigger_A_sweep_bos` — Eventos(A) ⊆ Eventos(C)) permite aumentar la
+  disponibilidad de señales sin destruir la calidad de la señal?
+  Trigger es la única variable experimental.
+- **Contrato**: implementado en `research/layers.py`
+  (`trigger_C_bos_only`) y `scripts/trigger_c_campaign.py` (commit
+  `bbd4409a22453fce989b447a00570b011ad02077`), resultados en
+  `trigger_c_campaign_results.csv`/`_decision.csv` (commit
+  `787c91ad2de0d0f0b72600f331358386b5d8a75e`). BTCUSDT/ETHUSDT/SOLUSDT,
+  2022+2023. **2024/prueba ciega NO ejecutada** — `run_blind_test` no
+  fue invocado en ningún momento de esta campaña.
+- **Comparador**: `A_sweep_bos` + `C_market_close` bajo el mismo
+  contrato exacto (referencia ya publicada de Espacio 3,
+  `trigger_campaign_sweep_bos_session_results.csv`, `candidate=
+  "dcv1_activo_15h"`). `T1_ema_cross` y `D_range_breakout` son contexto
+  únicamente, no comparadores válidos para esta hipótesis (familias de
+  mecanismo distintas).
+- **Verificación de integridad (Fase A)**: la celda objetivo (Trigger
+  C) no tiene antecedente histórico bajo ninguna sesión — se verificó
+  el pipeline compartido vía la celda auxiliar `A_sweep_bos`+
+  `C_market_close` bajo `dcv1_activo_15h`, contra la referencia ya
+  publicada de Espacio 3. 6 verificaciones (una por activo/año),
+  comparación NaN-consciente. Hash de los CSV committeados verificado
+  contra `git ls-tree 787c91a`: `trigger_c_campaign_results.csv` =
+  `b168aa3663c038c96979bb0cc09ccf47e0db3e58`,
+  `trigger_c_campaign_decision.csv` =
+  `978edf0e5f98ea12456b17811d4c0c6ce69d6cc4`; recómputo independiente
+  de `gate_check`/`survives_both_years` celda por celda coincide exacto
+  con lo publicado.
+- **Resultados por celda 2022+2023** (n_trades / freq mensual / PF /
+  MaxDD / exp_r):
+
+  | Activo | Año | n_trades | freq | PF | MaxDD | exp_r |
+  |---|---|---|---|---|---|---|
+  | BTCUSDT | 2022 | 307 | 25.4 | 0.893 | -13.41% | -0.056 |
+  | BTCUSDT | 2023 | 276 | 22.8 | 1.408 | -4.76% | +0.213 |
+  | ETHUSDT | 2022 | 297 | 24.6 | 1.138 | -7.86% | +0.067 |
+  | ETHUSDT | 2023 | 278 | 23.2 | 0.990 | -11.57% | -0.005 |
+  | SOLUSDT | 2022 | 284 | 23.7 | 1.125 | -8.58% | +0.055 |
+  | SOLUSDT | 2023 | 289 | 24.0 | 0.944 | -12.94% | -0.028 |
+
+- **Disponibilidad de señal y contraste con el comparador**: eliminar
+  el requisito de sweep multiplica los eventos crudos ~80-100x
+  (1067-1228 entradas/celda, frente a 4-17 bajo `A_sweep_bos`) y con
+  ello la frecuencia efectiva — pero la dispara muy por encima del
+  techo de 12/mes (22.8-25.4/mes) en las 6/6 celdas, en vez de resolver
+  el déficit de frecuencia que motivaba la hipótesis. El PF del
+  comparador (`A_sweep_bos`), estimado sobre n=4-17 trades por celda,
+  no es una referencia estadísticamente fiable; el PF de Trigger C, ya
+  sobre una muestra bien powered (276-307 trades/celda), converge al
+  mismo rango 0.89-1.41 observado en el resto del programa.
+- **Gate (Nivel 4)**: **0/6 filas cumplen los 4 gates de FRAMEWORK.md.**
+  PF<1.50 en las 6/6 celdas (máximo 1.408); frecuencia por encima del
+  techo de 12/mes en las 6/6 celdas (fallo por exceso, no por déficit —
+  patrón inverso al de `A_sweep_bos`); `exp_r`>0 en 3/6; `max_dd`≥-10%
+  en 2/6. Ningún activo sobrevive 2022 Y 2023
+  (`survives_both_years=False` en las 3 filas de
+  `trigger_c_campaign_decision.csv`). Ninguna combinación fue elegible
+  para prueba ciega en 2024.
+- **Interpretación (alcance limitado a este contrato)**: no hay
+  evidencia, bajo el contrato evaluado, de que eliminar el requisito de
+  sweep resuelva el problema de PF — lo desplaza de un fallo de
+  frecuencia por defecto a uno por exceso, sin acercar el PF al gate.
+  Constituye una cuarta línea de evidencia independiente (junto con
+  Espacio 1, Espacio 2 y Bias B) consistente con — sin demostrarlo de
+  forma aislada — la hipótesis de que el techo de PF observado (~0.9-1.5)
+  es una propiedad del armazón de Gestión/ejecución bajo prueba, no de
+  qué candidato específico de Bias o Trigger se utilice.
+- **Estado**: **CERRADO** (evidencia real, 2022+2023). No se continuará
+  esta celda bajo el contrato actual. Trigger B (Espacio 5, variación
+  fina del mismo mecanismo de BOS) permanece sin evaluar.
 
 ---
 
