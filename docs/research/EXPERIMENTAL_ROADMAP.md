@@ -27,7 +27,7 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | Rama B (Trigger/Entry: `D_range_breakout`, `A_sweep_bos`+`A_pullback_50`) | **Cerrado** (2026-08-18), documentado en `FRAMEWORK.md` — `D_range_breakout`+`C_market_close` **descartada**; `A_sweep_bos`+`A_pullback_50` **candidata congelada / evidencia insuficiente** (0/12 filas cumplen los 4 gates; ninguna combinación elegible para ciego 2024). **No es uno de los 4 espacios de este roadmap** ni una extensión residual de H1 (a diferencia de `atr_mult`×sesión) — línea surgida de una revisión estratégica posterior a estos 4 espacios, no documentada formalmente en este archivo hasta ahora. Ver nota de ambigüedad en "Espacios explícitamente fuera del orden" sobre su relación con Espacio 5/Espacio 6 |
 | **Próxima línea de investigación** | **Sin decidir** — los 4 espacios del orden aprobado y Rama B están cerrados; la elección de qué sigue queda pendiente de una decisión explícita posterior, no determinada por este documento en su estado actual (ver ambigüedades señaladas abajo) |
 | Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — **sigue sin ejecutarse como espacio completo**. `D` de Trigger ya evaluado vía Rama B (no cuenta como pendiente). **`Bias B` evaluado con datos reales y cerrado** (2026-08-24) — evidencia insuficiente para sostener que mejora el sistema respecto de Bias A bajo el contrato comparado; ver `FRAMEWORK.md`, sección "Bias B — EMA50+EMA200 4H (cruce) — cerrado". **`Trigger C` evaluado con datos reales y cerrado** (2026-08-22, resultados publicados antes del cierre de Bias B pero documentados recién ahora) — 0/6 celdas cumplen los 4 gates; ver `FRAMEWORK.md`, sección "Trigger C — BOS-only — cerrado". Criterio de priorización **parcial** definido (2026-08-19) para los sub-candidatos restantes: `Bias C` empatado con `Bias B` sin desempate ex ante, `Trigger B`/`Entry B` relegados — ver sección "Estado de priorización — Espacio 5". **`Bias C`/`Trigger B`/`Entry B` sin evaluar, ninguno autorizado a ejecutarse** |
-| Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden |
+| Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden. **Experimento 1 (TP fijo 2.5R) ejecutado con datos reales 2022+2023 y cerrado** (evidencia real) — **EVIDENCIA INSUFICIENTE**: 0/6 celdas cumplen los 4 gates, 0/3 activos sobreviven ambos años, pero PF/MaxDD/expectancy mejoran respecto de V3-A en 5/6 celdas; ver `FRAMEWORK.md`, sección "Espacio 6 — Experimento 1 — TP fijo 2.5R — cerrado". **Espacio 6 permanece abierto** — este resultado no lo cierra. Un Experimento 2 queda como posible siguiente paso, sin autorizar ni diseñar todavía |
 
 ## Los cuatro espacios experimentales
 
@@ -361,6 +361,18 @@ información en dos componentes:
   parte de "agotar los espacios de mayor valor informativo por menor
   costo". Esto no decide si Espacio 6 corresponde ejecutarse ahora — esa
   decisión queda expresamente fuera de esta actualización documental.
+
+  **Actualización (2026-08-27)**: el Experimento 1 de Espacio 6 (TP fijo
+  2.5R, aislando el mecanismo de Gestión) fue diseñado, implementado y
+  ejecutado con datos reales — ver `FRAMEWORK.md`, sección "Espacio 6 —
+  Experimento 1 — TP fijo 2.5R — cerrado". Resultado: EVIDENCIA
+  INSUFICIENTE (no pasa los gates, pero muestra una mejora consistente
+  de PF/MaxDD/expectancy respecto de V3-A en 5/6 celdas). Esto confirma
+  que abrir Espacio 6 fue una decisión con contenido experimental real,
+  no solo procedimental — pero un solo experimento no es suficiente
+  para determinar si el mecanismo de Gestión es la explicación del
+  techo de PF observado en el resto del programa. Espacio 6 sigue
+  abierto; no se define acá ningún Experimento 2.
 
 ## Estado de priorización — Espacio 5 (checkpoint 2026-08-19)
 

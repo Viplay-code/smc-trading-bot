@@ -121,7 +121,10 @@ Candidatos a evaluar:
 
 ### Gestión (fija para todas las variantes)
 - Stop Loss: mínimo entre estructura y ATR(14) × 1.5
-- Take Profit: 2.5R fijo
+- Take Profit: 2.5R fijo — especificación histórica de este documento, NO
+  la Gestión vigente del motor (esa es V3-A, ver Espacio 1). Evaluada
+  como mecanismo alternativo de salida en Espacio 6, Experimento 1 — ver
+  sección "Espacio 6 — Experimento 1 — TP fijo 2.5R — cerrado" más abajo.
 - Sesiones: Londres 07-11 UTC + Nueva York 13-17 UTC — ventana operativa que
   filtra CUÁNDO se buscan setups (`bot.py::in_session`, `backtest.py`'s
   columna `in_session`), distinta de la taxonomía de sesión de mercado que
@@ -1183,6 +1186,117 @@ sin antecedente, verificada vía celda auxiliar).
 - **Estado**: **CERRADO** (evidencia real, 2022+2023). No se continuará
   esta celda bajo el contrato actual. Trigger B (Espacio 5, variación
   fina del mismo mecanismo de BOS) permanece sin evaluar.
+
+### Espacio 6 — Experimento 1 — TP fijo 2.5R — cerrado
+
+Primer experimento de Espacio 6 (pausa y reconsideración del armazón
+completo, `docs/research/EXPERIMENTAL_ROADMAP.md`) — a diferencia de
+Bias B/Trigger C (que varían Capa 1/2), este experimento aísla el
+**mecanismo de Gestión/Exit Management** como única variable, manteniendo
+Bias/Trigger/Entry/sesión/parámetros en su ancla ya usada en todo el
+programa.
+
+- **Objetivo e hipótesis**: bajo un contrato idéntico en todo lo demás
+  (Bias=A/Trigger=`T1_ema_cross`/Entry=`C_market_close`/
+  sesión=`dcv1_activo_15h`/`atr_mult`=1.5/`atr_period`=14/`max_hold`=20/
+  `risk`=0.005 fijos), ¿el techo de PF (~0.9-1.5) observado en H1/H2/I1/
+  Espacio 1/Bias B/Trigger C se debe al mecanismo de salida V3-A (SL
+  inicial + breakeven + trailing + timeout), o persiste cuando se
+  sustituye por un mecanismo genuinamente distinto? Variable
+  experimental: el mecanismo de salida — TP fijo en 2.5R (SL inicial
+  idéntico, sin breakeven, sin trailing, sin activación, timeout a
+  `max_hold` sin cambios; precedencia intrabar conservadora: si SL y TP
+  caen en la misma vela, gana SL). `TP_R`=2.5 es la especificación
+  histórica de este mismo documento (sección "Gestión"), reutilizada
+  como valor no arbitrario — explícitamente **no** una restauración de
+  esa Gestión como mecanismo vigente (ver contrato formal, §0).
+- **Contrato**: implementado en `scripts/gestion_espacio6_tp_fijo_
+  campaign.py` (commit `d8223364cf814828420ee1a188684abb03221b60`),
+  resultados en `gestion_espacio6_tp_fijo_campaign_results.csv`/
+  `_decision.csv` (commit `550c21690fb63f26886dcb101b15b4a8c4aa602a`).
+  BTCUSDT/ETHUSDT/SOLUSDT, 2022+2023 (2024 no ejecutado).
+- **Fase A**: reproducción completa de V3-A (mismas entradas,
+  `backtest.EXIT_CONFIGS["V3-A (1R/2R/1R)"]` sin modificar) verificada
+  **6/6** contra `gestion_campaign_session_results.csv` (`candidate=
+  "dcv1_activo_15h"`, `exit_config="V3-A (1R/2R/1R)"`) — coincidencia
+  exacta en `n_entries`/`n_trades`/`pf`/`wr`/`exp_r`/`max_dd`/`freq` en
+  las 6 combinaciones (activo, año); solo entonces se reutilizó el mismo
+  objeto de entradas para TP fijo (Fase B).
+- **Resultados por celda 2022+2023** (n_trades / freq / PF / MaxDD /
+  exp_r):
+
+  | Activo | Año | n_trades | freq | PF | MaxDD | exp_r |
+  |---|---|---|---|---|---|---|
+  | BTCUSDT | 2022 | 115 | 9.6 | 0.878 | -8.33% | -0.075 |
+  | BTCUSDT | 2023 | 108 | 9.2 | 1.241 | -4.60% | +0.144 |
+  | ETHUSDT | 2022 | 107 | 9.0 | 1.108 | -3.55% | +0.060 |
+  | ETHUSDT | 2023 | 112 | 9.4 | 0.860 | -11.24% | -0.093 |
+  | SOLUSDT | 2022 | 103 | 8.6 | 1.174 | -4.31% | +0.094 |
+  | SOLUSDT | 2023 | 97 | 8.1 | 1.015 | -7.85% | +0.009 |
+
+- **Comparación contra V3-A (deltas, mismo contrato exacto)**:
+
+  | Activo/Año | ΔPF | ΔMaxDD (pp) | Δexp_r |
+  |---|---|---|---|
+  | BTCUSDT 2022 | +0.197 | +3.94 | +0.102 |
+  | BTCUSDT 2023 | +0.220 | +2.28 | +0.132 |
+  | ETHUSDT 2022 | +0.075 | +3.19 | +0.044 |
+  | ETHUSDT 2023 | +0.078 | +1.20 | +0.026 |
+  | SOLUSDT 2022 | +0.171 | +1.13 | +0.093 |
+  | SOLUSDT 2023 | -0.257 | -2.63 | -0.123 |
+
+  PF, MaxDD y exp_r mejoran simultáneamente en **5 de 6 celdas** (todo
+  2022, más BTCUSDT/ETHUSDT 2023), con magnitud consistente entre
+  celdas. La única excepción es SOLUSDT 2023 — la mejor celda jamás
+  observada bajo V3-A en este contrato (PF=1.272) — que TP fijo arrastra
+  al mismo rango que el resto. `Δfreq`/`Δn_trades` son prácticamente
+  nulos: el mecanismo no cambia cuántas operaciones ocurren, solo cómo
+  se cierran.
+- **Distribución de razones de salida** (sin mezclar categorías): TP
+  fijo produce `stop`/`tp`/`timeout` (48-55% / 17-29% / 23-33% de los
+  trades por celda); V3-A produce únicamente `stop`/`timeout` (78-86% /
+  14-22%). El "stop" de V3-A es heterogéneo (incluye salidas por
+  trailing ya movido a favor, no solo pérdidas de -1R), mientras que el
+  "stop" de TP fijo es homogéneo por construcción (siempre exactamente
+  -1R bruto) — los porcentajes no son directamente comparables en
+  magnitud pese a compartir el nombre de categoría.
+- **Gate (Nivel 4)**: **0/6 filas cumplen los 4 gates de FRAMEWORK.md.**
+  PF<1.50 en las 6/6 celdas (máximo 1.241, BTCUSDT 2023 — 0.259 por
+  debajo del umbral); MaxDD≥-10% en 5/6 (falla solo ETHUSDT 2023);
+  exp_r>0 en 4/6 (falla BTCUSDT 2022, ETHUSDT 2023); freq en rango en
+  6/6. **0/3 activos sobreviven 2022 Y 2023**
+  (`survives_both_years=False` en las 3 filas de
+  `gestion_espacio6_tp_fijo_campaign_decision.csv`). Ninguna
+  combinación fue elegible para prueba ciega en 2024.
+- **"Mejora respecto de V3-A" vs. "PASS" (distinción explícita, no
+  intercambiable)**: TP fijo mejora PF/MaxDD/exp_r de forma consistente
+  en 5/6 celdas — una señal direccional real, no ruido disperso. Esto
+  **no equivale** a pasar los gates: 0/6 celdas los cumple, 0/3 activos
+  sobreviven ambos años. Mejora relativa y PASS son preguntas distintas
+  con respuestas distintas en este experimento.
+- **Interpretación (alcance limitado a este contrato, sin inferencia
+  causal más allá de lo observado)**: el resultado no es compatible con
+  "el mecanismo de salida es irrelevante" (H0 en su forma fuerte) — se
+  observa una diferencia consistente y de magnitud estable en 5/6
+  celdas al sustituir V3-A. Tampoco confirma que cambiar el mecanismo
+  resuelva el problema (H1 fuerte) — ningún activo sobrevive ambos
+  años. No se concluye que el breakeven/trailing de V3-A sea la causa
+  del techo de PF — sería una inferencia causal no respaldada por un
+  solo experimento comparativo; solo se documenta la asociación
+  observada. La señal direccional consistente (a diferencia del
+  resultado plano de Bias B y de la falla amplia de Trigger C) es
+  evidencia de que la hipótesis de Espacio 6 —que el mecanismo de
+  Gestión pueda importar— **no queda descartada por este resultado**;
+  justifica mantener abierta esta línea, no cerrarla.
+- **Veredicto**: **EVIDENCIA INSUFICIENTE** — 0/6 gate_pass, pero el
+  patrón de falla es específico (en 4/6 celdas solo PF falla, con los
+  otros 3 gates ya pasando) y no amplio (solo 2/6 celdas tienen más de
+  un gate fallando) — no cumple el criterio contractual de FAIL ("varios
+  gates fallando simultáneamente en la mayoría de las celdas").
+- **Estado**: **CERRADO** (evidencia real, 2022+2023). Espacio 6
+  permanece **abierto** — este resultado no cierra la hipótesis de
+  Gestión. Un segundo experimento de Espacio 6 queda como posible
+  siguiente paso, **no autorizado ni diseñado todavía**.
 
 ---
 
