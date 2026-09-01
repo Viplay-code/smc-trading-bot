@@ -1298,6 +1298,172 @@ programa.
   Gestión. Un segundo experimento de Espacio 6 queda como posible
   siguiente paso, **no autorizado ni diseñado todavía**.
 
+### Espacio 6 — Experimento 2 — BE-only 1.0R (sin trailing, sin TP) — cerrado
+
+Segundo experimento de Espacio 6, diseñado para descomponer los tres
+cambios simultáneos que el Experimento 1 (TP fijo 2.5R) aplicó a la vez
+respecto de V3-A (quitar breakeven, quitar trailing, agregar techo de
+ganancia): aísla **un único** componente estructural — el trailing
+(activación + ratchet) — manteniendo el breakeven intacto en su valor ya
+canónico (`be`=1.0R, idéntico al de V3-A) y sin ningún TP.
+
+- **Objetivo e hipótesis**: bajo el mismo contrato congelado de Espacio
+  6-E1 (Bias=A/Trigger=`T1_ema_cross`/Entry=`C_market_close`/sesión=
+  `dcv1_activo_15h` única/`atr_mult`=1.5/`atr_period`=14/`max_hold`=20/
+  `risk`=0.005 fijos), ¿`BE_solo_1.0R` (SL inicial idéntico, breakeven en
+  1.0R intacto, sin trailing, sin TP, timeout a `max_hold` sin cambios;
+  misma precedencia intrabar conservadora que V3-A y E1: el stop se
+  testea contra el extremo adverso antes de cualquier actualización
+  favorable) reproduce la mejora de PF/MaxDD/exp_r observada en el
+  Experimento 1, o esa mejora depende de otro componente (quitar
+  breakeven y/o agregar el techo de TP)?
+  - H0: `BE_solo_1.0R` no reproduce ninguna mejora material de PF/MaxDD/
+    exp_r respecto de V3-A — el trailing no es el componente que explica
+    la mejora observada en E1.
+  - H1: `BE_solo_1.0R` reproduce una mejora de magnitud comparable a la
+    de E1 en la mayoría de las celdas — evidencia de que el trailing es
+    el componente principal detrás del resultado de E1.
+  - La comparación `avg_win` vs. `mean_mfe_r_winners` (`gap_avg_win_mfe`)
+    es evidencia mecanística **secundaria**, definida en el contrato
+    (2026-08-28) para nunca decidir el veredicto por sí sola — la
+    evidencia primaria sigue siendo PF/MaxDD/exp_r frente a V3-A, igual
+    que en E1.
+- **Contrato**: implementado en `scripts/gestion_espacio6_experimento2_
+  be_solo_campaign.py` (commit
+  `a6584b92452155be1b749f7782e9b71d5a75008b`), 24 tests en
+  `research/tests/test_gestion_espacio6_experimento2_be_solo_campaign.py`
+  (mismo commit). Reutiliza `backtest.simulate_v3`/`backtest.run_config`
+  **sin modificar** — la ablación se logra parametrizando `exit_cfg=
+  {"be": 1.0, "activation": float("inf"), "distance": 0.0}`:
+  `activation=inf` hace que el paso de trailing de `simulate_v3` nunca se
+  active; `distance=0.0` queda estructuralmente inalcanzable (no se lee
+  nunca, verificado por test — no es un parámetro experimental).
+  Resultados en `gestion_espacio6_experimento2_be_solo_campaign_results.csv`/
+  `_decision.csv` (commit `bdfdbddd7eb6d681e51f94e78274342a3ff16579`).
+  BTCUSDT/ETHUSDT/SOLUSDT, 2022+2023 (2024 no ejecutado — `run_blind_test`
+  no fue invocado).
+- **Verificación de integridad (Fase A) y reproducibilidad**: a
+  diferencia de Bias B/Trigger C/E1 (documentados en un sandbox sin
+  `data/raw/` poblado), esta verificación se ejecutó en un entorno con
+  `data/raw/` completo (9/9 datasets) y TA-Lib disponible. Se re-ejecutó
+  `python scripts/gestion_espacio6_experimento2_be_solo_campaign.py` de
+  punta a punta: (1) Fase A interna del script reprodujo V3-A completo y
+  coincidió 6/6 (una por activo/año) contra
+  `gestion_campaign_session_results.csv` sin lanzar `AssertionError`
+  (la corrida aborta antes de calcular una sola celda del candidato si
+  cualquiera de las 6 falla); (2) los CSV recién generados —
+  `gestion_espacio6_experimento2_be_solo_campaign_results.csv` (blob
+  `d2fa0e9f89e92d9cac4ce33e1d7ceece28ccafda`) y `_decision.csv` (blob
+  `335b0337efc7c81496cbd39fb1cb520ece3efaed`) — resultaron **bit-idénticos**
+  a los ya committeados (`git status`/`git diff` sin cambios tras la
+  corrida). Adicionalmente, `python -m pytest research/tests/
+  test_gestion_espacio6_experimento2_be_solo_campaign.py -v` → **24/24
+  PASS**. `gate_check`/`survives_both_years` recomputados manualmente
+  celda por celda contra las columnas `pf`/`max_dd`/`exp_r`/`freq`
+  publicadas coinciden exacto con `gate_pass`/`survives_both_years` del
+  CSV.
+- **Resultados por celda 2022+2023** (n_trades / freq / PF / MaxDD /
+  exp_r):
+
+  | Activo | Año | n_trades | freq | PF | MaxDD | exp_r |
+  |---|---|---|---|---|---|---|
+  | BTCUSDT | 2022 | 115 | 9.6 | 0.670 | -11.20% | -0.186 |
+  | BTCUSDT | 2023 | 108 | 9.2 | 0.666 | -13.02% | -0.193 |
+  | ETHUSDT | 2022 | 107 | 9.0 | 0.922 | -7.12% | -0.039 |
+  | ETHUSDT | 2023 | 113 | 9.4 | 0.735 | -13.28% | -0.148 |
+  | SOLUSDT | 2022 | 103 | 8.6 | 1.143 | -4.56% | +0.068 |
+  | SOLUSDT | 2023 | 98 | 8.2 | 1.549 | -7.91% | +0.269 |
+
+- **Comparación contra V3-A (deltas, mismo contrato exacto)**:
+
+  | Activo/Año | ΔPF | ΔMaxDD (pp) | Δexp_r | Δn_trades |
+  |---|---|---|---|---|
+  | BTCUSDT 2022 | -0.011 | +1.07 | -0.009 | 0 |
+  | BTCUSDT 2023 | -0.355 | -6.14 | -0.205 | 0 |
+  | ETHUSDT 2022 | -0.111 | -0.38 | -0.055 | 0 |
+  | ETHUSDT 2023 | -0.047 | -0.84 | -0.029 | 0 |
+  | SOLUSDT 2022 | +0.140 | +0.88 | +0.001 | 0 |
+  | SOLUSDT 2023 | +0.277 | -2.69 | +0.137 | 0 |
+
+  Patrón opuesto al del Experimento 1 (que mejoró PF/MaxDD/exp_r
+  simultáneamente en 5/6 celdas): acá PF empeora respecto de V3-A en 4/6
+  celdas (BTCUSDT y ETHUSDT, ambos años), y solo mejora en SOLUSDT (ambos
+  años). MaxDD y exp_r siguen mayormente la misma dirección que PF por
+  celda, sin patrón adicional independiente. `Δn_trades`=0 en las 6/6
+  celdas — la ablación no desplazó ningún límite de "una posición a la
+  vez" en esta corrida (a diferencia de E1, donde 2/6 celdas sí
+  mostraron `Δn_trades`=-1).
+- **Distribución de razones de salida**: `BE_solo_1.0R` produce
+  únicamente `stop`/`timeout` (59-74% / 26-41% de los trades por celda,
+  suma exacta de `reason_stop`+`reason_timeout`=`n_trades` en las 6/6
+  celdas) — sin categoría `tp`, consistente con que este mecanismo no
+  tiene techo de ganancia. El "stop" acá es homogéneo por construcción
+  (el nivel de stop nunca se mueve salvo el salto único a breakeven en
+  1.0R) — no directamente comparable en magnitud al "stop" heterogéneo
+  de V3-A (que incluye salidas con el trailing ya movido a favor) ni al
+  de TP fijo (E1).
+- **Evidencia mecanística secundaria (`gap_avg_win_mfe`)**: en las 6/6
+  celdas, `mean_mfe_r_winners` supera a `avg_win` por +0.85R a +1.93R —
+  el precio favorable disponible durante la vida de la operación excede
+  sistemáticamente lo que el mecanismo BE-only efectivamente captura.
+  Esta brecha es consistente con la ausencia de trailing (nada sube el
+  stop más allá de breakeven para proteger ganancia adicional), pero por
+  contrato (§0, revisión 2026-08-28) **no decide el veredicto por sí
+  sola** — es una observación mecanística, no la evidencia primaria.
+- **Gate (Nivel 4)**: **1/6 filas cumple los 4 gates de FRAMEWORK.md**
+  (SOLUSDT 2023: PF=1.549, MaxDD=-7.91%, exp_r=+0.269, freq=8.2 — las
+  4 condiciones se cumplen). **0/3 activos sobreviven 2022 Y 2023**
+  (`survives_both_years=False` en las 3 filas de
+  `gestion_espacio6_experimento2_be_solo_campaign_decision.csv`) —
+  SOLUSDT pasa 2023 pero falla 2022 (PF=1.143<1.50). Ninguna combinación
+  fue elegible para prueba ciega en 2024.
+- **Patrón de fallo por celda (número de gates que fallan, de 4)**:
+  BTCUSDT 2022=3 (pf/max_dd/exp_r), ETHUSDT 2022=2 (pf/exp_r), SOLUSDT
+  2022=1 (solo pf), BTCUSDT 2023=3 (pf/max_dd/exp_r), ETHUSDT 2023=3
+  (pf/max_dd/exp_r), SOLUSDT 2023=0. **4 de 6 celdas (mayoría) tienen más
+  de un gate fallando simultáneamente** — patrón inverso al del
+  Experimento 1, donde solo 2/6 celdas tenían más de un gate fallando
+  (en E1, 4/6 celdas fallaban únicamente por PF). Este es el criterio
+  contractual de **FAIL** definido explícitamente al cerrar E1 ("varios
+  gates fallando simultáneamente en la mayoría de las celdas"), no el de
+  EVIDENCIA INSUFICIENTE.
+- **"H0 no rechazada" vs. "H1 confirmada" (distinción explícita, no
+  intercambiable)**: el resultado es compatible con H0 — no hay evidencia
+  de que `BE_solo_1.0R` reproduzca la mejora del Experimento 1; al
+  contrario, empeora PF/MaxDD/exp_r respecto de V3-A en la mayoría de las
+  celdas (4/6). H1 (que el trailing sea el componente principal detrás de
+  la mejora de E1) **no queda respaldada** por este resultado.
+- **Interpretación (alcance limitado a este contrato, sin inferencia
+  causal más allá de lo observado)**: la evidencia es consistente con
+  que remover únicamente el trailing (manteniendo breakeven intacto, sin
+  agregar TP) no reproduce, y en la mayoría de las celdas revierte, la
+  mejora observada en el Experimento 1. Esto **no identifica** cuál de
+  los otros dos cambios que sí aplicó E1 (quitar breakeven, agregar TP a
+  2.5R) es responsable de esa mejora — ninguno de los dos fue aislado
+  todavía, ni por separado ni en combinación distinta a la evaluada acá
+  o en E1; atribuir la mejora de E1 a "quitar breakeven" o "agregar TP"
+  específicamente sería una inferencia causal no respaldada por los dos
+  experimentos disponibles, que solo cubren dos combinaciones de un
+  espacio de 2³ variantes binarias (BE on/off × trailing on/off × TP
+  on/off, sin contar V3-A). El comportamiento asimétrico por activo
+  (SOLUSDT mejora en ambos años; BTCUSDT/ETHUSDT empeoran en ambos años)
+  es una observación descriptiva, no una explicación — no se investiga
+  su causa en este cierre.
+- **Veredicto**: **FAIL** — 1/6 gate_pass, 0/3 activos sobreviven ambos
+  años, y el patrón de fallo es amplio (mayoría de celdas con más de un
+  gate fallando simultáneamente), a diferencia de E1. La dirección del
+  efecto respecto de V3-A también es predominantemente negativa (4/6
+  celdas empeoran en PF), no solo insuficiente para cruzar el gate.
+- **Estado**: **CERRADO** (evidencia real, 2022+2023, reproducida de
+  forma independiente en este cierre). Espacio 6 permanece **abierto**
+  como línea de investigación — este resultado no cierra la hipótesis
+  general de que el mecanismo de Gestión pueda importar (el Experimento
+  1 sigue siendo evidencia direccional real en sentido contrario), pero
+  sí descarta, bajo el contrato evaluado, que el trailing aislado sea el
+  componente responsable de esa mejora. Un tercer experimento de Espacio
+  6 (p. ej. aislando breakeven o TP por separado) queda como posible
+  siguiente paso, **no autorizado ni diseñado todavía**.
+
 ---
 
 ## Parada automática del bot (circuit breaker)
