@@ -15,7 +15,18 @@ from .layers import (
     ENTRY_LAYERS,
     bias_A2_ema200_neutral_1h_held,
 )
-from .metrics import compute_core_metrics
+from .metrics import (
+    compute_core_metrics,
+    gate_check,
+    PF_MIN,
+    MAX_DD_MIN,
+    EXP_R_MIN,
+    FREQ_MIN_PER_MONTH,
+    FREQ_MAX_PER_MONTH,
+)
+from .schema import ExperimentResult, TradeRecord, compute_contract_hash
+from .data import load_asset_year, resample_4h, to_backtest_frame, apply_bias_A
+from .simulate import simulate_v3, EXIT_CONFIGS
 
 __all__ = [
     "BiasFn",
@@ -28,4 +39,19 @@ __all__ = [
     "ENTRY_LAYERS",
     "compute_core_metrics",
     "bias_A2_ema200_neutral_1h_held",
+    "gate_check",
+    "PF_MIN",
+    "MAX_DD_MIN",
+    "EXP_R_MIN",
+    "FREQ_MIN_PER_MONTH",
+    "FREQ_MAX_PER_MONTH",
+    "ExperimentResult",
+    "TradeRecord",
+    "compute_contract_hash",
+    "load_asset_year",
+    "resample_4h",
+    "to_backtest_frame",
+    "apply_bias_A",
+    "simulate_v3",
+    "EXIT_CONFIGS",
 ]

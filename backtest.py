@@ -31,6 +31,13 @@ import research
 import dc_v1
 
 COST_PER_TRADE = 0.0009   # 0.04% comision + 0.05% slippage, en fraccion del precio
+# Fuente autoritativa ÚNICA de COST_PER_TRADE — NO se movió a
+# research/simulate.py (Fase 4, C2) pese a que simulate_v3 sí se movió,
+# precisamente para que los monkeypatches ya committeados sobre
+# backtest.COST_PER_TRADE (scripts/gestion_espacio6_costo_cero_
+# diagnostico.py, research/runner.py) sigan controlando el costo real de
+# la simulación sin cambios. Ver research/simulate.py::simulate_v3 (lee
+# este valor vía import local a la función) para el análisis completo.
 
 @dataclass
 class Config:
@@ -41,11 +48,18 @@ class Config:
     max_hold: int      = 20
     sessions: list     = field(default_factory=lambda: [(7, 11), (13, 17)])
 
-# Configuraciones de salida a comparar
-EXIT_CONFIGS = {
-    "V3-A (1R/2R/1R)":       {"be": 1.0,  "activation": 2.0, "distance": 1.0},
-    "V3-B (0.75R/1.5R/0.75R)": {"be": 0.75, "activation": 1.5, "distance": 0.75},
-}
+# WRAPPER DE COMPATIBILIDAD (Fase 4, C2, 2026-09-02): `simulate_v3`/
+# `EXIT_CONFIGS` YA NO se definen acá — MOVIDOS a `research/simulate.py`
+# sin cambiar una línea de su lógica (ubicación canónica del motor de
+# simulación). Re-exportados tal cual (mismo objeto) para que
+# `run_config` (que permanece acá, ver su docstring) y todo el código
+# legacy que hace `backtest.simulate_v3`/`backtest.EXIT_CONFIGS` sigan
+# funcionando exactamente igual, incluidos los tests que monkeypatchean
+# `backtest.simulate_v3 = ...` (siguen funcionando porque `run_config`
+# resuelve `simulate_v3` como nombre libre en ESTE módulo, ver docstring
+# de research/simulate.py).
+simulate_v3 = research.simulate_v3
+EXIT_CONFIGS = research.EXIT_CONFIGS
 
 
 def download(symbol, interval, start, end):
@@ -141,103 +155,13 @@ def find_entries(df, cfg):
     return entries
 
 
-def simulate_v3(df, entry, exit_cfg, cfg):
-    """
-    Simula una entrada con gestion V3 barra-a-barra, convencion conservadora.
-    Devuelve pnl_r neto (con costos) y metadatos.
-    """
-    i0        = entry["entry_idx"]
-    direction = entry["direction"]
-    e         = entry["entry"]
-    risk_pts  = entry["risk_pts"]
-    stop      = entry["sl0"]
-
-    be_lvl    = exit_cfg["be"]         # en R
-    act_lvl   = exit_cfg["activation"] # en R
-    dist_r    = exit_cfg["distance"]   # en R
-
-    n = len(df)
-    max_fav_pts = 0.0     # maximo avance favorable en puntos
-    trailing_on = False
-    be_done     = False
-
-    exit_idx   = None
-    exit_price = None
-    reason     = None
-
-    end = min(i0 + cfg.max_hold + 1, n)
-    for k in range(i0 + 1, end):
-        c = df.iloc[k]
-
-        # ── 1. Test de stop-out contra extremo ADVERSO, con stop del inicio de vela
-        if direction == "long":
-            if c["low"] <= stop:
-                exit_idx, exit_price, reason = k, stop, "stop"
-                break
-        else:
-            if c["high"] >= stop:
-                exit_idx, exit_price, reason = k, stop, "stop"
-                break
-
-        # ── 2. Actualizar maximo favorable con el extremo FAVORABLE de esta vela
-        if direction == "long":
-            fav_pts = c["high"] - e
-        else:
-            fav_pts = e - c["low"]
-        if fav_pts > max_fav_pts:
-            max_fav_pts = fav_pts
-
-        fav_r = max_fav_pts / risk_pts
-
-        # ── 3. Break-even (efecto para velas siguientes)
-        if not be_done and fav_r >= be_lvl:
-            if direction == "long":
-                stop = max(stop, e)
-            else:
-                stop = min(stop, e)
-            be_done = True
-
-        # ── 4. Activacion de trailing
-        if not trailing_on and fav_r >= act_lvl:
-            trailing_on = True
-
-        # ── 5. Trailing ratchet (solo a favor)
-        if trailing_on:
-            if direction == "long":
-                trail_stop = e + (max_fav_pts - dist_r * risk_pts)
-                stop = max(stop, trail_stop)
-            else:
-                trail_stop = e - (max_fav_pts - dist_r * risk_pts)
-                stop = min(stop, trail_stop)
-
-    # ── Timeout: cierre a mercado en la ultima vela evaluada
-    if exit_idx is None:
-        last = min(end - 1, n - 1)
-        exit_idx   = last
-        exit_price = df.iloc[last]["close"]
-        reason     = "timeout"
-
-    # ── PnL en R (neto de costos)
-    if direction == "long":
-        pnl_pts = exit_price - e
-    else:
-        pnl_pts = e - exit_price
-    pnl_r_gross = pnl_pts / risk_pts
-    cost_r      = (e * COST_PER_TRADE) / risk_pts
-    pnl_r_net   = pnl_r_gross - cost_r
-
-    return {
-        "entry_time": df.index[i0],
-        "exit_time":  df.index[exit_idx],
-        "direction":  direction,
-        "reason":     reason,
-        "pnl_r":      round(pnl_r_net, 4),
-        "duration_h": exit_idx - i0,
-    }
-
-
 def run_config(df, entries, exit_cfg, cfg):
-    """Ejecuta una config de salida respetando 'una posicion a la vez'."""
+    """Ejecuta una config de salida respetando 'una posicion a la vez'.
+
+    NO se movió a research/simulate.py junto con simulate_v3 (Fase 4, C2)
+    — ver docstring de research/simulate.py para el motivo exacto (llama
+    a `simulate_v3` como nombre libre, resuelto en ESTE módulo; moverla
+    rompería los tests que monkeypatchean `backtest.simulate_v3`)."""
     trades = []
     busy_until = -1
     for ent in entries:

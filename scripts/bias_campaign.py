@@ -69,17 +69,14 @@ IN_SAMPLE_YEAR = 2022
 VALIDATION_YEAR = 2023
 BLIND_YEAR = 2024
 
-# Gate de frecuencia de FRAMEWORK.md (rango 6-12/mes/activo), NO el piso
-# freq>=4 de backtest.py::passes() — ver plan v2 §6.
-FREQ_MIN_PER_MONTH = 6
-FREQ_MAX_PER_MONTH = 12
+# FREQ_MIN_PER_MONTH/FREQ_MAX_PER_MONTH (gate de frecuencia de FRAMEWORK.md,
+# rango 6-12/mes/activo) YA NO se definen acá — re-exportadas desde
+# research.metrics más abajo, junto con gate_check (ver wrapper de
+# compatibilidad, sección "Gate + orquestación").
 
-# Resample 4H — misma convención que dc_v1/pipeline.py::add_htf (OHLCV /
-# RESAMPLE_RULES). Replicada acá, no importada: son internos de
-# dc_v1.pipeline, no del punto de entrada público (TARGET_ARCHITECTURE.md §2).
-_OHLCV = ["open", "high", "low", "close", "volume"]
-_RESAMPLE_RULES = {"open": "first", "high": "max", "low": "min",
-                    "close": "last", "volume": "sum"}
+# _OHLCV/_RESAMPLE_RULES (constantes de resample_4h) YA NO viven acá —
+# movidas a research/data.py junto con resample_4h (Fase 3, ver wrapper
+# de compatibilidad arriba).
 
 # Formato del CSV crudo — misma lógica que scripts/build_dc_v1_datasets.py::
 # load_raw_csv / scripts/inspect_single_dataset.py::load_raw_csv (ya
@@ -108,17 +105,15 @@ def _load_raw_csv(path) -> pd.DataFrame:
     return raw
 
 
-def resample_4h(df1h: pd.DataFrame) -> pd.DataFrame:
-    """1H OHLCV -> 4H OHLCV, misma regla que dc_v1::add_htf (label='left',
-    closed='left'). Necesario porque build_dc_v1() no expone el frame 4H
-    intermedio que usa internamente — solo sus columnas derivadas
-    (htf_close_prev/htf_ema200_prev/htf_bias), que esta campaña ignora."""
-    return (
-        df1h[_OHLCV]
-        .resample("4h", label="left", closed="left")
-        .agg(_RESAMPLE_RULES)
-        .dropna(subset=["close"])
-    )
+# WRAPPER DE COMPATIBILIDAD (Fase 3 de la infraestructura de
+# research/runner.py, 2026-09-02): `resample_4h` YA NO se define acá —
+# movida a `research/data.py` (sin cambiar una línea de su cuerpo) para
+# que `research/runner.py` deje de importar `scripts.bias_campaign`. Se
+# re-exporta tal cual (mismo objeto de función) para que este módulo y
+# cualquier otro consumidor legacy (`apply_bias`/`load_asset_year` de acá
+# mismo, más los scripts que hacen `bias_camp.resample_4h`) sigan
+# funcionando exactamente igual.
+resample_4h = research.resample_4h
 
 
 def apply_bias(df1h: pd.DataFrame, df4h: pd.DataFrame, candidate: str) -> pd.Series:
@@ -196,37 +191,29 @@ def load_asset_year(asset: str, year: int) -> pd.DataFrame:
     return period_slice(df_full, year)
 
 
-def to_backtest_frame(df: pd.DataFrame, bias_numeric: pd.Series, cfg: "backtest.Config") -> pd.DataFrame:
-    """Adapta las columnas del contrato dc_v1 (open/high/low/close/volume/
-    atr14/...) al formato que esperan backtest.py::find_entries/simulate_v3
-    (mismas columnas que produce backtest.py::build_features): atr,
-    in_session, bias como string "long"/"short"/"neutral" (no el int8
-    {-1,0,1} de research.layers). No se modifica backtest.py — el adaptador
-    vive acá.
-    """
-    out = df[["open", "high", "low", "close"]].copy()
-    out["atr"] = df["atr14"]
-    h_idx = out.index.hour
-    out["in_session"] = [any(s <= hh < e for s, e in cfg.sessions) for hh in h_idx]
-    bias_map = {1: "long", -1: "short", 0: "neutral"}
-    out["bias"] = bias_numeric.map(bias_map)
-    return out
+# WRAPPER DE COMPATIBILIDAD (Fase 3, 2026-09-02): `to_backtest_frame` YA
+# NO se define acá — movida a `research/data.py` (sin cambiar una línea
+# de su cuerpo), mismo motivo que `resample_4h` arriba. Re-exportada tal
+# cual (mismo objeto de función).
+to_backtest_frame = research.to_backtest_frame
 
 
 # --------------------------------------------------------------------------- #
 # Gate + orquestación                                                         #
+#                                                                              #
+# WRAPPER DE COMPATIBILIDAD (Fase 1 de la infraestructura de                  #
+# research/runner.py, 2026-09-02): `gate_check`/`FREQ_MIN_PER_MONTH`/         #
+# `FREQ_MAX_PER_MONTH` YA NO se definen acá — la fuente canónica ahora es     #
+# `research/metrics.py` (mismos umbrales, misma semántica, verificado por     #
+# test de equivalencia). Se re-exportan tal cual (mismo objeto de función,    #
+# no una reimplementación) para que las ~25 campañas legacy que hacen         #
+# `gate_check = bias_camp.gate_check` (o `bias_camp.FREQ_MIN_PER_MONTH`,      #
+# en entry_campaign_sweep_bos.py/entry_campaign_t1.py/trigger_campaign.py)    #
+# sigan funcionando exactamente igual, sin ningún cambio de código propio.    #
 # --------------------------------------------------------------------------- #
-def gate_check(m: dict | None) -> bool:
-    """Gates de FRAMEWORK.md, literales — NO backtest.py::passes() (su piso
-    freq>=4 no aplica el techo de 12/mes que sí exige FRAMEWORK.md)."""
-    if m is None:
-        return False
-    return bool(
-        m["pf"] >= 1.50
-        and m["max_dd"] >= -10
-        and m["exp_r"] > 0
-        and FREQ_MIN_PER_MONTH <= m["freq"] <= FREQ_MAX_PER_MONTH
-    )
+gate_check = research.gate_check
+FREQ_MIN_PER_MONTH = research.FREQ_MIN_PER_MONTH
+FREQ_MAX_PER_MONTH = research.FREQ_MAX_PER_MONTH
 
 
 def run_asset_year(asset: str, year: int, cfg: "backtest.Config") -> list[dict]:
