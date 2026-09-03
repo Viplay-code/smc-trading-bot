@@ -25,9 +25,9 @@ después del cierre de la Fase I1 (commit `d4ea3ca`, ver `FRAMEWORK.md`).
 | Espacio 4 (Entry bajo `T1_ema_cross`) | **Cerrado sin campaña nueva** (2026-08-10), documentado en `FRAMEWORK.md` — evidencia histórica ya publicada (`C_market_close` vs `D_next_candle_open`, 2026-07-27) reauditada y formalizada; `A_pullback_50` **no computable** bajo T1 (incompatibilidad estructural, NO resultado negativo ni hipótesis falsificada). **La celda "Entry de retroceso bajo T1" permanece genuinamente abierta** — este cierre NO significa que la cuestión de Entry bajo T1 quedó completamente resuelta, solo que el espacio tal como estaba definido no requiere más trabajo |
 | **Espacio 1** (Gestión multivariable, `distance`×`activation`×`be` simultáneos) | **Cerrado con datos reales** (2026-08-17), documentado en `FRAMEWORK.md` — hipótesis **falsificada bajo el contrato evaluado** (0/216 filas candidatas con `pf`≥1.50; commits `3b1f843` implementación, `bf2de24` resultados). Con este cierre, los cuatro espacios del orden aprobado quedan completos — ver "Orden de exploración aprobado" |
 | Rama B (Trigger/Entry: `D_range_breakout`, `A_sweep_bos`+`A_pullback_50`) | **Cerrado** (2026-08-18), documentado en `FRAMEWORK.md` — `D_range_breakout`+`C_market_close` **descartada**; `A_sweep_bos`+`A_pullback_50` **candidata congelada / evidencia insuficiente** (0/12 filas cumplen los 4 gates; ninguna combinación elegible para ciego 2024). **No es uno de los 4 espacios de este roadmap** ni una extensión residual de H1 (a diferencia de `atr_mult`×sesión) — línea surgida de una revisión estratégica posterior a estos 4 espacios, no documentada formalmente en este archivo hasta ahora. Ver nota de ambigüedad en "Espacios explícitamente fuera del orden" sobre su relación con Espacio 5/Espacio 6 |
-| **Próxima línea de investigación** | **Sin decidir** — los 4 espacios del orden aprobado y Rama B están cerrados; la elección de qué sigue queda pendiente de una decisión explícita posterior, no determinada por este documento en su estado actual (ver ambigüedades señaladas abajo) |
+| **Próxima línea de investigación** | **PAUSE — replantear el armazón** (decidido 2026-09-03, ver fila "Espacio 6" y `FRAMEWORK.md` sección "Espacio 6 — CIERRE GENERAL"). No es GO-Gestión ni GO-Espacio 5 — ningún experimento de replanteamiento está diseñado ni autorizado todavía; esta fila deja de estar "sin decidir" en cuanto al veredicto de asignación de esfuerzo, pero el contenido concreto del replanteamiento permanece sin definir |
 | Espacio 5 (candidatos de Capa 1/2/3 nunca implementados) | Fuera del orden — **sigue sin ejecutarse como espacio completo**. `D` de Trigger ya evaluado vía Rama B (no cuenta como pendiente). **`Bias B` evaluado con datos reales y cerrado** (2026-08-24) — evidencia insuficiente para sostener que mejora el sistema respecto de Bias A bajo el contrato comparado; ver `FRAMEWORK.md`, sección "Bias B — EMA50+EMA200 4H (cruce) — cerrado". **`Trigger C` evaluado con datos reales y cerrado** (2026-08-22, resultados publicados antes del cierre de Bias B pero documentados recién ahora) — 0/6 celdas cumplen los 4 gates; ver `FRAMEWORK.md`, sección "Trigger C — BOS-only — cerrado". Criterio de priorización **parcial** definido (2026-08-19) para los sub-candidatos restantes: `Bias C` empatado con `Bias B` sin desempate ex ante, `Trigger B`/`Entry B` relegados — ver sección "Estado de priorización — Espacio 5". **`Bias C`/`Trigger B`/`Entry B` sin evaluar, ninguno autorizado a ejecutarse** |
-| Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden. **Experimento 1 (TP fijo 2.5R) ejecutado con datos reales 2022+2023 y cerrado** — **EVIDENCIA INSUFICIENTE**: 0/6 celdas cumplen los 4 gates, 0/3 activos sobreviven ambos años, pero PF/MaxDD/expectancy mejoran respecto de V3-A en 5/6 celdas; ver `FRAMEWORK.md`, sección "Espacio 6 — Experimento 1 — TP fijo 2.5R — cerrado". **Experimento 2 (BE-only 1.0R, sin trailing, sin TP) ejecutado con datos reales 2022+2023 y cerrado** (2026-08-31) — **FAIL**: 1/6 celdas cumple los 4 gates (SOLUSDT 2023), 0/3 activos sobreviven ambos años, y PF empeora respecto de V3-A en 4/6 celdas (patrón inverso al Experimento 1); 4/6 celdas tienen más de un gate fallando simultáneamente — cumple el criterio contractual de FAIL definido al cerrar el Experimento 1. No reproduce la mejora del Experimento 1 ni identifica si esa mejora se debe a quitar breakeven o a agregar TP (ninguno aislado todavía); ver `FRAMEWORK.md`, sección "Espacio 6 — Experimento 2 — BE-only 1.0R (sin trailing, sin TP) — cerrado". **Espacio 6 permanece abierto** — ninguno de los dos experimentos lo cierra. Un Experimento 3 queda como posible siguiente paso, sin autorizar ni diseñar todavía |
+| Espacio 6 (pausa/reconsideración del armazón completo) | Meta-decisión, no paramétrica — no forma parte de este orden. **CERRADO (2026-09-03)** — 4 experimentos de mecanismo (E1/TP fijo, E2/BE-only, E3/Raw, E4/V3-A+TP) más diagnóstico de costo=0 (solo V3-A), todos documentados en `FRAMEWORK.md` sección "Espacio 6 — CIERRE GENERAL — PAUSE: replantear el armazón". Ningún experimento pasó los 4 gates con supervivencia 2022+2023; el patrón de no-aditividad de E1 (ni Raw ni V3A+TP lo reproducen aislados) queda registrado sin sobre-interpretar como interacción factorial formal. **Veredicto: PAUSE — replantear el armazón**, no GO-Gestión ni GO-Espacio 5. Auditoría transversal corregida: **532 celdas únicas** (no 867 — 335 filas eran réplicas ya contadas en otro archivo), mediana PF≈1.064, 2/532 (0.4%) pasan los 4 gates, 0/532 sobreviven ambos años. Distinción explícita registrada: "Espacio 6 no encontró candidato bajo el contrato evaluado" ≠ "SMC no tiene edge" — esta segunda afirmación NO está respaldada. Hueco `A_sweep_bos`×Gestión-mecanismo registrado como limitación de alcance, no como hipótesis pendiente. Ningún experimento cerrado de Espacio 6 debe reabrirse bajo el mismo contrato sin autorización nueva |
 
 ## Los cuatro espacios experimentales
 
@@ -391,8 +391,44 @@ información en dos componentes:
   aislado no parece ser el componente responsable de esa mejora bajo
   este contrato — pero no identifica si esa mejora depende de quitar
   breakeven, de agregar el TP, o de ambos a la vez, ya que ninguno de
-  los dos fue aislado todavía por separado. Espacio 6 sigue abierto; no
-  se define acá ningún Experimento 3.
+  los dos fue aislado todavía por separado.
+
+  **Actualización (2026-09-03) — CIERRE GENERAL DE ESPACIO 6**: se
+  ejecutaron dos experimentos adicionales y un diagnóstico, y se realizó
+  una auditoría transversal de todo el programa con una revisión de
+  consistencia posterior. Experimento 3 (`Raw` — BE+trailing apagados
+  juntos, sin TP) y Experimento 4 (`V3-A + TP` — BE+trailing intactos,
+  TP agregado) completan 5 de las 8 celdas del cubo BE×trailing×TP;
+  ninguno de los dos, ni combinados, reproduce la mejora del Experimento
+  1 — ver `FRAMEWORK.md`, secciones "Espacio 6 — Experimento 3 — Raw" y
+  "Espacio 6 — Experimento 4 — V3-A + TP 2.5R". El diagnóstico de
+  costo=0 (solo V3-A) mostró que el costo cierra ~33% de la brecha al
+  gate de PF en promedio, insuficiente (0/6 cruza el gate incluso sin
+  costos) — no generalizado a los demás mecanismos.
+
+  La auditoría transversal original de esta sesión citó "867 celdas" —
+  una revisión de consistencia posterior encontró que esa cifra tenía
+  **doble conteo real**: 335 de las 867 filas eran réplicas/
+  reverificaciones de una celda ya contada en otro archivo de campaña
+  (ej. la celda ancla V3-A/`control_8h` de BTCUSDT/2022 aparecía 18
+  veces across distintos CSV). **La cifra corregida es 532 celdas
+  únicas** (deduplicadas por huella numérica exacta `activo/año/pf/
+  freq/max_dd/exp_r`) — mediana de PF≈1.064, 23/532 (4.3%) con PF≥1.50
+  aislado, 2/532 (0.4%) cumplen los 4 gates, **0/532 sobreviven 2022 Y
+  2023**. La conclusión cualitativa no cambió con la corrección; la
+  cifra "867" no debe volver a citarse.
+
+  **Veredicto: PAUSE — replantear el armazón** (ni GO-Gestión ni
+  GO-Espacio 5) — ver `FRAMEWORK.md`, sección "Espacio 6 — CIERRE
+  GENERAL" para el razonamiento completo, la distinción explícita entre
+  "Espacio 6 no encontró candidato" y "SMC no tiene edge" (solo la
+  primera está respaldada), y el registro del hueco de alcance
+  `A_sweep_bos`×Gestión-mecanismo (nunca evaluado, limitación de diseño,
+  no hipótesis pendiente ni justificación automática de campaña nueva).
+  **Espacio 6 queda CERRADO.** Ningún experimento cerrado de esta línea
+  (E1/E2/E3/E4/diagnóstico de costo=0) debe reabrirse bajo el mismo
+  contrato sin autorización nueva y explícita — incluye `Trailing_solo`
+  y los 2 vértices restantes del cubo, que permanecen sin evaluar.
 
 ## Estado de priorización — Espacio 5 (checkpoint 2026-08-19)
 

@@ -1464,6 +1464,219 @@ canónico (`be`=1.0R, idéntico al de V3-A) y sin ningún TP.
   6 (p. ej. aislando breakeven o TP por separado) queda como posible
   siguiente paso, **no autorizado ni diseñado todavía**.
 
+### Espacio 6 — Experimento 3 — Raw (sin BE, sin trailing, sin TP) — cerrado
+
+Tercer experimento de Espacio 6 — aísla BE y trailing **juntos** (ambos
+apagados), sin TP, reutilizando `backtest.simulate_v3`/`run_config` sin
+modificar (`be=inf`/`activation=inf`/`distance=0.0`, estructuralmente
+inalcanzables — verificado por auditoría de código antes de autorizar la
+implementación). Comparadores: V3-A (ancla) y E1 (TP fijo 2.5R, mismo
+punto de partida BE-off/trailing-off).
+
+- **Objetivo e hipótesis**: bajo el contrato congelado de Espacio 6
+  (Bias=A/Trigger=`T1_ema_cross`/Entry=`C_market_close`/sesión=
+  `dcv1_activo_15h`/`atr_mult`=1.5/`atr_period`=14/`max_hold`=20/
+  `risk`=0.005 fijos), ¿remover BE+trailing juntos, sin agregar TP,
+  reproduce la mejora del Experimento 1, o esa mejora depende
+  específicamente de agregar el TP?
+- **Contrato**: implementado en `scripts/gestion_espacio6_raw_campaign.py`
+  (commit `e64526f`). BTCUSDT/ETHUSDT/SOLUSDT, 2022+2023 (2024 no
+  ejecutado).
+- **Verificación de integridad**: Fase A reprodujo V3-A 6/6 contra
+  `gestion_campaign_session_results.csv`; `n_entries` coincidió 6/6 contra
+  E1 ya publicado (misma ruta determinista de generación de entradas);
+  verificación trade-por-trade de que ningún stop se movió de `sl0`.
+  Reproducibilidad bit-exacta confirmada por hash SHA-256 en corridas
+  independientes.
+- **Resultados por celda 2022+2023** (n_trades / freq / PF / MaxDD /
+  exp_r):
+
+  | Activo | Año | n_trades | freq | PF | MaxDD | exp_r |
+  |---|---|---|---|---|---|---|
+  | BTCUSDT | 2022 | 115 | 9.6 | 0.846 | -9.98% | -0.101 |
+  | BTCUSDT | 2023 | 108 | 9.2 | 0.844 | -9.69% | -0.104 |
+  | ETHUSDT | 2022 | 107 | 9.0 | 1.019 | -6.42% | +0.011 |
+  | ETHUSDT | 2023 | 112 | 9.4 | 0.781 | -14.16% | -0.154 |
+  | SOLUSDT | 2022 | 103 | 8.6 | 1.255 | -4.74% | +0.138 |
+  | SOLUSDT | 2023 | 97 | 8.1 | **1.565** | **-7.91%** | **+0.269** |
+
+- **Comparación contra V3-A**: patrón mixto, sin dirección mayoritaria —
+  PF mejora en 3/6 celdas (BTC22, SOL22, SOL23) y empeora en 3/6 (ETH22
+  casi plano, BTC23, ETH23).
+- **Comparación contra E1**: PF de E1 > Raw en 4/6 celdas (BTCUSDT y
+  ETHUSDT, ambos años); Raw > E1 solo en SOLUSDT (ambos años). Patrón
+  dividido por activo, no uniforme.
+- **Gate (Nivel 4)**: **1/6 filas cumple los 4 gates** (SOLUSDT 2023).
+  **0/3 activos sobreviven 2022 Y 2023** — SOLUSDT pasa 2023 pero falla
+  2022 (PF=1.255<1.50). Ninguna combinación fue elegible para prueba
+  ciega en 2024.
+- **Interpretación (sin inferencia causal más allá de lo observado)**:
+  ni quitar BE+trailing juntos (Raw) ni agregar TP solo (ver Experimento
+  4 más abajo) reproducen, por sí solos, la mejora consistente del
+  Experimento 1 — la mejora de E1 parece depender de la combinación
+  específica de ambos cambios, no de cada uno por separado. Esto es un
+  **patrón descriptivo de no-aditividad entre BE, trailing y TP,
+  consistente con una interacción, pero no estimado formalmente como
+  interacción factorial** (faltan 3 de las 8 celdas del diseño 2×2×2, no
+  se ajustó ningún modelo factorial, no hay estimación de varianza ni de
+  significancia estadística).
+- **Estado**: **CERRADO** (evidencia real, 2022+2023). Espacio 6
+  permanece abierto en este punto del programa (ver cierre general más
+  abajo para el estado final).
+
+### Espacio 6 — Experimento 4 — V3-A + TP 2.5R — cerrado
+
+Cuarto y último experimento de Espacio 6 (autorizado explícitamente como
+la última celda de Gestión de bajo costo por defecto) — aísla el TP
+desde el otro extremo: mantiene BE y trailing **intactos** (idénticos a
+V3-A) y agrega únicamente el TP fijo. Mecanismo nuevo (`simulate_v3_tp`,
+`research/simulate.py` desde Fase 4), estructuralmente paralelo a
+`simulate_v3` (mismo SL inicial, BE, trailing, timeout, costos —
+verificado por test de equivalencia: con `tp_r` inalcanzable,
+`simulate_v3_tp` reproduce `simulate_v3` trade a trade).
+
+- **Objetivo e hipótesis**: ¿agregar TP fijo 2.5R a V3-A (con BE/trailing
+  puestos) produce una mejora, aislando así si el TP ayuda
+  independientemente del estado de BE/trailing?
+- **Contrato**: implementado en `scripts/gestion_espacio6_v3a_tp_campaign.py`
+  (commit `769bed2`). Mismos activos/años/sesión/costos que el resto de
+  Espacio 6. Comparadores: V3-A, E1, Raw.
+- **Verificación de integridad**: Fase A reprodujo V3-A 6/6;
+  `n_entries` coincidió 6/6 contra E1 y contra Raw ya publicados.
+- **Resultados por celda 2022+2023**:
+
+  | Activo | Año | n_trades | freq | PF | MaxDD | exp_r |
+  |---|---|---|---|---|---|---|
+  | BTCUSDT | 2022 | 115 | 9.6 | 0.692 | -11.86% | -0.171 |
+  | BTCUSDT | 2023 | 108 | 9.2 | 0.969 | -6.88% | -0.017 |
+  | ETHUSDT | 2022 | 107 | 9.0 | 0.985 | -6.23% | -0.008 |
+  | ETHUSDT | 2023 | 113 | 9.4 | 0.768 | -11.84% | -0.127 |
+  | SOLUSDT | 2022 | 103 | 8.6 | 1.037 | -5.55% | +0.018 |
+  | SOLUSDT | 2023 | 98 | 8.2 | 1.017 | -6.85% | +0.008 |
+
+- **Comparación contra V3-A/E1/Raw**: prácticamente plano contra V3-A
+  (empeora en 4/6 celdas, ΔPF pequeño en ambas direcciones); **peor que
+  E1 en 5/6 celdas** y **peor que Raw en 5/6 celdas**. El TP, con
+  BE/trailing puestos, rinde sistemáticamente menos que el mismo TP sin
+  ellos — solo 10-19% de los trades cierran por TP en cualquier celda
+  (BE/trailing ya cierran la mayoría antes).
+- **Gate (Nivel 4)**: **0/6 filas cumple los 4 gates** — el fallo más
+  uniforme de toda la línea de Espacio 6, ninguna celda cerca del gate
+  (máximo PF=1.037), y por primera vez en la línea SOLUSDT tampoco se
+  acerca (rompe la racha de casi-pases de E2/Raw en ese activo).
+- **Interpretación**: refuerza, desde el otro extremo del cubo, el mismo
+  patrón de no-aditividad ya señalado en el cierre del Experimento 3 —
+  agregar TP solo, con protección completa puesta, tampoco reproduce la
+  mejora de E1.
+- **Estado**: **CERRADO** (evidencia real, 2022+2023). Con este cierre,
+  Espacio 6 completa 4 experimentos de mecanismo — ver cierre general.
+
+### Espacio 6 — Diagnóstico de costo=0 (V3-A) — cerrado
+
+Diagnóstico controlado, **no una campaña experimental**: cuánto del
+techo de PF/ExpR observado bajo V3-A está explicado por el modelo de
+costos (0.09%/trade) y cuánto permanece al eliminarlo. Reutiliza
+`backtest.simulate_v3`/`run_config` sin modificar, con
+`backtest.COST_PER_TRADE` parcheado temporalmente (0.0009 vs 0.0) sobre
+las mismas entradas — verificado estructuralmente que el costo nunca
+participa en ninguna decisión de salida (solo resta al final del
+cálculo de `pnl_r`).
+
+- **Alcance**: **solo V3-A** — no se ejecutó sobre E1/E2/Raw/V3A+TP. Esta
+  limitación de alcance es explícita: la conclusión de este diagnóstico
+  no debe generalizarse a los demás mecanismos de Espacio 6 sin
+  verificarlo.
+- **Resultados** (BTCUSDT/ETHUSDT/SOLUSDT, 2022+2023, `gestion_
+  espacio6_costo_cero_diagnostico_results.csv`): **ΔPF medio = +0.1525**
+  (rango +0.087 a +0.256), **0/6 celdas cruza PF≥1.50** incluso con
+  costo=0 (máximo 1.406, SOLUSDT 2023), **0/6 cambia de `gate_pass`**
+  (0/6 antes, 0/6 después). El costo cierra, en promedio, **33.0%** de
+  la distancia restante al gate de PF (rango 15.6%-58.8% por celda) —
+  material, pero insuficiente.
+- **Interpretación**: bajo V3-A, el costo tiene un efecto real y
+  medible, pero no es la variable que, removida, destraba el gate — el
+  techo observado bajo V3-A es predominantemente un problema de
+  señal/calidad de entrada, no de costos. El gate de producción sigue
+  siendo el de costos reales.
+- **Estado**: **CERRADO**.
+
+### Espacio 6 — CIERRE GENERAL — PAUSE: replantear el armazón
+
+Síntesis de los 4 experimentos de mecanismo (E1/E2/Raw/V3A+TP) más el
+diagnóstico de costo=0, integrada con la auditoría transversal de todo
+el programa (867 filas brutas de resultados, **532 celdas únicas** tras
+deduplicar por huella numérica exacta `(activo, año, pf, freq, max_dd,
+exp_r)` — 335 filas de las 867 eran réplicas/reverificaciones de una
+celda ya contada en otro archivo, no evidencia nueva; corrección
+respecto de la cifra "867" citada informalmente en el proceso de
+decisión previo a este cierre).
+
+- **Resultado agregado del programa completo** (532 celdas únicas):
+  mediana de PF ≈ **1.064**; **23/532 (4.3%)** celdas con PF≥1.50 en
+  forma aislada; **2/532 (0.4%)** cumplen PF≥1.50 y frecuencia en rango
+  simultáneamente; **2/532 (0.4%)** cumplen los 4 gates; **0 celdas
+  sobreviven 2022 Y 2023** bajo ningún eje evaluado (Bias, Trigger,
+  Entry, Gestión-parámetro en 6 campañas, Gestión-mecanismo en 4
+  experimentos). Los 2 pases de 4 gates son SOLUSDT/2023 (E2, PF=1.549;
+  Raw, PF=1.565) — celdas distintas, ninguna sobrevive 2022.
+- **Matriz de mecanismos de Espacio 6** (BE×trailing×TP, 5 de 8 celdas
+  evaluadas): ningún vértice individual (V3-A, E2, Raw, V3A+TP) ni la
+  combinación parcial (Raw) reproduce la mejora direccional observada en
+  E1 — solo la combinación específica de E1 (quitar BE+trailing Y
+  agregar TP) muestra esa dirección, sin llegar nunca a PASS.
+- **Costo=0**: no explica el techo bajo V3-A (33% de cierre de brecha,
+  0/6 cruza el gate incluso sin costos) — limitado a V3-A, no
+  generalizado.
+- **Distinción explícita, obligatoria**: la evidencia respalda
+  **"bajo el contrato exacto evaluado (Bias=A/Trigger=`T1_ema_cross`/
+  Entry=`C_market_close`/sesión=`dcv1_activo_15h`/BTCUSDT-ETHUSDT-SOLUSDT/
+  2022-2023/costos=0.09%), ningún candidato de Espacio 6 (ni de ningún
+  otro espacio del programa) pasó los 4 gates y sobrevivió ambos años"**.
+  La evidencia **NO respalda** "la estrategia SMC no tiene edge" — el
+  trigger genuinamente SMC (`A_sweep_bos`) nunca fue combinado con
+  ninguna variante de Gestión de Espacio 6 (ver limitación siguiente), y
+  solo se evaluaron 3 activos, 2 años, un régimen de mercado. Ninguna
+  generalización más allá del contrato exacto evaluado está licenciada
+  por esta evidencia.
+- **Limitación de alcance experimental — `A_sweep_bos` × Gestión-mecanismo
+  (E1/E2/Raw/V3A+TP)**: nunca evaluada. No es una hipótesis pendiente de
+  un proceso de priorización (a diferencia de Bias C/Trigger B) ni
+  constituye, por sí sola, justificación para autorizar una campaña
+  nueva — es un hueco de diseño heredado de que Espacio 6 se ancló a
+  `T1_ema_cross` desde su planteamiento original, nunca revisado.
+- **Limitaciones metodológicas y estadísticas registradas**: (a) ninguna
+  prueba de significancia estadística (bootstrap/IC) existe en ningún
+  punto del programa — los 2/532 pases no pueden distinguirse
+  formalmente de ruido; (b) sin corrección por comparaciones múltiples,
+  pese a más de 20 campañas sobre el mismo par fijo 2022+2023; (c) la
+  mayoría de las campañas de Gestión reutilizan el mismo universo de
+  ~600 entradas (T1_ema_cross+Bias A), no son líneas de evidencia
+  independientes en sentido estadístico estricto; (d) el patrón de
+  no-aditividad de E1 es descriptivo, no una interacción factorial
+  formalmente estimada (ver Experimento 3).
+- **Veredicto**: **PAUSE — replantear el armazón.** No es "seguir en
+  Gestión" (GO-Gestión) ni "abrir Espacio 5" (GO-Espacio 5) — el
+  patrón de convergencia (~0.9-1.5, 0/532 sobrevivientes) se repitió de
+  forma idéntica bajo ejes de entrada radicalmente distintos (el volumen
+  de eventos crudos varió hasta ~100x entre `A_sweep_bos` y Trigger C,
+  sin mover el rango de PF observado), lo que hace improbable que una
+  variante adicional de cualquier capa individual rompa el patrón.
+  "Replantear el armazón" significa cuestionar las suposiciones
+  estructurales congeladas desde el inicio del programa (RR≥2.5, timeframe
+  1H, ventana de frecuencia 6-12 trades/mes/activo, estos 3 activos, este
+  período) — **no** significa concluir que SMC no tiene edge (ver
+  distinción arriba), y **no** se ha diseñado ni autorizado ningún
+  experimento de replanteamiento en este cierre.
+- **Estado de Espacio 6**: **CERRADO.** Los 4 experimentos de mecanismo,
+  el diagnóstico de costo=0, y sus resultados en CSV quedan **congelados
+  como evidencia histórica** — no se recalculan, no se sobrescriben, no
+  se reinterpretan retroactivamente. **Ninguno de los experimentos
+  cerrados de Espacio 6 (E1, E2, Raw, V3A+TP, diagnóstico de costo=0)
+  debe reabrirse bajo el mismo contrato sin una autorización nueva y
+  explícita** — esto incluye explícitamente `Trailing_solo` y los 2
+  vértices restantes del cubo BE×trailing×TP, que permanecen sin
+  evaluar y sin autorización.
+
 ---
 
 ## Parada automática del bot (circuit breaker)
