@@ -56,11 +56,34 @@ semántico, prohibido por el principio de esta fase).
 """
 from __future__ import annotations
 
-# Configuraciones de salida a comparar — MOVIDO desde backtest.py, sin
-# cambiar un solo valor.
+# Configuraciones de salida a comparar — "V3-A (1R/2R/1R)"/"V3-B
+# (0.75R/1.5R/0.75R)" MOVIDAS desde backtest.py (Fase 4), sin cambiar un
+# solo valor. "Raw" AGREGADO en Fase 5 — registro canónico del mecanismo
+# ya evaluado con datos reales en Espacio 6 (scripts/gestion_espacio6_
+# raw_campaign.py, donde vivía como constante local `EXIT_CFG_RAW`, nunca
+# antes en este registro compartido). Valor copiado exacto, sin
+# reinterpretar: be/activation=inf hacen inalcanzables los pasos de
+# breakeven/trailing de simulate_v3 (verificado en la auditoría de
+# Espacio 6-Raw); distance=0.0 nunca se lee, no es un parámetro
+# experimental. "Raw" usa el MISMO simulate_v3 que V3-A/V3-B — ninguna
+# función de simulación nueva.
+#
+# ADVERTENCIA DE EFECTO COLATERAL (Fase 5, documentado explícitamente, no
+# silencioso): varios scripts legacy (scripts/bias_campaign.py,
+# entry_campaign_sweep_bos.py, entry_campaign_t1.py,
+# gestion_campaign_atr_mult.py, gestion_campaign_session.py,
+# trigger_campaign.py, y backtest.py mismo) iteran
+# `for exit_name, exit_cfg in backtest.EXIT_CONFIGS.items()` para calcular
+# una fila por config de salida. Agregar "Raw" acá significa que, SI
+# alguno de esos scripts se vuelve a ejecutar en el futuro, calculará una
+# fila adicional "Raw" que no existía en su evidencia histórica ya
+# publicada — no cambia ningún valor de V3-A/V3-B ya calculado, pero sí
+# amplía la superficie de cómputo de esos scripts si se re-ejecutan. Ver
+# informe de Fase 5 para el análisis completo de este efecto.
 EXIT_CONFIGS = {
     "V3-A (1R/2R/1R)":       {"be": 1.0,  "activation": 2.0, "distance": 1.0},
     "V3-B (0.75R/1.5R/0.75R)": {"be": 0.75, "activation": 1.5, "distance": 0.75},
+    "Raw": {"be": float("inf"), "activation": float("inf"), "distance": 0.0},
 }
 
 

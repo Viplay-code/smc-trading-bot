@@ -19,23 +19,53 @@ Soportado en este MVP, y SOLO esto:
   - Bias "A_ema200_neutral", Trigger "T1_ema_cross", Entry "C_market_close"
     — la única combinación que `backtest.find_entries` ya implementa sin
     adaptador nuevo (ver nota de deuda técnica más abajo).
-  - Gestión "V3-A" únicamente, vía `MANAGEMENT_LAYERS["V3-A"]` — delega a
-    `backtest.run_config` (orquestación) + `research.simulate_v3`/
-    `research.EXIT_CONFIGS` (motor de simulación, ubicación CANÓNICA
-    desde Fase 4/C2 — `research/simulate.py`) SIN MODIFICARLOS ni
-    reimplementarlos (verificado por test de inspección de código).
+  - Gestión "V3-A" o "Raw" (Fase 5) — ambas vía `MANAGEMENT_LAYERS`,
+    resuelto siempre por nombre desde el registro, NUNCA `if management
+    == ...`/`elif` (verificado por test). Ambas delegan a
+    `backtest.run_config` (orquestación) + `research.EXIT_CONFIGS`/
+    `research.simulate_v3` (motor de simulación, ubicación CANÓNICA desde
+    Fase 4/C2 — `research/simulate.py`) SIN MODIFICARLOS ni
+    reimplementarlos — "Raw" NO es una función de simulación nueva, es
+    `research.EXIT_CONFIGS["Raw"]` (`be`/`activation`=inf) sobre el MISMO
+    `simulate_v3` (verificado por test de inspección de código y por
+    identidad de objeto).
   - Gates: SOLO los canónicos de `research.gate_check` — el contrato debe
     declararlos explícitamente y deben coincidir EXACTO con los umbrales
     oficiales; el runner nunca acepta un gate distinto ("no modificar
     silenciosamente los gates", Parte 3 del diseño de Fase 0).
 
 NO soportado todavía (fuera de alcance de esta fase, explícitamente):
-  - Múltiples mecanismos de Gestión, múltiples activos/años por corrida,
-    orquestación train->validate->blind, selección de "ganador",
-    optimización de parámetros, generación de hipótesis, cualquier
-    interfaz autónoma.
+  - Ningún mecanismo de Gestión más allá de V3-A/Raw (E1/TP fijo/V3A+TP
+    quedan fuera — todos requieren una función de simulación propia,
+    distinta de `simulate_v3`, no evaluada en esta fase), múltiples
+    activos/años por corrida, orquestación train->validate->blind,
+    selección de "ganador", optimización de parámetros, generación de
+    hipótesis, cualquier interfaz autónoma.
   - Ningún campo `is_winner` ni lógica de interpretación científica en
     ningún punto de este módulo.
+
+DEUDA TÉCNICA RESUELTA EN FASE 5 (2026-09-02): `MANAGEMENT_LAYERS`
+ampliado a `{"V3-A": ..., "Raw": ...}`, ambos construidos por la MISMA
+fábrica (`_make_run_config_management`), sin ningún `if`/`elif` de
+selección manual — confirma en código que la interfaz común (`ManagementFn
+= Callable[[frame, entries, cfg], DataFrame]`) ya alcanza para un segundo
+mecanismo sin tocar el runner más que agregar una entrada al registro.
+`research.EXIT_CONFIGS` ganó la entrada canónica `"Raw"` (`be`/
+`activation`=inf, `distance`=0.0 — copiado exacto desde `scripts/
+gestion_espacio6_raw_campaign.py::EXIT_CFG_RAW`, nunca antes registrado
+centralmente). Decisión de interfaz: `cost_per_trade` SALIÓ de
+`ManagementFn` (antes `_run_v3a(frame, entries, cfg, cost_per_trade)`) —
+es un parámetro de la CAPA DE EJECUCIÓN (aplica igual sin importar qué
+mecanismo corra), no una propiedad del mecanismo de Gestión en sí; el
+parcheo de `backtest.COST_PER_TRADE` ahora vive UNA sola vez en `run()`,
+alrededor de la llamada a `management_fn(...)`, evitando que cada
+mecanismo nuevo deba repetir el mismo `try/finally`. `TradeRecord`
+(declarado en Fase 1) ahora tiene consumidor real —
+`run(experiment, include_trades=True)` devuelve `(ExperimentResult,
+list[TradeRecord])`, construidos desde el MISMO `trades` DataFrame que ya
+alimentó las métricas (nunca una fuente de cálculo distinta) — el
+`include_trades=False` por defecto preserva 100% de compatibilidad con
+todo llamador existente.
 
 DEUDA TÉCNICA RESUELTA EN FASE 3 (2026-09-02): la dependencia
 `research -> scripts` identificada en Fase 2 (`_load_dataset` importaba
@@ -86,12 +116,15 @@ DEUDA TÉCNICA QUE PERMANECE (fuera de alcance de Fase 4, NO resuelta acá):
 from __future__ import annotations
 
 import sys
+from typing import Callable
 
 sys.path.insert(0, ".")
 
+import pandas as pd
+
 import backtest
 import research
-from research.schema import ExperimentResult, compute_contract_hash
+from research.schema import ExperimentResult, TradeRecord, compute_contract_hash
 
 
 class ContractError(ValueError):
@@ -115,35 +148,58 @@ SESSION_WINDOWS = {
 }
 
 
-def _run_v3a(frame, entries: list[dict], cfg: "backtest.Config", cost_per_trade: float):
-    """Delega a `backtest.run_config` (orquestación 'una posición a la
-    vez', SIN modificar — permanece en backtest.py, ver research/
-    simulate.py::__doc__ sobre por qué) + `research.EXIT_CONFIGS` (la
-    ubicación CANÓNICA de la config V3-A desde Fase 4/C2 — `backtest.
-    EXIT_CONFIGS` es el mismo objeto re-exportado, pero acá se referencia
-    la fuente canónica explícitamente). `backtest.COST_PER_TRADE` se
-    parchea temporalmente (try/finally, restaurado siempre) porque
-    `research.simulate_v3` lo sigue leyendo desde `backtest.py` (única
-    fuente autoritativa, deliberadamente no movida — ver research/
-    simulate.py) como constante de módulo, no como parámetro."""
-    orig_cost = backtest.COST_PER_TRADE
-    backtest.COST_PER_TRADE = cost_per_trade
-    try:
-        return backtest.run_config(frame, entries, research.EXIT_CONFIGS["V3-A (1R/2R/1R)"], cfg)
-    finally:
-        backtest.COST_PER_TRADE = orig_cost
+ManagementFn = Callable[[pd.DataFrame, list, "backtest.Config"], pd.DataFrame]
+"""Interfaz común de un mecanismo de Gestión: (frame, entries, cfg) ->
+DataFrame de trades. NO incluye `cost_per_trade` — decisión de diseño
+explícita de Fase 5 (ver nota "COST_PER_TRADE: capa de ejecución, no de
+Gestión" más abajo). Todo mecanismo que, como V3-A y Raw, reutilice
+`backtest.run_config`/`research.simulate_v3` sin una función de
+simulación propia encaja en esta interfaz vía `_make_run_config_management`
+— un mecanismo que sí necesite una función de simulación distinta (fuera
+de alcance de esta fase: E1/V3A+TP) implementaría esta misma interfaz con
+su propio cuerpo, sin cambiarla."""
 
 
-MANAGEMENT_LAYERS = {
-    "V3-A": _run_v3a,
+# Nombre de mecanismo (MANAGEMENT_LAYERS) -> clave en research.EXIT_CONFIGS.
+# ÚNICA fuente de la relación management.name <-> exit_cfg — agregar un
+# mecanismo nuevo que reutilice simulate_v3 sin función propia es agregar
+# una entrada acá, nunca un `if`/`elif` en el runner.
+_MANAGEMENT_EXIT_CONFIG_KEYS: dict[str, str] = {
+    "V3-A": "V3-A (1R/2R/1R)",
+    "Raw": "Raw",
 }
 
-# Parámetros de research.EXIT_CONFIGS["V3-A (1R/2R/1R)"] (ubicación
-# canónica, Fase 4/C2) — si el contrato declara management.params, DEBE
-# coincidir exacto con esto (no se acepta una variante paramétrica en
-# este MVP; eso es "crear un mecanismo nuevo de Gestión", explícitamente
-# fuera de alcance).
-_V3A_PARAMS = dict(research.EXIT_CONFIGS["V3-A (1R/2R/1R)"])
+
+def _make_run_config_management(exit_config_key: str) -> ManagementFn:
+    """Fábrica: produce una función de Gestión que delega a
+    `backtest.run_config`/`research.simulate_v3` SIN MODIFICARLOS ni
+    reimplementarlos, usando exactamente `research.EXIT_CONFIGS
+    [exit_config_key]` como `exit_cfg` — la interfaz común real para
+    cualquier mecanismo que, como V3-A y Raw, no necesite una función de
+    simulación propia. `exit_cfg` se resuelve UNA vez (al construir la
+    función, no en cada llamada) para no repetir el lookup — es un dict
+    inmutable en la práctica (nunca mutado en ningún punto del código
+    auditado en Fase 4/5)."""
+    exit_cfg = research.EXIT_CONFIGS[exit_config_key]
+
+    def _run(frame, entries, cfg):
+        return backtest.run_config(frame, entries, exit_cfg, cfg)
+
+    return _run
+
+
+MANAGEMENT_LAYERS: dict[str, ManagementFn] = {
+    name: _make_run_config_management(key) for name, key in _MANAGEMENT_EXIT_CONFIG_KEYS.items()
+}
+
+# Parámetros canónicos por mecanismo (research.EXIT_CONFIGS) — si el
+# contrato declara management.params, DEBE coincidir exacto con el de su
+# management.name (no se acepta una variante paramétrica en este MVP; eso
+# es "crear un mecanismo nuevo de Gestión", explícitamente fuera de
+# alcance).
+_MANAGEMENT_PARAMS: dict[str, dict] = {
+    name: dict(research.EXIT_CONFIGS[key]) for name, key in _MANAGEMENT_EXIT_CONFIG_KEYS.items()
+}
 
 
 # --------------------------------------------------------------------------- #
@@ -239,11 +295,12 @@ def validate_contract(experiment: dict) -> None:
             f"(solo {list(MANAGEMENT_LAYERS)} — crear un mecanismo nuevo está fuera de alcance de esta fase)."
         )
     mgmt_params = experiment["management"].get("params")
-    if mgmt_params and dict(mgmt_params) != _V3A_PARAMS:
+    expected_mgmt_params = _MANAGEMENT_PARAMS[mgmt_name]
+    if mgmt_params and dict(mgmt_params) != expected_mgmt_params:
         raise ContractError(
-            f"management.params debe coincidir exacto con V3-A ({_V3A_PARAMS}) o ausente — "
-            f"recibido: {mgmt_params!r}. Variantes paramétricas de Gestión están fuera de "
-            f"alcance de este MVP (eso es 'crear un mecanismo nuevo de Gestión')."
+            f"management.params debe coincidir exacto con {mgmt_name} ({expected_mgmt_params}) "
+            f"o ausente — recibido: {mgmt_params!r}. Variantes paramétricas de Gestión están "
+            f"fuera de alcance de este MVP (eso es 'crear un mecanismo nuevo de Gestión')."
         )
 
 
@@ -258,7 +315,42 @@ def _load_dataset(asset: str, year: int):
     return research.load_asset_year(asset, year)
 
 
-def run(experiment: dict) -> ExperimentResult:
+def _build_trade_records(trades: pd.DataFrame, entries: list[dict], frame: pd.DataFrame,
+                          mechanism: str) -> list[TradeRecord]:
+    """Construye la representación canónica (research.TradeRecord) del
+    MISMO `trades` DataFrame que ya alimentó `backtest.metrics(...)` —
+    transformación pura, posterior, de solo lectura: no recalcula pnl_r,
+    no vuelve a simular nada, no puede divergir de las métricas ya
+    calculadas porque parte exactamente de los mismos datos.
+
+    Mapeo campo por campo (documentado, ninguno fabricado):
+      - entry_time/exit_time/direction/reason/pnl_r/duration_h: PRODUCIDOS
+        DIRECTAMENTE por research.simulate_v3 (ver TradeRecord.from_raw).
+      - exit_price: NO DISPONIBLE — ni V3-A ni Raw lo producen (ambos usan
+        research.simulate_v3, que no lo incluye en su dict de retorno,
+        verificado en Fase 4) — queda None, nunca fabricado.
+      - entry_price: DERIVADO DETERMINÍSTICAMENTE — no lo produce
+        simulate_v3, pero SÍ está disponible en `entries` (la lista que ya
+        generó backtest.find_entries), emparejado por `entry_time` contra
+        el índice del `frame` — mismo join, de solo lectura, ya usado en
+        los diagnósticos de Espacio 6 (Raw/E2). Si un trade no tiene
+        entrada emparejable (no debería ocurrir, entries y trades vienen
+        de la misma corrida), queda None en vez de fallar.
+      - mechanism: el nombre de management ya conocido por el llamador
+        (no producido por simulate_v3, es contexto de la ejecución, no un
+        dato fabricado).
+    """
+    entry_by_time = {frame.index[e["entry_idx"]]: e for e in entries}
+    records = []
+    for _, row in trades.iterrows():
+        raw = row.to_dict()
+        ent = entry_by_time.get(row["entry_time"])
+        entry_price = ent["entry"] if ent is not None else None
+        records.append(TradeRecord.from_raw(raw, mechanism=mechanism, entry_price=entry_price))
+    return records
+
+
+def run(experiment: dict, include_trades: bool = False):
     """Punto de entrada único del MVP. Flujo determinista y fijo:
 
         validate_contract
@@ -266,15 +358,24 @@ def run(experiment: dict) -> ExperimentResult:
         -> cargar dataset (activo, año)
         -> aplicar Bias (ya resuelto por _load_dataset para 'A')
         -> generar entradas (backtest.find_entries, T1+C fijos)
-        -> ejecutar Gestión (MANAGEMENT_LAYERS[...], V3-A únicamente)
+        -> resolver Gestión (MANAGEMENT_LAYERS[...] — V3-A o Raw)
+        -> ejecutar el mecanismo
         -> calcular métricas canónicas (backtest.metrics/compute_core_metrics)
         -> aplicar gate canónico (research.gate_check)
-        -> construir ExperimentResult
+        -> construir ExperimentResult (+ TradeRecords si include_trades)
         -> return
 
     Sin ninguna decisión de "ganador", sin interpretación científica —
     eso es responsabilidad del Agente/Framework (ver diseño de Fase 0),
-    no de este módulo.
+    no de este módulo. Sin selección manual por nombre de mecanismo
+    (`if management == ...`) en ningún punto — la resolución es siempre
+    vía `MANAGEMENT_LAYERS[management_name]`.
+
+    `include_trades` (Fase 5, default False — NO rompe ningún llamador
+    existente): si es True, devuelve `(ExperimentResult, list[TradeRecord])`
+    en vez de solo `ExperimentResult`. Los TradeRecord se construyen desde
+    el MISMO `trades` DataFrame que ya calculó las métricas — nunca una
+    fuente de cálculo distinta (ver `_build_trade_records`).
     """
     validate_contract(experiment)
     contract_hash = compute_contract_hash(experiment)
@@ -306,16 +407,33 @@ def run(experiment: dict) -> ExperimentResult:
     # (validate_contract ya lo garantiza, sin adaptador nuevo necesario).
     entries = backtest.find_entries(frame, cfg)
 
+    # Resolución de Gestión — SIEMPRE vía el registro, nunca if/elif por
+    # nombre. COST_PER_TRADE se parchea acá (capa de EJECUCIÓN, no de
+    # Gestión — decisión de diseño de Fase 5, ver ManagementFn arriba):
+    # es un parámetro del contrato que aplica IGUAL sin importar qué
+    # mecanismo se ejecute, no una propiedad de "cuál mecanismo" —
+    # centralizarlo acá evita que cada mecanismo nuevo (V3-A, Raw, y
+    # cualquiera futuro que reutilice simulate_v3) tenga que repetir el
+    # mismo try/finally de parcheo.
     management_fn = MANAGEMENT_LAYERS[management_name]
-    trades = management_fn(frame, entries, cfg, experiment["cost_per_trade"])
+    orig_cost = backtest.COST_PER_TRADE
+    backtest.COST_PER_TRADE = experiment["cost_per_trade"]
+    try:
+        trades = management_fn(frame, entries, cfg)
+    finally:
+        backtest.COST_PER_TRADE = orig_cost
 
     m = backtest.metrics(trades, cfg)
     gate_pass = research.gate_check(m)
 
-    return ExperimentResult.from_metrics(
+    result = ExperimentResult.from_metrics(
         experiment_name=experiment["name"], asset=asset, period=period_year,
         period_role=period_role, bias=bias_name, trigger=trigger_name, entry=entry_name,
         session=session_name, management=management_name,
         n_entries=len(entries), n_trades=len(trades), metrics=m,
         gate_pass=gate_pass, contract_hash=contract_hash,
     )
+    if not include_trades:
+        return result
+    trade_records = _build_trade_records(trades, entries, frame, management_name)
+    return result, trade_records
