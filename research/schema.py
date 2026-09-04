@@ -74,6 +74,18 @@ class ExperimentResult:
     freq: float | None
     gate_pass: bool | None = None
     contract_hash: str | None = None
+    # Automatización experimental, Componente 2 (2026-09-04) — metadata de
+    # reproducibilidad ESTAMPADA POR EL MOTOR, nunca declarada por el autor
+    # del contrato (a diferencia de contract_hash, que sí deriva del
+    # contrato en sí). `dataset_version`/`pipeline_version` ya se calculaban
+    # dentro de `research.load_asset_year` (vía `dc_v1.build_dc_v1`,
+    # estampados en `df.attrs`) pero se descartaban antes de este
+    # componente; `engine_version` es nuevo (`research.runner.
+    # ENGINE_VERSION`). Los 3 quedan `None` si la fuente no los proveyó —
+    # mismo principio de "sin fabricación" que el resto de este dataclass.
+    dataset_version: str | None = None
+    pipeline_version: str | None = None
+    engine_version: str | None = None
 
     @classmethod
     def from_metrics(
@@ -81,12 +93,19 @@ class ExperimentResult:
         bias: str, trigger: str, entry: str, session: str, management: str,
         n_entries: int, n_trades: int, metrics: dict | None,
         gate_pass: bool | None = None, contract_hash: str | None = None,
+        dataset_version: str | None = None, pipeline_version: str | None = None,
+        engine_version: str | None = None,
     ) -> "ExperimentResult":
         """Construye la fila desde el `dict` de métricas que ya produce
         `backtest.metrics()`/`research.compute_core_metrics()` — sin
         fabricar ningún campo: si `metrics` es `None` (muestra insuficiente,
         `n_trades<5`), pf/wr/exp_r/total_r/max_dd/freq quedan `None`
-        genuinamente, no en 0 ni en ningún valor centinela."""
+        genuinamente, no en 0 ni en ningún valor centinela.
+
+        `dataset_version`/`pipeline_version`/`engine_version` (Componente 2):
+        parámetros opcionales nuevos, default `None` — un llamador existente
+        que no los pasa obtiene exactamente el mismo `ExperimentResult` que
+        antes de este componente (compatibilidad hacia atrás)."""
         m = metrics or {}
         return cls(
             experiment_name=experiment_name, asset=asset, period=period,
@@ -96,6 +115,8 @@ class ExperimentResult:
             pf=m.get("pf"), wr=m.get("wr"), exp_r=m.get("exp_r"),
             total_r=m.get("total_r"), max_dd=m.get("max_dd"), freq=m.get("freq"),
             gate_pass=gate_pass, contract_hash=contract_hash,
+            dataset_version=dataset_version, pipeline_version=pipeline_version,
+            engine_version=engine_version,
         )
 
 

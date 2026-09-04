@@ -143,6 +143,28 @@ def test_contract_hash_presente_y_es_string():
               f"({result.contract_hash})", ok)
 
 
+def test_metadata_reproducibilidad_presente_en_celda_real():
+    """Automatización experimental, Componente 2 (2026-09-04): aserción
+    ADICIONAL (no modifica _COMPARE_FIELDS ni ninguna comparación
+    histórica existente) — dataset_version/pipeline_version/engine_version
+    quedan poblados sobre una celda real (no sintética), y coinciden con
+    las fuentes canónicas (versions.py / runner.ENGINE_VERSION)."""
+    import versions
+    contract = _build_contract("BTCUSDT", 2022, "train")
+    result = runner.run(contract)
+    ok = (
+        result.dataset_version == versions.DATASET_VERSION
+        and result.pipeline_version == versions.PIPELINE_VERSION
+        and result.engine_version == runner.ENGINE_VERSION
+        and result.dataset_version is not None
+    )
+    return _p(f"ExperimentResult sobre celda real (BTCUSDT/2022) trae "
+              f"dataset_version={result.dataset_version!r}/"
+              f"pipeline_version={result.pipeline_version!r}/"
+              f"engine_version={result.engine_version!r}, coincidentes con las "
+              f"fuentes canónicas", ok)
+
+
 ALL_TESTS = [
     test_equivalencia_exacta_btcusdt_2022,
     test_equivalencia_exacta_btcusdt_2023,
@@ -151,6 +173,7 @@ ALL_TESTS = [
     test_equivalencia_exacta_solusdt_2022,
     test_equivalencia_exacta_solusdt_2023,
     test_contract_hash_presente_y_es_string,
+    test_metadata_reproducibilidad_presente_en_celda_real,
 ]
 
 

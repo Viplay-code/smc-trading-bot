@@ -119,6 +119,39 @@ leyendo desde `backtest.py` vía un import LOCAL A LA FUNCIÓN (no a nivel
 de módulo, para evitar una dependencia circular real, verificada por
 trazado manual antes de implementar esta fase).
 
+AUTOMATIZACIÓN EXPERIMENTAL, COMPONENTE 2 (2026-09-04) — ampliación del
+contrato experimental, según el diseño revisado y aprobado (auditoría +
+4 precisiones). Implementa ÚNICAMENTE forma/validación/transporte —
+explícitamente NO genera combinaciones de `parameter_grid` NI compara
+contra `baseline`:
+
+  - 4 campos OPCIONALES nuevos en el contrato: `hypothesis`, `space`
+    (metadata de TRAZABILIDAD pura — el Engine no los lee para decidir
+    nada, solo los acepta si son string no vacío), `baseline` (validación
+    de FORMA únicamente — 4 claves exactas: contract_hash/experiment_name/
+    asset/period; sin búsqueda, sin comparación), `parameter_grid`
+    (validación de FORMA + guardrails anti-brute-force; sin generación de
+    combinaciones — ver `_validate_parameter_grid`/`_resolve_grid_path`
+    para la especificación completa aplicada).
+  - `contract_hash` (ya existente) NO excluye `hypothesis`/`space` del
+    hash — decisión explícita, ya documentada en el diseño: `contract_hash`
+    es identidad EXACTA del contrato, no identidad FUNCIONAL de la
+    ejecución. Dos contratos funcionalmente idénticos con distinto
+    `hypothesis`/`space` producen `contract_hash` distintos, a propósito.
+  - `ExperimentResult` gana 3 campos opcionales estampados por el MOTOR
+    (`research/schema.py`): `dataset_version`/`pipeline_version` (leídos de
+    `df_full.attrs`, ya calculados por `dc_v1.build_dc_v1` dentro de
+    `research.load_asset_year`, antes descartados) y `engine_version`
+    (`ENGINE_VERSION`, constante nueva definida más abajo). Ninguno es un
+    campo de ENTRADA del contrato — el autor de un contrato no los declara.
+  - `MAX_GRID_CELLS`: tope de cardinalidad para `parameter_grid`, ver su
+    propia constante para la justificación del valor elegido.
+
+Ningún campo nuevo es obligatorio; `required_top_level` no cambia. Ningún
+gate canónico, `MANAGEMENT_LAYERS`, `SESSION_WINDOWS`, `research.layers`,
+`research.entries`, `research.simulate` ni `backtest.py` se modifican en
+este componente.
+
 DEUDA TÉCNICA QUE PERMANECE (fuera de alcance de Fase 4, NO resuelta acá):
   - RESUELTA (Componente 1 de automatización, 2026-09-03): `backtest.
     find_entries` seguía hardcodeado a T1_ema_cross+C_market_close — ver
@@ -229,6 +262,198 @@ _MANAGEMENT_PARAMS: dict[str, dict] = {
 
 
 # --------------------------------------------------------------------------- #
+# ENGINE_VERSION — Automatización experimental, Componente 2 (2026-09-04).   #
+# Mismo patrón que versions.PIPELINE_VERSION/DATASET_VERSION: un slug        #
+# corto, incrementado MANUALMENTE por convención, nunca derivado             #
+# automáticamente (ej. de un hash de git) — sigue la misma disciplina ya     #
+# vigente para el resto del versionado del repo.                             #
+#                                                                              #
+# REGLA para incrementarlo: bump cuando `research/runner.py`,                #
+# `research/entries.py`, `research/simulate.py` o `research/data.py`         #
+# cambien de una forma que PODRÍA alterar el resultado numérico de un        #
+# experimento ya ejecutable — no ante cualquier cambio (un cambio            #
+# puramente aditivo/de documentación, o uno cuya equivalencia exacta ya      #
+# quedó demostrada por test contra el comportamiento anterior — como los     #
+# de Fases 3/4/5 y el Componente 1 — no requiere bump, porque el resultado   #
+# NO cambió). Vive acá (no en `versions.py`, que es específicamente de       #
+# `dc_v1`) porque identifica el motor de `research/`, una capa distinta de   #
+# la que `dc_v1` versiona.                                                   #
+#                                                                              #
+# Valor inicial: "research-engine-1" — primera vez que este componente       #
+# estampa una versión de motor; no representa ningún cambio de              #
+# comportamiento respecto al estado post-Componente-1 (el propio            #
+# Componente 2 es, en sí, puramente aditivo — ver docstring del módulo).     #
+# --------------------------------------------------------------------------- #
+ENGINE_VERSION = "research-engine-1"
+
+
+# --------------------------------------------------------------------------- #
+# MAX_GRID_CELLS — tope de cardinalidad para parameter_grid.                 #
+#                                                                              #
+# Justificación del valor (sin ejecutar ninguna campaña para calibrarlo,     #
+# por restricción explícita de este componente): el grid más grande          #
+# efectivamente corrido en el programa hasta ahora (Espacio 1, barrido de    #
+# atr_mult×sesión) tuvo 36 combinaciones. 50 deja margen cómodo por encima   #
+# de ese precedente real sin acercarse a un orden de magnitud que habilite   #
+# barrido masivo sin justificación explícita (la propia razón de tener un    #
+# tope, ver diseño de `parameter_grid` — Componente 2). Es una constante     #
+# nombrada, deliberadamente NO inline dentro de `_validate_parameter_grid`,  #
+# para que sea trivial de revisar/ajustar en un solo lugar cuando exista     #
+# evidencia real de uso que lo justifique — no está pensada como un valor    #
+# definitivo, sino como un límite conservador de partida.                    #
+# --------------------------------------------------------------------------- #
+MAX_GRID_CELLS = 50
+
+
+# --------------------------------------------------------------------------- #
+# parameter_grid — validación de FORMA únicamente (Componente 2). NO genera  #
+# ninguna combinación — eso queda para un componente posterior, no           #
+# autorizado todavía.                                                        #
+# --------------------------------------------------------------------------- #
+_GRID_SCALAR_TYPES = (int, float, str, bool)
+
+# Rutas prohibidas EXACTAS (además de la regla "gates"/"gates.*", chequeada
+# aparte por prefijo). Identidad del experimento, metadata documental, y el
+# nombre de las 4 capas cualitativas (Bias/Trigger/Entry/Gestión) — variar
+# CUALQUIERA de estas vía grid está fuera del diseño aprobado.
+_GRID_PROHIBITED_PATHS = {
+    "name", "independent_variable", "assets", "years", "session",
+    "bias.name", "trigger.name", "entry.name", "management.name",
+    "hypothesis", "space", "baseline", "parameter_grid",
+}
+
+
+def _resolve_grid_path(path: str, contract: dict):
+    """Resuelve una ruta con puntos (ej. "management.params.distance")
+    contra el CONTRATO BASE (sin el propio parameter_grid). Devuelve el
+    valor resuelto si es un escalar JSON permitido (int/float/str/bool, sin
+    dict/list) y la ruta no está prohibida; lanza ContractError en
+    cualquier otro caso — nunca resuelve parcialmente ni adivina."""
+    if not path or any(not seg for seg in path.split(".")):
+        raise ContractError(f"parameter_grid: ruta inválida {path!r}.")
+
+    if path == "gates" or path.startswith("gates."):
+        raise ContractError(
+            f"parameter_grid: ruta prohibida {path!r} — ningún gate se afloja vía grid."
+        )
+    if path in _GRID_PROHIBITED_PATHS:
+        raise ContractError(
+            f"parameter_grid: ruta prohibida {path!r} — identidad del experimento, "
+            f"metadata documental, o nombre de una capa cualitativa (Bias/Trigger/"
+            f"Entry/Gestión) — ninguna de estas es un parámetro barrible por diseño."
+        )
+
+    node = contract
+    for seg in path.split("."):
+        if not isinstance(node, dict) or seg not in node:
+            raise ContractError(
+                f"parameter_grid: ruta {path!r} no resuelve contra el contrato base "
+                f"(falla en el segmento {seg!r} — el campo debe existir YA en el "
+                f"contrato, parameter_grid no inventa campos nuevos)."
+            )
+        node = node[seg]
+
+    if isinstance(node, (dict, list)) or not isinstance(node, _GRID_SCALAR_TYPES):
+        raise ContractError(
+            f"parameter_grid: ruta {path!r} no apunta a un campo escalar "
+            f"(valor actual: {node!r}, tipo {type(node).__name__} — solo "
+            f"int/float/str/bool son barribles, nunca un dict/list completo)."
+        )
+    return node
+
+
+def _validate_parameter_grid(grid, contract: dict) -> None:
+    """Valida ÚNICAMENTE la forma de `parameter_grid` — rutas resolubles y
+    permitidas, valores escalares JSON, sin listas vacías, sin duplicados,
+    sin grids anidados, cardinalidad determinista bajo MAX_GRID_CELLS. NO
+    genera ninguna combinación (fuera de alcance de este componente)."""
+    if not isinstance(grid, dict) or not grid:
+        raise ContractError(
+            f"parameter_grid, si se declara, debe ser un dict no vacío — recibido: {grid!r}."
+        )
+
+    total_cardinality = 1
+    for path, values in grid.items():
+        if not isinstance(path, str):
+            raise ContractError(f"parameter_grid: clave {path!r} debe ser un string (ruta con puntos).")
+        _resolve_grid_path(path, contract)
+
+        if not isinstance(values, list):
+            raise ContractError(
+                f"parameter_grid[{path!r}] debe ser una lista de valores — recibido: "
+                f"{values!r} (tipo {type(values).__name__}). Un grid anidado (un dict "
+                f"como valor) no está permitido — un solo nivel."
+            )
+        if len(values) == 0:
+            raise ContractError(f"parameter_grid[{path!r}]: lista vacía no permitida.")
+        for v in values:
+            if isinstance(v, (dict, list)) or not isinstance(v, _GRID_SCALAR_TYPES):
+                raise ContractError(
+                    f"parameter_grid[{path!r}]: valor {v!r} no es un escalar JSON "
+                    f"permitido (int/float/str/bool) — un grid anidado o con tipos "
+                    f"compuestos no está permitido."
+                )
+        if len(set(values)) != len(values):
+            raise ContractError(
+                f"parameter_grid[{path!r}]: valores duplicados no permitidos: {values!r}."
+            )
+        total_cardinality *= len(values)
+
+    if total_cardinality > MAX_GRID_CELLS:
+        raise ContractError(
+            f"parameter_grid produce {total_cardinality} combinaciones "
+            f"(Cartesian product determinista de las listas declaradas), supera "
+            f"MAX_GRID_CELLS={MAX_GRID_CELLS} — reducí el grid o justificá "
+            f"explícitamente un tope mayor antes de declarar un barrido de este tamaño."
+        )
+
+
+# --------------------------------------------------------------------------- #
+# baseline — validación de FORMA únicamente (Componente 2). NO busca el      #
+# resultado referenciado NI compara nada — eso queda para un componente      #
+# posterior, no autorizado todavía.                                          #
+# --------------------------------------------------------------------------- #
+_BASELINE_REQUIRED_KEYS = {"contract_hash", "experiment_name", "asset", "period"}
+
+
+def _validate_baseline(baseline) -> None:
+    """`baseline` es un LOCALIZADOR de identidad (ver diseño de
+    Componente 2), no una recomputación ni una ruta a archivo — exige
+    EXACTO estas 4 claves, tipadas, sin resolver ni comparar nada contra
+    ningún resultado real todavía."""
+    if not isinstance(baseline, dict):
+        raise ContractError(f"baseline debe ser un dict — recibido: {type(baseline).__name__}.")
+    if set(baseline.keys()) != _BASELINE_REQUIRED_KEYS:
+        raise ContractError(
+            f"baseline debe declarar EXACTO las claves {sorted(_BASELINE_REQUIRED_KEYS)} "
+            f"— recibido: {sorted(baseline.keys())}."
+        )
+
+    contract_hash = baseline["contract_hash"]
+    is_valid_hash = (
+        isinstance(contract_hash, str) and len(contract_hash) == 16
+        and all(c in "0123456789abcdef" for c in contract_hash)
+    )
+    if not is_valid_hash:
+        raise ContractError(
+            f"baseline.contract_hash debe ser un hash hex de 16 caracteres (formato de "
+            f"research.compute_contract_hash) — recibido: {contract_hash!r}."
+        )
+
+    experiment_name = baseline["experiment_name"]
+    if not isinstance(experiment_name, str) or not experiment_name:
+        raise ContractError(f"baseline.experiment_name debe ser un string no vacío — recibido: {experiment_name!r}.")
+
+    asset = baseline["asset"]
+    if not isinstance(asset, str) or not asset:
+        raise ContractError(f"baseline.asset debe ser un string no vacío — recibido: {asset!r}.")
+
+    period = baseline["period"]
+    if not isinstance(period, int) or isinstance(period, bool):
+        raise ContractError(f"baseline.period debe ser int — recibido: {period!r}.")
+
+
+# --------------------------------------------------------------------------- #
 # 1. Validación del contrato                                                  #
 # --------------------------------------------------------------------------- #
 def validate_contract(experiment: dict) -> None:
@@ -329,6 +554,35 @@ def validate_contract(experiment: dict) -> None:
             f"fuera de alcance de este MVP (eso es 'crear un mecanismo nuevo de Gestión')."
         )
 
+    # ----------------------------------------------------------------- #
+    # Componente 2 (2026-09-04) — campos opcionales nuevos. Ninguno es   #
+    # obligatorio (ausentes -> sin validar, sin efecto); si están        #
+    # presentes, se validan de forma estricta, nunca se completan/       #
+    # corrigen en silencio (mismo principio que el resto de esta         #
+    # función). `hypothesis`/`space` son metadata de TRAZABILIDAD pura   #
+    # — esta validación NO les da ningún efecto sobre el Engine, solo    #
+    # confirma que son texto no vacío.                                   #
+    # ----------------------------------------------------------------- #
+    if "hypothesis" in experiment:
+        hypothesis = experiment["hypothesis"]
+        if not isinstance(hypothesis, str) or not hypothesis:
+            raise ContractError(
+                f"hypothesis, si se declara, debe ser un string no vacío — recibido: {hypothesis!r}."
+            )
+
+    if "space" in experiment:
+        space = experiment["space"]
+        if not isinstance(space, str) or not space:
+            raise ContractError(
+                f"space, si se declara, debe ser un string no vacío — recibido: {space!r}."
+            )
+
+    if "baseline" in experiment:
+        _validate_baseline(experiment["baseline"])
+
+    if "parameter_grid" in experiment:
+        _validate_parameter_grid(experiment["parameter_grid"], experiment)
+
 
 # --------------------------------------------------------------------------- #
 # 2-9. Orquestación                                                           #
@@ -402,6 +656,12 @@ def run(experiment: dict, include_trades: bool = False):
     en vez de solo `ExperimentResult`. Los TradeRecord se construyen desde
     el MISMO `trades` DataFrame que ya calculó las métricas — nunca una
     fuente de cálculo distinta (ver `_build_trade_records`).
+
+    Componente 2 (2026-09-04): además, `ExperimentResult` queda estampado
+    con `dataset_version`/`pipeline_version` (leídos de `df_full.attrs`,
+    ya calculados por `research.load_asset_year`) y `engine_version`
+    (`ENGINE_VERSION` de este módulo) — metadata de reproducibilidad, sin
+    ningún efecto sobre qué se ejecuta ni sobre ningún resultado numérico.
     """
     validate_contract(experiment)
     contract_hash = compute_contract_hash(experiment)
@@ -415,6 +675,15 @@ def run(experiment: dict, include_trades: bool = False):
     management_name = experiment["management"]["name"]
 
     df_full = _load_dataset(asset, period_year)
+
+    # Componente 2 (2026-09-04) — dataset_version/pipeline_version: YA
+    # calculados dentro de research.load_asset_year (dc_v1.build_dc_v1 los
+    # estampa en df.attrs); acá solo se LEEN, nunca se recalculan. `.get(...)`
+    # (nunca `[...]`) porque son metadata de reproducibilidad, no un
+    # requisito de ejecución — si por algún motivo no están presentes,
+    # quedan None (nunca fabricados), el resto del flujo no cambia.
+    dataset_version = df_full.attrs.get("dataset_version")
+    pipeline_version = df_full.attrs.get("pipeline_version")
 
     cfg = backtest.Config(
         atr_mult=experiment["atr_mult"],
@@ -460,6 +729,8 @@ def run(experiment: dict, include_trades: bool = False):
         session=session_name, management=management_name,
         n_entries=len(entries), n_trades=len(trades), metrics=m,
         gate_pass=gate_pass, contract_hash=contract_hash,
+        dataset_version=dataset_version, pipeline_version=pipeline_version,
+        engine_version=ENGINE_VERSION,
     )
     if not include_trades:
         return result
