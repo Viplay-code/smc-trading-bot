@@ -3,6 +3,30 @@ versión funcional de `research.runner`, sobre la infraestructura
 consolidada en Fase 1 (`research.gate_check`, `research.ExperimentResult`,
 `research.compute_contract_hash`).
 
+AUTOMATIZACIÓN EXPERIMENTAL, COMPONENTE 1 (2026-09-03) — generalización de
+Trigger/Entry: la deuda técnica documentada más abajo ("backtest.
+find_entries está hardcodeado a T1_ema_cross+C_market_close — no se
+generalizó") queda RESUELTA. `research.find_entries(frame, cfg, trigger_name,
+entry_name)` (`research/entries.py`, nuevo, patrón EXTRAER->PRESERVAR->
+VALIDAR sobre el precedente ya probado `scripts/trigger_campaign.py::
+find_entries_for_trigger`) reemplaza la llamada a `backtest.find_entries`
+dentro de `run()`. `_MVP_SUPPORTED_TRIGGER`/`_MVP_SUPPORTED_ENTRY` (single-
+member, atados a la limitación de `backtest.find_entries`) se ELIMINAN —
+`validate_contract` ahora acepta cualquier Trigger/Entry que exista en
+`research.TRIGGER_LAYERS`/`research.ENTRY_LAYERS`, sujeto a la compatibilidad
+estructural Entry<->Trigger ya documentada en `research/layers.py`
+(`research.ENTRY_META_REQUIREMENTS` — ej. `entry_A_pullback_50` exige
+`event.meta` que solo `trigger_A_sweep_bos` produce) y rechazada por
+ContractError ANTES de tocar datos, no en tiempo de ejecución con un
+KeyError opaco. Bias permanece restringido a `A_ema200_neutral` — sin
+cambios, fuera de alcance de este componente (`_load_dataset`/`research.
+load_asset_year` solo calculan Bias "A"; generalizar Bias es un componente
+separado, no autorizado todavía). Equivalencia exacta T1_ema_cross+
+C_market_close verificada contra `backtest.find_entries` en
+`research/tests/test_entries_equivalence.py`; las 6/6 celdas de
+`research/tests/test_runner_equivalence.py` (sin modificar) siguen pasando
+sin cambios como red de regresión de este swap.
+
 OBJETIVO DE ESTA FASE (alcance autorizado, no ampliar sin autorización
 explícita nueva): demostrar que la orquestación duplicada de una campaña
 legacy (`scripts/gestion_campaign_session.py`, celda V3-A/`dcv1_activo_15h`)
@@ -96,11 +120,12 @@ de módulo, para evitar una dependencia circular real, verificada por
 trazado manual antes de implementar esta fase).
 
 DEUDA TÉCNICA QUE PERMANECE (fuera de alcance de Fase 4, NO resuelta acá):
-  - `backtest.find_entries` está hardcodeado a T1_ema_cross+C_market_close
-    — no se generalizó (explícitamente fuera de alcance). El runner
-    valida el nombre de Trigger/Entry declarado en el contrato contra esa
-    combinación fija y rechaza cualquier otra, en vez de silenciosamente
-    ignorar el contrato.
+  - RESUELTA (Componente 1 de automatización, 2026-09-03): `backtest.
+    find_entries` seguía hardcodeado a T1_ema_cross+C_market_close — ver
+    nota al principio del módulo. `research.find_entries` generaliza
+    ambas capas por nombre; `backtest.find_entries` en sí NO se modificó
+    (permanece igual, sigue siendo lo que usa `scripts/gestion_campaign_
+    session.py` y el resto de la campaña legacy).
   - `research/runner.py` sigue importando `backtest` (para `Config`,
     `find_entries`, `run_config`, `metrics`) — solo la dependencia
     `research -> scripts` se eliminó (Fase 3); `research -> backtest.py`
@@ -133,13 +158,14 @@ class ContractError(ValueError):
 
 
 # --------------------------------------------------------------------------- #
-# Registros del MVP — deliberadamente de una sola entrada cada uno.          #
-# Ampliar estos registros es exactamente el trabajo de las fases             #
-# siguientes, no de esta.                                                    #
+# Registro del MVP — Bias permanece de una sola entrada (fuera de alcance    #
+# del Componente 1 de automatización; `_load_dataset` solo calcula Bias      #
+# "A"). Trigger/Entry YA NO tienen un subconjunto MVP propio — se validan   #
+# directamente contra `research.TRIGGER_LAYERS`/`research.ENTRY_LAYERS`      #
+# (el registro completo), sujeto a la compatibilidad estructural de         #
+# `research.ENTRY_META_REQUIREMENTS` — ver docstring del módulo.            #
 # --------------------------------------------------------------------------- #
 _MVP_SUPPORTED_BIAS = {"A_ema200_neutral"}
-_MVP_SUPPORTED_TRIGGER = {"T1_ema_cross"}
-_MVP_SUPPORTED_ENTRY = {"C_market_close"}
 
 SESSION_WINDOWS = {
     "control_8h": [(7, 11), (13, 17)],
@@ -268,22 +294,22 @@ def validate_contract(experiment: dict) -> None:
     if experiment["bias"].get("name") not in research.BIAS_LAYERS:
         raise ContractError(f"bias.name={experiment['bias'].get('name')!r} no existe en research.BIAS_LAYERS.")
 
-    if experiment["trigger"].get("name") not in _MVP_SUPPORTED_TRIGGER:
-        raise ContractError(
-            f"trigger.name={experiment['trigger'].get('name')!r} no soportado en este MVP "
-            f"(solo {_MVP_SUPPORTED_TRIGGER} — backtest.find_entries está hardcodeado a esta "
-            f"combinación, ver nota de deuda técnica en el docstring del módulo)."
-        )
-    if experiment["trigger"].get("name") not in research.TRIGGER_LAYERS:
-        raise ContractError(f"trigger.name={experiment['trigger'].get('name')!r} no existe en research.TRIGGER_LAYERS.")
+    trigger_name = experiment["trigger"].get("name")
+    if trigger_name not in research.TRIGGER_LAYERS:
+        raise ContractError(f"trigger.name={trigger_name!r} no existe en research.TRIGGER_LAYERS.")
 
-    if experiment["entry"].get("name") not in _MVP_SUPPORTED_ENTRY:
+    entry_name = experiment["entry"].get("name")
+    if entry_name not in research.ENTRY_LAYERS:
+        raise ContractError(f"entry.name={entry_name!r} no existe en research.ENTRY_LAYERS.")
+
+    required_triggers = research.ENTRY_META_REQUIREMENTS.get(entry_name)
+    if required_triggers is not None and trigger_name not in required_triggers:
         raise ContractError(
-            f"entry.name={experiment['entry'].get('name')!r} no soportado en este MVP "
-            f"(solo {_MVP_SUPPORTED_ENTRY})."
+            f"entry.name={entry_name!r} requiere event.meta que solo produce(n) "
+            f"{sorted(required_triggers)} — trigger.name={trigger_name!r} no es "
+            f"estructuralmente compatible (ver research.ENTRY_META_REQUIREMENTS / "
+            f"research/layers.py). Rechazado antes de tocar datos."
         )
-    if experiment["entry"].get("name") not in research.ENTRY_LAYERS:
-        raise ContractError(f"entry.name={experiment['entry'].get('name')!r} no existe en research.ENTRY_LAYERS.")
 
     if experiment["session"] not in SESSION_WINDOWS:
         raise ContractError(f"session={experiment['session']!r} no reconocida (esperado una de {list(SESSION_WINDOWS)}).")
@@ -357,7 +383,7 @@ def run(experiment: dict, include_trades: bool = False):
         -> resolver componentes (ya validados por nombre)
         -> cargar dataset (activo, año)
         -> aplicar Bias (ya resuelto por _load_dataset para 'A')
-        -> generar entradas (backtest.find_entries, T1+C fijos)
+        -> generar entradas (research.find_entries, Trigger/Entry por nombre)
         -> resolver Gestión (MANAGEMENT_LAYERS[...] — V3-A o Raw)
         -> ejecutar el mecanismo
         -> calcular métricas canónicas (backtest.metrics/compute_core_metrics)
@@ -402,10 +428,12 @@ def run(experiment: dict, include_trades: bool = False):
     # soporta otro Bias (validate_contract ya lo garantiza).
     frame = research.to_backtest_frame(df_full, df_full["bias_A"], cfg)
 
-    # Trigger+Entry: backtest.find_entries está hardcodeado a
-    # T1_ema_cross+C_market_close — exactamente lo que este MVP soporta
-    # (validate_contract ya lo garantiza, sin adaptador nuevo necesario).
-    entries = backtest.find_entries(frame, cfg)
+    # Trigger+Entry: resueltos por nombre vía research.find_entries
+    # (Componente 1 de automatización, 2026-09-03) — ya no hardcodeado a
+    # T1_ema_cross+C_market_close. validate_contract ya garantizó que
+    # ambos existen en sus registros y son estructuralmente compatibles
+    # (research.ENTRY_META_REQUIREMENTS).
+    entries = research.find_entries(frame, cfg, trigger_name, entry_name)
 
     # Resolución de Gestión — SIEMPRE vía el registro, nunca if/elif por
     # nombre. COST_PER_TRADE se parchea acá (capa de EJECUCIÓN, no de

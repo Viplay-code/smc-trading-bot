@@ -4,6 +4,15 @@ research/tests/test_runner_invariants.py — Fase 2 (MVP del runner,
 Fase 0) — qué debe RECHAZAR antes de tocar datos, y qué garantiza sobre
 el motor de simulación.
 
+Automatización experimental, Componente 1 (2026-09-03): tras la
+generalización de Trigger/Entry (research/entries.py), el test que
+verificaba que A_sweep_bos se rechazaba "por no estar soportado en el MVP"
+ya no aplica (esa razón de rechazo desapareció) — se reemplazó por
+`test_trigger_generalizado_a_sweep_bos_ya_no_se_rechaza` (confirma la
+aceptación) y dos tests nuevos sobre la compatibilidad estructural
+Entry<->Trigger (`research.ENTRY_META_REQUIREMENTS`), que es la restricción
+que ocupa su lugar.
+
 Ejecutar:
     python -m research.tests.test_runner_invariants  (o con pytest)
 """
@@ -102,17 +111,56 @@ def test_componente_inexistente_rechaza_bias():
               _expect_contract_error(c, "bias inexistente"))
 
 
-def test_componente_no_soportado_en_mvp_rechaza_trigger():
-    """A_sweep_bos SÍ existe en research.TRIGGER_LAYERS, pero NO está
-    soportado por este MVP del runner (find_entries está hardcodeado a
-    T1_ema_cross+C_market_close) — debe rechazar igual, con un mensaje
-    distinto al de 'no existe en absoluto'."""
+def test_trigger_generalizado_a_sweep_bos_ya_no_se_rechaza():
+    """Automatización experimental, Componente 1 (2026-09-03): antes de la
+    generalización de Trigger/Entry, A_sweep_bos existía en
+    research.TRIGGER_LAYERS pero el runner lo rechazaba igual porque
+    backtest.find_entries estaba hardcodeado a T1_ema_cross+C_market_close.
+    Esa razón de rechazo ya no aplica (research.find_entries resuelve
+    Trigger por nombre) — A_sweep_bos + C_market_close (compatible,
+    C_market_close no requiere event.meta) debe pasar validate_contract
+    sin excepción."""
     c = _valid_contract()
     c["trigger"] = {"name": "A_sweep_bos", "params": {}}
-    ok = _expect_contract_error(c, "trigger no soportado en MVP (pero existe en el registro)")
-    ok = ok and "A_sweep_bos" in research.TRIGGER_LAYERS   # confirma que SÍ existe globalmente
-    return _p("Contrato con trigger.name registrado globalmente pero fuera del alcance de "
-              "este MVP -> ContractError igualmente (rechazo explícito, no silencioso)", ok)
+    ok = "A_sweep_bos" in research.TRIGGER_LAYERS
+    try:
+        runner.validate_contract(c)
+    except runner.ContractError as e:
+        ok = False
+        print(f"    {e}")
+    return _p("Contrato con trigger.name='A_sweep_bos' (entry='C_market_close', compatible) "
+              "pasa validate_contract() sin excepción tras la generalización de Trigger/Entry", ok)
+
+
+def test_entry_incompatible_con_trigger_rechaza():
+    """entry_A_pullback_50 requiere event.meta['bos_level']/swing_low/
+    swing_high, que SOLO produce trigger_A_sweep_bos (ver
+    research/layers.py) — declarar A_pullback_50 junto con T1_ema_cross
+    (que produce meta={}) debe rechazarse ANTES de tocar datos, no fallar
+    más tarde con un KeyError opaco dentro de entry_fn(...)."""
+    c = _valid_contract()
+    c["entry"] = {"name": "A_pullback_50", "params": {}}
+    # trigger sigue siendo T1_ema_cross (default de _valid_contract) — combinación incompatible.
+    return _p("Contrato con entry.name='A_pullback_50' + trigger.name='T1_ema_cross' "
+              "(estructuralmente incompatibles) -> ContractError",
+              _expect_contract_error(c, "entry requiere meta que el trigger declarado no produce"))
+
+
+def test_entry_compatible_no_rechaza_por_ese_motivo():
+    """A_pullback_50 + A_sweep_bos SÍ es la combinación estructuralmente
+    válida (A_sweep_bos produce bos_level/swing_low/swing_high en meta) —
+    no debe rechazarse por incompatibilidad."""
+    c = _valid_contract()
+    c["trigger"] = {"name": "A_sweep_bos", "params": {}}
+    c["entry"] = {"name": "A_pullback_50", "params": {}}
+    ok = True
+    try:
+        runner.validate_contract(c)
+    except runner.ContractError as e:
+        ok = False
+        print(f"    {e}")
+    return _p("Contrato con trigger.name='A_sweep_bos' + entry.name='A_pullback_50' "
+              "(compatibles) pasa validate_contract() sin excepción", ok)
 
 
 def test_management_no_soportado_rechaza():
@@ -366,7 +414,9 @@ ALL_TESTS = [
     test_sin_independent_variable_rechaza,
     test_independent_variable_vacio_rechaza,
     test_componente_inexistente_rechaza_bias,
-    test_componente_no_soportado_en_mvp_rechaza_trigger,
+    test_trigger_generalizado_a_sweep_bos_ya_no_se_rechaza,
+    test_entry_incompatible_con_trigger_rechaza,
+    test_entry_compatible_no_rechaza_por_ese_motivo,
     test_management_no_soportado_rechaza,
     test_management_params_distintos_de_v3a_rechaza,
     test_gates_ausentes_rechaza,
