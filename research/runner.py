@@ -152,6 +152,23 @@ gate canónico, `MANAGEMENT_LAYERS`, `SESSION_WINDOWS`, `research.layers`,
 `research.entries`, `research.simulate` ni `backtest.py` se modifican en
 este componente.
 
+AUTOMATIZACIÓN EXPERIMENTAL, COMPONENTE 3 (2026-09-04) — `run_many`:
+ejecución de múltiples contratos. Cuello de botella identificado por
+auditoría de código (no por intuición — el propio `TARGET_ARCHITECTURE.md`
+§5, Fase D, ya señalaba "sin barrido multi-activo/año" como pendiente, y
+NINGÚN script de `scripts/` usa `research.runner.run()` todavía — el
+patrón más duplicado en todos ellos es el loop `for year: for asset:` +
+recolección de resultados). `run_many(contracts: list[dict],
+include_trades=False)` orquesta `run()` en memoria, en el orden literal de
+`contracts`, SIN ninguna lógica experimental propia — no valida nada que
+`validate_contract` no valide ya (cada contrato individual sigue limitado
+a 1 activo/1 (rol, año), sin cambios), no genera combinaciones de
+`parameter_grid`, no persiste nada, no compara contra `baseline`, no
+aplica `summarize_decision`. Política fail-fast: la primera excepción
+aborta la corrida completa, sin resultados parciales, preservando el tipo
+de excepción original y el índice del contrato que falló. `run()` y
+`validate_contract` NO se modificaron — `run_many` es 100% aditivo.
+
 DEUDA TÉCNICA QUE PERMANECE (fuera de alcance de Fase 4, NO resuelta acá):
   - RESUELTA (Componente 1 de automatización, 2026-09-03): `backtest.
     find_entries` seguía hardcodeado a T1_ema_cross+C_market_close — ver
@@ -736,3 +753,86 @@ def run(experiment: dict, include_trades: bool = False):
         return result
     trade_records = _build_trade_records(trades, entries, frame, management_name)
     return result, trade_records
+
+
+# --------------------------------------------------------------------------- #
+# run_many — Automatización experimental, Componente 3 (2026-09-04).         #
+# Orquestador determinista en memoria: delega el 100% de la ejecución a      #
+# run(), sin ninguna lógica experimental propia. Ver diseño aprobado.        #
+# --------------------------------------------------------------------------- #
+def run_many(contracts: list[dict], include_trades: bool = False):
+    """Ejecuta una lista de contratos, cada uno vía `run()`, en el orden
+    literal de `contracts`, y devuelve la lista de sus retornos SIN
+    reinterpretarlos: `run_many(contracts, include_trades=X)[i] ==
+    run(contracts[i], include_trades=X)` para todo `i` — esa igualdad es
+    la especificación completa del comportamiento de esta función.
+
+    NO es una función pura en sentido técnico (`run()` hace I/O real —
+    carga datos, corre simulaciones); "determinista" es la propiedad que
+    sí se garantiza: mismos `contracts` en el mismo orden -> misma
+    secuencia de llamadas a `run()`, siempre, ejecutadas estrictamente en
+    secuencia (sin paralelismo).
+
+    `contracts` no puede estar vacío — una lista (u otro iterable falsy)
+    vacía se rechaza con `ContractError` ANTES de llamar a `run()` ninguna
+    vez (mismo principio de "no-op silencioso prohibido" que
+    `parameter_grid` vacío, Componente 2): una campaña sin ningún
+    contrato no es una campaña válida. NO se valida que `contracts` sea
+    específicamente un `list` (a diferencia de una versión previa de este
+    componente) — el diseño aprobado exige rechazar el caso vacío, no
+    imponer una política de tipos sobre qué clase de iterable se recibe;
+    agregar esa restricción no aportaba ninguna garantía que el diseño
+    pidiera, así que se retiró para mantener el componente estrictamente
+    dentro de lo aprobado.
+
+    Política de fallo: FAIL-FAST. Si `run(contracts[i], include_trades)`
+    lanza cualquier excepción, `run_many` NO continúa con los contratos
+    restantes y NO devuelve ningún resultado (ni completo ni parcial).
+
+    Mecanismo de propagación (revisado): la excepción NUNCA se
+    reconstruye (`type(e)(...)` fue evaluado y descartado — no es
+    universal: muchas excepciones de la stdlib, ej. `UnicodeDecodeError`,
+    exigen un constructor con varios argumentos posicionales específicos,
+    no un único string, así que reconstruirla con un solo mensaje lanzaría
+    un `TypeError` nuevo que OCULTARÍA la excepción real en vez de
+    preservarla). En su lugar, se usa `BaseException.add_note()` (PEP 678,
+    stdlib desde Python 3.11) para adjuntar el contexto — "en el contrato
+    de la posición `i`" — a la excepción ORIGINAL, sin tocar su tipo, sus
+    `args`, ni invocar su constructor, y se hace `raise` (re-lanzamiento
+    desnudo, sin `from`) del mismo objeto de excepción — el objeto que
+    llega al llamador ES literalmente el que lanzó `run()`, con su
+    traceback original intacto, más la nota adjunta (visible en la
+    impresión estándar de la excepción y en `e.__notes__`). Este mecanismo
+    es universal: `add_note()` está definido en `BaseException` mismo, sin
+    ninguna suposición sobre la firma del constructor de la subclase —
+    funciona igual para `ContractError`, `FileNotFoundError`, o cualquier
+    otra excepción que `run()` pueda propagar. Ningún mecanismo de
+    recuperación, reintento, ni modo "continuar pese a errores" — mismo
+    principio ya vigente en `run()` (nunca ejecuta ni devuelve
+    parcialmente) y en el patrón "Fase A" de los scripts legacy (abortar
+    antes de seguir).
+
+    NO muta ningún dict de `contracts` (cada contrato se pasa a `run()`,
+    que ya no los muta). NO deduplica ni memoiza — un contrato repetido en
+    la lista se ejecuta tantas veces como aparezca.
+
+    Explícitamente fuera de alcance de este componente (ver diseño
+    aprobado): generación de combinaciones de `parameter_grid`,
+    persistencia a CSV/JSON, comparación contra `baseline`,
+    `summarize_decision`/ranking/agregación multi-año, paralelismo.
+    """
+    if not contracts:
+        raise ContractError(
+            f"run_many requiere una lista no vacía de contratos — recibido: {contracts!r}. "
+            f"Una campaña sin ningún contrato no es una campaña válida."
+        )
+
+    results = []
+    n = len(contracts)
+    for i, contract in enumerate(contracts):
+        try:
+            results.append(run(contract, include_trades))
+        except Exception as e:
+            e.add_note(f"run_many: fallo en el contrato de la posición {i} (de {n}).")
+            raise
+    return results
