@@ -30,6 +30,15 @@ from .simulate import simulate_v3, EXIT_CONFIGS
 from .entries import find_entries, ENTRY_META_REQUIREMENTS
 from .expand import expand_universe, MAX_UNIVERSE_CELLS
 from .decision import summarize_decision, CandidateDecision
+from .persistence import (
+    EXPERIMENT_RESULT_COLUMNS,
+    to_experiment_rows,
+    to_decision_rows,
+    render_experiment_csv,
+    render_decision_csv,
+    write_experiment_results_csv,
+    write_decision_csv,
+)
 
 __all__ = [
     "BiasFn",
@@ -63,4 +72,11 @@ __all__ = [
     "MAX_UNIVERSE_CELLS",
     "summarize_decision",
     "CandidateDecision",
+    "EXPERIMENT_RESULT_COLUMNS",
+    "to_experiment_rows",
+    "to_decision_rows",
+    "render_experiment_csv",
+    "render_decision_csv",
+    "write_experiment_results_csv",
+    "write_decision_csv",
 ]
