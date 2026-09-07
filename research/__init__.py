@@ -29,6 +29,7 @@ from .data import load_asset_year, resample_4h, to_backtest_frame, apply_bias_A
 from .simulate import simulate_v3, EXIT_CONFIGS
 from .entries import find_entries, ENTRY_META_REQUIREMENTS
 from .expand import expand_universe, MAX_UNIVERSE_CELLS
+from .decision import summarize_decision, CandidateDecision
 
 __all__ = [
     "BiasFn",
@@ -60,4 +61,6 @@ __all__ = [
     "ENTRY_META_REQUIREMENTS",
     "expand_universe",
     "MAX_UNIVERSE_CELLS",
+    "summarize_decision",
+    "CandidateDecision",
 ]
