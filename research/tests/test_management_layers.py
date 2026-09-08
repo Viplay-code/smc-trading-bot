@@ -48,9 +48,14 @@ def _valid_contract(management_name: str = "V3-A") -> dict:
 # --------------------------------------------------------------------------- #
 # Registro exacto y firma común                                              #
 # --------------------------------------------------------------------------- #
-def test_management_layers_contiene_exactamente_v3a_y_raw():
-    ok = set(runner.MANAGEMENT_LAYERS.keys()) == {"V3-A", "Raw"}
-    return _p(f"MANAGEMENT_LAYERS contiene EXACTAMENTE {{'V3-A', 'Raw'}} "
+def test_management_layers_contiene_exactamente_v3a_v3b_y_raw():
+    """Actualizado (registro de V3-B, 2026-09-08, auditoría "V3-B es una
+    segunda parametrización del mismo motor" aceptada) — el conjunto
+    esperado crece de {'V3-A', 'Raw'} a {'V3-A', 'V3-B', 'Raw'} como
+    consecuencia directa y esperada de agregar una entrada a
+    _MANAGEMENT_EXIT_CONFIG_KEYS, no una regresión."""
+    ok = set(runner.MANAGEMENT_LAYERS.keys()) == {"V3-A", "V3-B", "Raw"}
+    return _p(f"MANAGEMENT_LAYERS contiene EXACTAMENTE {{'V3-A', 'V3-B', 'Raw'}} "
               f"(actual: {set(runner.MANAGEMENT_LAYERS.keys())})", ok)
 
 
@@ -262,8 +267,92 @@ def test_semantica_de_costos_sin_cambios_para_raw():
               f"(total_r sin costo={r_sin_costo.total_r} > con costo={r_con_costo.total_r})", ok)
 
 
+
+# --------------------------------------------------------------------------- #
+# V3-B — registro mínimo vía la abstracción existente (2026-09-08)          #
+# --------------------------------------------------------------------------- #
+def test_v3b_pertenece_a_management_layers():
+    ok = "V3-B" in runner.MANAGEMENT_LAYERS
+    return _p("'V3-B' in MANAGEMENT_LAYERS", ok)
+
+
+def test_v3b_resuelve_exactamente_los_parametros_de_exit_configs():
+    """El runner debe resolver be=0.75/activation=1.5/distance=0.75 desde
+    research.EXIT_CONFIGS['V3-B (0.75R/1.5R/0.75R)'] — sin transcribir estos
+    valores en runner.py, sin lookup propio."""
+    esperado = {"be": 0.75, "activation": 1.5, "distance": 0.75}
+    ok = (
+        research.EXIT_CONFIGS["V3-B (0.75R/1.5R/0.75R)"] == esperado
+        and runner._MANAGEMENT_PARAMS["V3-B"] == esperado
+    )
+    return _p(f"runner._MANAGEMENT_PARAMS['V3-B'] == research.EXIT_CONFIGS['V3-B (...)'] == "
+              f"{esperado} exacto", ok)
+
+
+def test_contrato_con_management_v3b_es_aceptado():
+    c = _valid_contract("V3-B")
+    ok = True
+    try:
+        runner.validate_contract(c)
+    except runner.ContractError as e:
+        ok = False
+        print(f"    ContractError inesperado: {e}")
+    return _p("Un contrato con management.name='V3-B' es aceptado por validate_contract "
+              "(sin cambios en C2/schema.py)", ok)
+
+
+def test_v3b_atraviesa_contract_runner_management_layer_simulate_v3_sin_ruta_especial():
+    """Ejecución vertical mínima: contract -> runner.run -> MANAGEMENT_LAYERS['V3-B']
+    -> _make_run_config_management (la MISMA fábrica que V3-A/Raw) -> backtest.run_config
+    -> research.simulate_v3 -> ExperimentResult. Ninguna rama especial para V3-B."""
+    r = runner.run(_valid_contract("V3-B"))
+    ok = (
+        hasattr(r, "pf")
+        and not isinstance(r, tuple)
+        and r.management == "V3-B"
+        and r.n_entries > 0
+    )
+    return _p(f"runner.run(contract con management='V3-B') produce un ExperimentResult real "
+              f"(pf={r.pf if ok else 'N/A'}, n_entries={r.n_entries if ok else 'N/A'}, "
+              f"management={r.management if ok else 'N/A'}), atravesando la MISMA cadena "
+              f"que V3-A/Raw", ok)
+
+
+def test_v3a_y_v3b_comparten_la_misma_fabrica_solo_difieren_en_exit_cfg():
+    """No necesitamos igualdad de resultados (los parámetros son distintos
+    por diseño) — necesitamos demostrar 'same execution abstraction,
+    different exit parameters': ambas entradas de MANAGEMENT_LAYERS se
+    construyen con la MISMA fábrica (_make_run_config_management), y el
+    único artefacto que varía entre ellas es el dict exit_cfg cerrado en
+    cada clausura."""
+    fn_v3a = runner.MANAGEMENT_LAYERS["V3-A"]
+    fn_v3b = runner.MANAGEMENT_LAYERS["V3-B"]
+    ok = (
+        fn_v3a.__code__ is fn_v3b.__code__  # misma función interna _run -- misma fábrica
+        and fn_v3a.__closure__[0].cell_contents != fn_v3b.__closure__[0].cell_contents  # exit_cfg distinto
+        and fn_v3a.__closure__[0].cell_contents == research.EXIT_CONFIGS["V3-A (1R/2R/1R)"]
+        and fn_v3b.__closure__[0].cell_contents == research.EXIT_CONFIGS["V3-B (0.75R/1.5R/0.75R)"]
+    )
+    return _p("MANAGEMENT_LAYERS['V3-A'] y ['V3-B'] comparten el mismo código de función "
+              "(_make_run_config_management produjo ambas) y su ÚNICA diferencia es el "
+              "exit_cfg capturado en la clausura -- misma abstracción, distintos parámetros", ok)
+
+
+def test_v3a_y_raw_siguen_funcionando_sin_cambio_de_semantica_tras_registrar_v3b():
+    """Regresión: registrar V3-B no debe alterar el comportamiento de V3-A
+    ni de Raw -- se re-ejecutan aquí con el mismo dataset que
+    test_v3a_y_raw_mismo_dataset_producen_resultados_distintos ya usaba
+    antes de este cambio, para confirmar que sus resultados no cambiaron
+    de naturaleza (siguen siendo distintos entre sí y con n_entries > 0)."""
+    r_v3a = runner.run(_valid_contract("V3-A"))
+    r_raw = runner.run(_valid_contract("Raw"))
+    ok = r_v3a.pf != r_raw.pf and r_v3a.n_entries == r_raw.n_entries and r_v3a.n_entries > 0
+    return _p(f"V3-A (pf={r_v3a.pf}) y Raw (pf={r_raw.pf}) siguen produciendo resultados "
+              f"distintos entre sí después de registrar V3-B -- sin regresión de semántica", ok)
+
+
 ALL_TESTS = [
-    test_management_layers_contiene_exactamente_v3a_y_raw,
+    test_management_layers_contiene_exactamente_v3a_v3b_y_raw,
     test_ambos_mecanismos_son_callable_con_la_interfaz_comun,
     test_raw_resuelve_exit_configs_raw_correctamente,
     test_v3a_y_raw_usan_el_mismo_motor_simulate_v3,
@@ -279,6 +368,12 @@ ALL_TESTS = [
     test_metricas_no_cambian_por_introducir_trade_record,
     test_simulate_v3_no_modificado_por_fase5,
     test_semantica_de_costos_sin_cambios_para_raw,
+    test_v3b_pertenece_a_management_layers,
+    test_v3b_resuelve_exactamente_los_parametros_de_exit_configs,
+    test_contrato_con_management_v3b_es_aceptado,
+    test_v3b_atraviesa_contract_runner_management_layer_simulate_v3_sin_ruta_especial,
+    test_v3a_y_v3b_comparten_la_misma_fabrica_solo_difieren_en_exit_cfg,
+    test_v3a_y_raw_siguen_funcionando_sin_cambio_de_semantica_tras_registrar_v3b,
 ]
 
 

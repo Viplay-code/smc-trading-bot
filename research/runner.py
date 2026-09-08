@@ -242,6 +242,7 @@ su propio cuerpo, sin cambiarla."""
 # una entrada acá, nunca un `if`/`elif` en el runner.
 _MANAGEMENT_EXIT_CONFIG_KEYS: dict[str, str] = {
     "V3-A": "V3-A (1R/2R/1R)",
+    "V3-B": "V3-B (0.75R/1.5R/0.75R)",
     "Raw": "Raw",
 }
 
