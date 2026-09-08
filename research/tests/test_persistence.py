@@ -11,6 +11,14 @@ valores nulos, y separación transformación/I-O.
 Explícitamente NO prueba decision/gates/métricas (ya cubiertos en C5),
 ni baseline/comparison/parameter_grid/reporting (fuera de alcance de C6).
 
+Además (Componente 8, Persistence Read, 2026-09-05): round-trip de
+`read_experiment_results_csv` — round-trip simple/múltiple, header-only,
+None, NaN, bool, inf, strings, columna canónica faltante, columna extra
+tolerada, archivo inexistente, archivo vacío, fila malformada, y
+composición write->read end-to-end. Explícitamente NO prueba lectura de
+`decision.csv`/`CandidateDecision` (diferido, ver diseño aprobado de C8),
+ni Baseline Resolution/Legacy Adapter (fuera de alcance).
+
 Ejecutar:
     python -m research.tests.test_persistence  (o con pytest)
 """
@@ -18,6 +26,7 @@ from __future__ import annotations
 
 import csv
 import io
+import math
 import os
 import sys
 import tempfile
@@ -32,6 +41,7 @@ from research.persistence import (
     render_decision_csv,
     write_experiment_results_csv,
     write_decision_csv,
+    read_experiment_results_csv,
 )
 from research.schema import ExperimentResult
 
@@ -438,6 +448,212 @@ def test_asset_candidate_fields_role_no_es_clave_globalmente_unica():
               "contract_hash sigue discriminándolas correctamente", ok)
 
 
+# --------------------------------------------------------------------------- #
+# Componente 8 (Persistence Read, 2026-09-05) — deserialización simétrica    #
+# del artifact `results`. Mismo precedente que los tests de escritura de C6: #
+# tempfile.TemporaryDirectory(), sin fixtures nuevos.                        #
+# --------------------------------------------------------------------------- #
+def test_read_round_trip_una_fila():
+    r = _result(asset="BTCUSDT")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        leidos = read_experiment_results_csv(path)
+    ok = leidos == [r]
+    return _p("read_experiment_results_csv(write_experiment_results_csv([r])) == [r] "
+              "(round-trip de 1 fila)", ok)
+
+
+def test_read_round_trip_multiples_filas_orden_preservado():
+    resultados = [_result(asset="BTCUSDT"), _result(asset="ETHUSDT"), _result(asset="SOLUSDT")]
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, resultados)
+        leidos = read_experiment_results_csv(path)
+    ok = leidos == resultados and [r.asset for r in leidos] == ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+    return _p("Round-trip de 3 filas conserva el orden exacto de escritura", ok)
+
+
+def test_read_header_only_produce_lista_vacia():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [])
+        leidos = read_experiment_results_csv(path)
+    ok = leidos == []
+    return _p("read_experiment_results_csv sobre un CSV de solo header -> [] "
+              "(NO es un error, simétrico del diseño de C6)", ok)
+
+
+def test_read_campos_none_se_preservan():
+    r = _result(gate_pass=None, contract_hash=None, dataset_version=None,
+                pipeline_version=None, engine_version=None, pf=None, wr=None,
+                exp_r=None, total_r=None, max_dd=None, freq=None)
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        leido = read_experiment_results_csv(path)[0]
+    ok = (
+        leido.gate_pass is None and leido.contract_hash is None
+        and leido.dataset_version is None and leido.pipeline_version is None
+        and leido.engine_version is None and leido.pf is None and leido.wr is None
+        and leido.exp_r is None and leido.total_r is None and leido.max_dd is None
+        and leido.freq is None
+    )
+    return _p("Todos los campos opcionales en None se preservan como None tras el "
+              "round-trip (celda vacía -> None, no la cadena 'None')", ok)
+
+
+def test_read_nan_round_trip():
+    """NaN round-trip correcto, verificado con math.isnan -- NO con ==
+    (NaN nunca es igual a sí mismo, propiedad matemática, no un defecto)."""
+    r = _result(pf=float("nan"))
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        leido = read_experiment_results_csv(path)[0]
+    ok = isinstance(leido.pf, float) and math.isnan(leido.pf)
+    return _p("pf=float('nan') round-trip correcto, verificado con math.isnan "
+              "(no con ==, que siempre es False para NaN)", ok)
+
+
+def test_read_bool_true_false_none():
+    r_true = _result(asset="BTCUSDT", gate_pass=True)
+    r_false = _result(asset="ETHUSDT", gate_pass=False)
+    r_none = _result(asset="SOLUSDT", gate_pass=None)
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r_true, r_false, r_none])
+        leidos = read_experiment_results_csv(path)
+    ok = (
+        leidos[0].gate_pass is True
+        and leidos[1].gate_pass is False  # NO bool("False") == True (gotcha evitado)
+        and leidos[2].gate_pass is None
+    )
+    return _p("gate_pass True/False/None round-trip exacto -- 'False' se lee como "
+              "False, no como True (bool(str) gotcha explícitamente evitado)", ok)
+
+
+def test_read_inf_round_trip():
+    r = _result(pf=float("inf"))
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        leido = read_experiment_results_csv(path)[0]
+    ok = leido.pf == float("inf")
+    return _p("pf=float('inf') round-trip exacto", ok)
+
+
+def test_read_strings_se_preservan_literalmente():
+    r = _result(asset="BTCUSDT", trigger="T1_ema_cross", session="dcv1_activo_15h",
+                management="V3-A", bias="A_ema200_neutral", entry="C_market_close")
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        leido = read_experiment_results_csv(path)[0]
+    ok = (
+        leido.asset == "BTCUSDT" and leido.trigger == "T1_ema_cross"
+        and leido.session == "dcv1_activo_15h" and leido.management == "V3-A"
+        and leido.bias == "A_ema200_neutral" and leido.entry == "C_market_close"
+    )
+    return _p("Campos string (asset/trigger/session/management/bias/entry) se "
+              "preservan literalmente tras el round-trip", ok)
+
+
+def test_read_columna_canonica_faltante_rechaza():
+    r = _result()
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        # Elimina la columna 'pf' del header (primera ocurrencia exacta).
+        content = content.replace("pf,wr", "wr", 1)
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(content)
+        ok = True
+        try:
+            read_experiment_results_csv(path)
+            ok = False
+        except ValueError as e:
+            ok = "pf" in str(e)
+    return _p("CSV sin la columna canónica 'pf' -> ValueError nombrando la columna faltante", ok)
+
+
+def test_read_columna_extra_se_tolera():
+    r = _result()
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        with open(path, "r", encoding="utf-8") as f:
+            lines = f.read().splitlines()
+        lines[0] += ",columna_desconocida"
+        for i in range(1, len(lines)):
+            lines[i] += ",valor_extra"
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write("\n".join(lines) + "\n")
+        leidos = read_experiment_results_csv(path)
+    ok = len(leidos) == 1 and leidos[0] == r
+    return _p("CSV con una columna adicional desconocida -> tolerada, ignorada, "
+              "lectura correcta del resto", ok)
+
+
+def test_read_archivo_inexistente():
+    ok = True
+    try:
+        read_experiment_results_csv("este/archivo/no/existe/en/absoluto.csv")
+        ok = False
+    except FileNotFoundError:
+        pass
+    return _p("read_experiment_results_csv sobre una ruta inexistente -> FileNotFoundError "
+              "(propagada natural de open(), sin envolver)", ok)
+
+
+def test_read_archivo_vacio():
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "vacio.csv")
+        with open(path, "w", encoding="utf-8") as f:
+            pass  # 0 bytes
+        ok = True
+        try:
+            read_experiment_results_csv(path)
+            ok = False
+        except ValueError:
+            pass
+    return _p("read_experiment_results_csv sobre un archivo de 0 bytes -> ValueError explícito", ok)
+
+
+def test_read_fila_malformada_error_descriptivo():
+    r = _result()
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, [r])
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        content = content.replace(f",{r.pf},", ",no_es_un_numero,", 1)
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(content)
+        ok = True
+        try:
+            read_experiment_results_csv(path)
+            ok = False
+        except ValueError as e:
+            msg = str(e)
+            ok = "pf" in msg and "no_es_un_numero" in msg and "fila 0" in msg
+    return _p("Fila con pf='no_es_un_numero' -> ValueError identificando fila, campo "
+              "y valor crudo (sin fallo opaco)", ok)
+
+
+def test_write_read_composicion_end_to_end():
+    resultados = [_result(asset="BTCUSDT", pf=1.5), _result(asset="ETHUSDT", pf=None, gate_pass=None)]
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "r.csv")
+        write_experiment_results_csv(path, resultados)
+        leidos = read_experiment_results_csv(path)
+    ok = leidos == resultados
+    return _p("write_experiment_results_csv -> read_experiment_results_csv compuestos "
+              "end-to-end reproducen la colección original exacta", ok)
+
+
 ALL_TESTS = [
     test_serializacion_un_resultado,
     test_serializacion_multiples_resultados,
@@ -464,6 +680,20 @@ ALL_TESTS = [
     test_results_es_sensible_al_orden_de_entrada,
     test_decision_es_insensible_al_orden_solo_por_normalizacion_upstream,
     test_asset_candidate_fields_role_no_es_clave_globalmente_unica,
+    test_read_round_trip_una_fila,
+    test_read_round_trip_multiples_filas_orden_preservado,
+    test_read_header_only_produce_lista_vacia,
+    test_read_campos_none_se_preservan,
+    test_read_nan_round_trip,
+    test_read_bool_true_false_none,
+    test_read_inf_round_trip,
+    test_read_strings_se_preservan_literalmente,
+    test_read_columna_canonica_faltante_rechaza,
+    test_read_columna_extra_se_tolera,
+    test_read_archivo_inexistente,
+    test_read_archivo_vacio,
+    test_read_fila_malformada_error_descriptivo,
+    test_write_read_composicion_end_to_end,
 ]
 
 

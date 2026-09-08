@@ -148,6 +148,18 @@ celdas — todas las celdas de una campaña generada vía `expand_universe`
 comparten el MISMO `experiment_name`. Por lo tanto `experiment_name` NO
 identifica una celda ni una ejecución específica, y deliberadamente NO
 participa en ninguna clave de trazabilidad de este módulo.
+
+COMPONENTE 8 (Persistence Read, 2026-09-05): `read_experiment_results_csv`
+cierra el ciclo `write -> read` para el artifact `results` ÚNICAMENTE —
+deserialización simétrica, misma disciplina de "sin fabricación"/"sin
+fallo opaco" ya vigente. Deliberadamente NO lee `decision.csv` de vuelta
+a `CandidateDecision` (ese archivo nunca persistió `per_role` — hacerlo
+exigiría además leer y cruzar `results.csv`, una responsabilidad mayor,
+diferida). NO conoce `baseline`, `_REF_PATH`, `contract_hash` como
+mecanismo de búsqueda, ni ningún CSV legacy (16 scripts, formatos
+incompatibles entre sí y sin `contract_hash`) — solo deserializa un
+artifact cuya ruta ya se conoce. No importa `research.comparison`; la
+composición `read -> compare` ocurre fuera de este módulo.
 """
 from __future__ import annotations
 
@@ -266,3 +278,117 @@ def write_decision_csv(
     text = render_decision_csv(decisions, candidate_fields=candidate_fields)
     with open(path, "w", encoding="utf-8", newline="") as f:
         f.write(text)
+
+
+# --------------------------------------------------------------------------- #
+# Reader — Automatización experimental, Componente 8 (Persistence Read,      #
+# 2026-09-05). Deserialización SIMÉTRICA del artifact `results` (SOLO ese —  #
+# ver docstring del módulo/diseño aprobado: `decision.csv` deliberadamente   #
+# NO persiste `per_role`, así que reconstruir un `CandidateDecision` real    #
+# exigiría además leer y cruzar `results.csv` — una responsabilidad mayor,   #
+# explícitamente fuera de alcance de este componente).                      #
+#                                                                              #
+# Clasificación de columnas por tipo — necesaria porque el writer serializa  #
+# TODO vía `str(valor)` de forma uniforme (ver arriba); el reader debe saber #
+# a qué tipo Python parsear cada columna de vuelta. Derivada directamente de #
+# las anotaciones de tipo de `ExperimentResult` (research/schema.py) — no    #
+# una invención de este módulo.                                             #
+# --------------------------------------------------------------------------- #
+_INT_COLUMNS: tuple[str, ...] = ("period", "n_entries", "n_trades")
+_FLOAT_COLUMNS: tuple[str, ...] = ("pf", "wr", "exp_r", "total_r", "max_dd", "freq")
+_BOOL_COLUMNS: tuple[str, ...] = ("gate_pass",)
+_OPTIONAL_STR_COLUMNS: tuple[str, ...] = (
+    "contract_hash", "dataset_version", "pipeline_version", "engine_version",
+)
+# El resto de EXPERIMENT_RESULT_COLUMNS (experiment_name/asset/period_role/
+# bias/trigger/entry/session/management) son str obligatorios — se leen
+# literalmente, sin conversión.
+
+
+def _parse_cell(column: str, raw: str):
+    """Convierte UNA celda cruda (siempre `str`, tal como la entrega
+    `csv.DictReader`) al tipo Python que `ExperimentResult` espera para
+    `column`. `""` -> `None` para todo campo opcional (float/bool/str
+    opcional) — nunca para los campos `int`/`str` obligatorios, que no
+    tienen una representación `None` válida en el dataclass. Lanza
+    `ValueError` (sin envolver con contexto de fila — eso lo hace el
+    llamador) ante un valor no parseable."""
+    if column in _INT_COLUMNS:
+        return int(raw)
+    if column in _FLOAT_COLUMNS:
+        return None if raw == "" else float(raw)
+    if column in _BOOL_COLUMNS:
+        if raw == "":
+            return None
+        if raw == "True":
+            return True
+        if raw == "False":
+            return False
+        raise ValueError(f"valor booleano inválido {raw!r} (se esperaba 'True', 'False' o '')")
+    if column in _OPTIONAL_STR_COLUMNS:
+        return None if raw == "" else raw
+    return raw  # str obligatorio — literal, sin conversión
+
+
+def read_experiment_results_csv(path: str) -> list[ExperimentResult]:
+    """Deserializa el artifact `results` escrito por
+    `write_experiment_results_csv` de vuelta a `list[ExperimentResult]` —
+    contraparte simétrica de C6 para ESE esquema únicamente (NO lee
+    `decision.csv`/`CandidateDecision`, NO conoce `baseline`/`_REF_PATH`/
+    `contract_hash` como mecanismo de búsqueda — solo deserializa un
+    archivo cuya ruta ya se conoce; ver docstring del módulo).
+
+    Preserva el orden de las filas del CSV tal cual (transparente, sin
+    reordenar — mismo principio de no-reinterpretación ya aplicado al
+    orden de escritura en C6).
+
+    Valida ÚNICAMENTE estructura/serialización (presencia de las 22
+    columnas canónicas, parseabilidad de cada celda a su tipo) — NUNCA
+    semántica científica (no evalúa PF/DD/gates; esos ya se evaluaron
+    cuando el `ExperimentResult` se creó originalmente).
+
+    Comportamiento explícito ante casos límite:
+      - Archivo inexistente -> `FileNotFoundError` (propagada natural de
+        `open()`, sin envolver).
+      - Archivo vacío (0 bytes, sin encabezado) -> `ValueError`.
+      - CSV con solo encabezado (0 filas de datos) -> `[]`, NO es un
+        error — simétrico exacto del propio diseño de C6 ("colección
+        vacía -> CSV válido con solo header").
+      - Falta alguna de las 22 columnas canónicas -> `ValueError`
+        nombrando exactamente cuáles faltan.
+      - Columnas adicionales/desconocidas en el encabezado -> toleradas,
+        ignoradas (forward-compatible; `csv.DictReader` ya lee por
+        nombre de columna, el orden del encabezado tampoco importa).
+      - Celda no parseable a su tipo esperado -> `ValueError`
+        identificando fila (0-indexada, sin contar el encabezado),
+        nombre del campo, y el valor crudo — nunca un fallo opaco.
+
+    Sin excepciones propias nuevas — reutiliza `FileNotFoundError`/
+    `ValueError`, mismo criterio ya usado en el resto de `research/`.
+    """
+    with open(path, "r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        if reader.fieldnames is None:
+            raise ValueError(f"{path}: archivo vacío o sin encabezado — no se puede leer.")
+
+        missing = [c for c in EXPERIMENT_RESULT_COLUMNS if c not in reader.fieldnames]
+        if missing:
+            raise ValueError(
+                f"{path}: faltan columnas canónicas de ExperimentResult: {missing!r} "
+                f"(encabezado encontrado: {list(reader.fieldnames)!r})."
+            )
+
+        results: list[ExperimentResult] = []
+        for i, row in enumerate(reader):
+            fields = {}
+            for col in EXPERIMENT_RESULT_COLUMNS:
+                raw = row[col]
+                try:
+                    fields[col] = _parse_cell(col, raw)
+                except ValueError as e:
+                    raise ValueError(
+                        f"{path}: fila {i} (0-indexada, sin contar el encabezado), "
+                        f"campo {col!r}, valor crudo {raw!r}: {e}"
+                    ) from e
+            results.append(ExperimentResult(**fields))
+        return results
