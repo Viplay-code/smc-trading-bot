@@ -39,6 +39,7 @@ from .persistence import (
     write_experiment_results_csv,
     write_decision_csv,
 )
+from .comparison import compare_results, ComparisonResult, FieldDifference, DEFAULT_COMPARISON_FIELDS
 
 __all__ = [
     "BiasFn",
@@ -79,4 +80,8 @@ __all__ = [
     "render_decision_csv",
     "write_experiment_results_csv",
     "write_decision_csv",
+    "compare_results",
+    "ComparisonResult",
+    "FieldDifference",
+    "DEFAULT_COMPARISON_FIELDS",
 ]
