@@ -1,0 +1,13 @@
+asset,range_lookback,management,survives_required_roles,rank_within_asset
+BTCUSDT,20,V3-A,False,
+BTCUSDT,20,V3-B,False,
+ETHUSDT,20,V3-A,False,
+ETHUSDT,20,V3-B,False,
+SOLUSDT,20,V3-A,False,
+SOLUSDT,20,V3-B,False,
+BTCUSDT,55,V3-A,False,
+BTCUSDT,55,V3-B,False,
+ETHUSDT,55,V3-A,False,
+ETHUSDT,55,V3-B,False,
+SOLUSDT,55,V3-A,False,
+SOLUSDT,55,V3-B,False,
