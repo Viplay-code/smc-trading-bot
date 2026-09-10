@@ -163,6 +163,139 @@ def test_entry_compatible_no_rechaza_por_ese_motivo():
               "(compatibles) pasa validate_contract() sin excepción", ok)
 
 
+# --------------------------------------------------------------------------- #
+# Propagación genérica de trigger.params (Automatización Experimental,       #
+# 2026-09-10) — validación en C2, ANTES de tocar datos.                     #
+# --------------------------------------------------------------------------- #
+def test_trigger_params_vacio_no_rechaza_para_ningun_trigger():
+    """trigger.params={} (el valor de todo contrato ya committeado) nunca
+    debe rechazarse, para ningún Trigger registrado — es el caso por
+    defecto que debe seguir funcionando exactamente igual que antes de
+    esta extensión."""
+    ok = True
+    for trigger_name in research.TRIGGER_LAYERS:
+        c = _valid_contract()
+        c["trigger"] = {"name": trigger_name, "params": {}}
+        # entry sigue siendo C_market_close (default de _valid_contract),
+        # compatible estructuralmente con los 4 triggers registrados — así
+        # que cualquier ContractError acá sería por trigger.params, no por
+        # incompatibilidad Entry<->Trigger.
+        try:
+            runner.validate_contract(c)
+        except runner.ContractError as e:
+            ok = False
+            print(f"    {trigger_name}: {e}")
+    return _p("trigger.params={} no rechaza para ningún Trigger de research.TRIGGER_LAYERS", ok)
+
+
+def test_trigger_params_clave_desconocida_rechaza():
+    """Un parámetro que no existe en la firma del Trigger declarado debe
+    rechazarse ANTES de tocar datos — nunca ignorarse en silencio (el
+    riesgo concreto identificado en la auditoría de readiness de
+    Donchian)."""
+    c = _valid_contract()
+    c["trigger"] = {"name": "D_range_breakout", "params": {"bogus_param": 5}}
+    return _p("trigger.params con una clave no reconocida por D_range_breakout -> ContractError",
+              _expect_contract_error(c, "trigger.params con clave desconocida"))
+
+
+def test_trigger_params_valido_no_rechaza_por_ese_motivo():
+    """range_lookback SÍ es un parámetro real de trigger_D_range_breakout
+    — declararlo no debe rechazarse."""
+    c = _valid_contract()
+    c["trigger"] = {"name": "D_range_breakout", "params": {"range_lookback": 20}}
+    ok = True
+    try:
+        runner.validate_contract(c)
+    except runner.ContractError as e:
+        ok = False
+        print(f"    {e}")
+    return _p("trigger.params={'range_lookback': 20} (parámetro real de D_range_breakout) "
+              "no rechaza por ese motivo", ok)
+
+
+def test_trigger_params_no_vacio_para_t1_rechaza():
+    """T1_ema_cross tiene una ruta especial (deriva atr_period/atr_mult
+    EXCLUSIVAMENTE de cfg) — declarar cualquier valor en trigger.params
+    para T1, aunque sea un nombre válido como 'atr_mult', debe rechazarse
+    explícitamente: de lo contrario sería aceptado por la validación
+    genérica pero ignorado en silencio por research.entries._raw_events
+    (que nunca lee trigger_params para T1) — exactamente el riesgo que
+    esta extensión existe para prevenir."""
+    c = _valid_contract()
+    c["trigger"] = {"name": "T1_ema_cross", "params": {"atr_mult": 2.0}}
+    return _p("trigger.params no vacío para trigger.name='T1_ema_cross' -> ContractError "
+              "(evita un parámetro declarado pero ignorado en silencio)",
+              _expect_contract_error(c, "trigger.params no vacío para T1"))
+
+
+def test_trigger_params_no_es_dict_rechaza():
+    c = _valid_contract()
+    c["trigger"] = {"name": "D_range_breakout", "params": ["range_lookback", 20]}
+    return _p("trigger.params que no es un dict -> ContractError",
+              _expect_contract_error(c, "trigger.params no es dict"))
+
+
+def test_trigger_params_range_lookback_llega_realmente_al_trigger():
+    """LA PRUEBA PRINCIPAL de que la propagación funciona de verdad, no
+    solo que no rompe: dos contratos IDÉNTICOS salvo trigger.params
+    (range_lookback=10 vs 20) deben producir n_entries DISTINTOS —
+    demuestra, sobre datos reales, que el parámetro realmente llega al
+    Trigger y no se ignora."""
+    c10 = _valid_contract()
+    c10["trigger"] = {"name": "D_range_breakout", "params": {"range_lookback": 10}}
+    c10["session"] = "sin_filtro_24h"
+    c20 = copy.deepcopy(c10)
+    c20["trigger"] = {"name": "D_range_breakout", "params": {"range_lookback": 20}}
+
+    r10 = runner.run(c10)
+    r20 = runner.run(c20)
+    ok = r10.n_entries != r20.n_entries and r10.contract_hash != r20.contract_hash
+    return _p(f"range_lookback=10 (n_entries={r10.n_entries}) vs range_lookback=20 "
+              f"(n_entries={r20.n_entries}) -> resultados distintos, el parámetro llega "
+              f"realmente al Trigger", ok)
+
+
+def test_baseline_donchian_n10_sigue_siendo_reproducible_exacto():
+    """REGRESIÓN CRÍTICA: el contrato REAL del baseline Donchian N=10 ya
+    congelado (commit e20d3e2, `scripts.donchian_breakout_baseline.
+    build_universe()`, trigger.params={}) debe seguir produciendo
+    EXACTAMENTE el mismo `contract_hash`/`ExperimentResult` que el artifact
+    ya committeado (donchian_breakout_baseline_results.csv) — esta
+    extensión NO puede invalidar, ni siquiera en un dígito, el baseline ya
+    cerrado. Se construye el contrato vía el script real (no una
+    reconstrucción manual) para garantizar fidelidad estructural exacta —
+    ej. `independent_variable='trigger'`, no un valor distinto de
+    `_valid_contract()`."""
+    import os
+    import pandas as pd
+    import scripts.donchian_breakout_baseline as donchian_camp
+
+    path = "donchian_breakout_baseline_results.csv"
+    if not os.path.exists(path) or not os.path.exists("data/raw"):
+        return _p("baseline Donchian N=10 sigue reproducible exacto (artifact/data/raw no "
+                  "disponibles)", False)
+
+    legacy = pd.read_csv(path)
+    row = legacy[(legacy.asset == "BTCUSDT") & (legacy.period == 2022) & (legacy.management == "V3-A")].iloc[0]
+
+    contracts = donchian_camp.build_universe()
+    c = next(
+        x for x in contracts
+        if x["assets"] == ["BTCUSDT"] and x["years"] == {"train": 2022} and x["management"]["name"] == "V3-A"
+    )
+    r = runner.run(c)
+
+    ok = (
+        r.n_entries == int(row["n_entries"]) and r.n_trades == int(row["n_trades"])
+        and float(r.pf) == float(row["pf"]) and float(r.freq) == float(row["freq"])
+        and r.contract_hash == row["contract_hash"]
+    )
+    return _p(f"contrato REAL de donchian_breakout_baseline.build_universe() (trigger.params={{}}) "
+              f"reproduce EXACTO el baseline N=10 ya congelado (n_entries={r.n_entries}, "
+              f"pf={r.pf}, contract_hash={r.contract_hash} vs {row['contract_hash']})", ok)
+
+
 def test_management_no_soportado_rechaza():
     c = _valid_contract()
     c["management"] = {"name": "Raw", "params": {}}
@@ -417,6 +550,13 @@ ALL_TESTS = [
     test_trigger_generalizado_a_sweep_bos_ya_no_se_rechaza,
     test_entry_incompatible_con_trigger_rechaza,
     test_entry_compatible_no_rechaza_por_ese_motivo,
+    test_trigger_params_vacio_no_rechaza_para_ningun_trigger,
+    test_trigger_params_clave_desconocida_rechaza,
+    test_trigger_params_valido_no_rechaza_por_ese_motivo,
+    test_trigger_params_no_vacio_para_t1_rechaza,
+    test_trigger_params_no_es_dict_rechaza,
+    test_trigger_params_range_lookback_llega_realmente_al_trigger,
+    test_baseline_donchian_n10_sigue_siendo_reproducible_exacto,
     test_management_no_soportado_rechaza,
     test_management_params_distintos_de_v3a_rechaza,
     test_gates_ausentes_rechaza,

@@ -103,6 +103,22 @@ verificada equivalente por test
 equivalencia, se demuestra. `research/runner.py` ya NO importa ningún
 módulo bajo `scripts/` (verificado por test de inspección de código).
 
+PROPAGACIÓN GENÉRICA DE `trigger.params` (Automatización Experimental,
+2026-09-10 — extensión autorizada por auditoría de readiness de Donchian,
+alcance ESTRICTAMENTE limitado a esta capacidad): `validate_contract` ahora
+valida `trigger.params` (dict vacío obligatorio para `T1_ema_cross`, que
+sigue derivando `atr_period`/`atr_mult` exclusivamente de `cfg`; para
+cualquier otro Trigger, cada clave debe ser un parámetro real de la
+función registrada — `inspect.signature`, rechazado con `ContractError`
+ANTES de tocar datos si no lo es) y `run()` lo propaga a
+`research.find_entries` (ver `research/entries.py` para el mecanismo de
+propagación en sí). Con `trigger.params={}` (el valor de todo contrato ya
+committeado, incluido el baseline Donchian N=10), el comportamiento es
+IDÉNTICO al de antes de esta extensión — verificado por test de regresión
+exacto. Ningún otro componente de C1-C8 cambia: sin nuevos mecanismos de
+Gestión, sin cambios de Bias/Entry/sesión/gates, sin ningún sweep ni
+campaña ejecutada como parte de esta extensión.
+
 DEUDA TÉCNICA RESUELTA EN FASE 4/C2 (2026-09-02): `simulate_v3`/
 `EXIT_CONFIGS` (el motor de simulación en sí) MOVIDOS a
 `research/simulate.py` — ubicación canónica, sin cambiar una línea de su
@@ -190,6 +206,7 @@ DEUDA TÉCNICA QUE PERMANECE (fuera de alcance de Fase 4, NO resuelta acá):
 """
 from __future__ import annotations
 
+import inspect
 import sys
 from typing import Callable
 
@@ -541,6 +558,44 @@ def validate_contract(experiment: dict) -> None:
     if trigger_name not in research.TRIGGER_LAYERS:
         raise ContractError(f"trigger.name={trigger_name!r} no existe en research.TRIGGER_LAYERS.")
 
+    trigger_params = experiment["trigger"].get("params") or {}
+    if not isinstance(trigger_params, dict):
+        raise ContractError(f"trigger.params debe ser un dict — recibido: {trigger_params!r}.")
+    if trigger_name == "T1_ema_cross":
+        # T1_ema_cross tiene una ruta especial (Automatización Experimental,
+        # propagación de trigger.params, 2026-09-10): deriva atr_period/
+        # atr_mult EXCLUSIVAMENTE de cfg (a su vez derivado de los campos
+        # atr_mult/atr_period del propio contrato), nunca de trigger.params
+        # — declarar cualquier clave ahí no tendría ningún efecto (research.
+        # entries._raw_events nunca la lee para T1), así que se rechaza
+        # explícitamente en vez de aceptarla en silencio sin que surta efecto.
+        if trigger_params:
+            raise ContractError(
+                f"trigger.params debe estar vacío para trigger.name='T1_ema_cross' — "
+                f"recibido: {trigger_params!r}. T1 deriva atr_period/atr_mult exclusivamente "
+                f"de los campos atr_mult/atr_period del contrato (vía cfg), nunca de "
+                f"trigger.params; declarar un valor ahí sería ignorado en silencio."
+            )
+    else:
+        # Cualquier otro Trigger: trigger.params se propaga como **kwargs
+        # (research.entries._raw_events) — se valida acá, ANTES de tocar
+        # datos, que cada clave sea un parámetro real de la función
+        # registrada (excluyendo el primer parámetro posicional, el
+        # DataFrame), para no aceptar en silencio un typo o un parámetro
+        # inexistente que luego TypeError-earía recién al ejecutar, o peor,
+        # que research.TRIGGER_LAYERS[trigger_name] aceptara vía **kwargs
+        # genérico sin usarlo (ninguno de los candidatos actuales lo hace,
+        # pero esta validación no depende de esa propiedad para ser correcta).
+        trigger_fn = research.TRIGGER_LAYERS[trigger_name]
+        accepted = set(inspect.signature(trigger_fn).parameters) - {"df1h"}
+        unknown = set(trigger_params) - accepted
+        if unknown:
+            raise ContractError(
+                f"trigger.params contiene claves no reconocidas por trigger.name={trigger_name!r}: "
+                f"{sorted(unknown)} (parámetros aceptados: {sorted(accepted)}). Rechazado antes de "
+                f"tocar datos, para no ejecutar un parámetro con un nombre incorrecto en silencio."
+            )
+
     entry_name = experiment["entry"].get("name")
     if entry_name not in research.ENTRY_LAYERS:
         raise ContractError(f"entry.name={entry_name!r} no existe en research.ENTRY_LAYERS.")
@@ -719,8 +774,12 @@ def run(experiment: dict, include_trades: bool = False):
     # (Componente 1 de automatización, 2026-09-03) — ya no hardcodeado a
     # T1_ema_cross+C_market_close. validate_contract ya garantizó que
     # ambos existen en sus registros y son estructuralmente compatibles
-    # (research.ENTRY_META_REQUIREMENTS).
-    entries = research.find_entries(frame, cfg, trigger_name, entry_name)
+    # (research.ENTRY_META_REQUIREMENTS). trigger_params (Automatización
+    # Experimental, propagación genérica, 2026-09-10) ya fue validado por
+    # validate_contract (claves reconocidas por el Trigger declarado, o
+    # vacío si es T1_ema_cross) — acá solo se propaga, sin revalidar.
+    trigger_params = experiment["trigger"].get("params") or {}
+    entries = research.find_entries(frame, cfg, trigger_name, entry_name, trigger_params=trigger_params)
 
     # Resolución de Gestión — SIEMPRE vía el registro, nunca if/elif por
     # nombre. COST_PER_TRADE se parchea acá (capa de EJECUCIÓN, no de

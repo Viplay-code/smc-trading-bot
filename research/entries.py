@@ -45,6 +45,28 @@ bos` los produce (`trigger_T1_ema_cross`/`trigger_D_range_breakout`/
 restricción para que `research/runner.py::validate_contract` pueda
 rechazarla ANTES de tocar datos (ContractError), en vez de fallar más tarde
 con un `KeyError` opaco dentro de `entry_fn(...)`.
+
+PROPAGACIÓN GENÉRICA DE `trigger.params` (Automatización Experimental,
+2026-09-10 — extensión autorizada tras la auditoría de readiness de
+Donchian, alcance ESTRICTAMENTE limitado a esta capacidad): hasta esta
+extensión, `_raw_events` invocaba cualquier Trigger no-T1 sin argumentos
+(`TRIGGER_LAYERS[trigger_name](frame)`) — cualquier valor declarado en
+`experiment["trigger"]["params"]` era aceptado por `validate_contract`
+(que no lo validaba) pero IGNORADO EN SILENCIO. `find_entries`/
+`_raw_events` ahora aceptan un `trigger_params: dict` opcional (default
+`None` -> `{}`, backward-compatible con todo llamador existente) y lo
+propagan como `**trigger_params` a cualquier Trigger que NO sea
+`T1_ema_cross` — T1 sigue derivando `atr_period`/`atr_mult` EXCLUSIVAMENTE
+de `cfg` (ver docstring de `_raw_events`), sin cambio de ruta. Con
+`trigger_params={}` (el valor de TODO contrato ya committeado, incluido el
+baseline Donchian N=10 recién congelado), el comportamiento es IDÉNTICO al
+de antes de esta extensión — verificado por test de regresión exacto contra
+ese artifact. La validación de que las claves de `trigger.params` son
+parámetros reales del Trigger declarado (rechazo con `ContractError` de
+cualquier clave desconocida, ANTES de tocar datos) vive en
+`research.runner.validate_contract`, no acá — mismo patrón ya usado para
+`ENTRY_META_REQUIREMENTS` un párrafo arriba: la regla de compatibilidad se
+valida una sola vez, en C2, nunca duplicada en la capa de ejecución.
 """
 from __future__ import annotations
 
@@ -71,17 +93,27 @@ ENTRY_META_REQUIREMENTS: dict[str, set[str]] = {
 # firmas en research/layers.py), mismo criterio ya aplicado ahí a           #
 # A_sweep_bos.                                                               #
 # --------------------------------------------------------------------------- #
-def _raw_events(frame: pd.DataFrame, trigger_name: str, cfg) -> list:
-    """Genera los eventos crudos de Capa 2 para `trigger_name`. Solo
-    T1_ema_cross consume kwargs derivados de `cfg` (atr_period/atr_mult) —
-    los demás candidatos de TRIGGER_LAYERS usan sus propios defaults de
-    estructura de velas/sweep/rango, sin depender de `cfg` en absoluto."""
+def _raw_events(frame: pd.DataFrame, trigger_name: str, cfg, trigger_params: dict | None = None) -> list:
+    """Genera los eventos crudos de Capa 2 para `trigger_name`. `T1_ema_cross`
+    sigue consumiendo EXCLUSIVAMENTE los kwargs derivados de `cfg`
+    (atr_period/atr_mult) — ruta especial sin cambios (Automatización
+    Experimental, propagación de `trigger.params`, 2026-09-10): T1 ya tiene
+    una vía canónica para controlar esos dos parámetros (los campos
+    `atr_mult`/`atr_period` del propio contrato, vía `cfg`), así que
+    `trigger_params` NUNCA se le pasa, ni siquiera si está vacío — evita
+    dos rutas distintas para controlar el mismo parámetro. Cualquier OTRO
+    candidato de `TRIGGER_LAYERS` recibe `trigger_params` como kwargs
+    (`**trigger_params`) — con `trigger_params={}` (el default, y el valor
+    de TODO contrato ya committeado hasta esta extensión), el comportamiento
+    es IDÉNTICO al de antes de este cambio (`TRIGGER_LAYERS[trigger_name]
+    (frame)`), verificado por test de regresión."""
+    trigger_params = trigger_params or {}
     if trigger_name == "T1_ema_cross":
         return research.TRIGGER_LAYERS[trigger_name](
             frame, atr_period=cfg.atr_period, atr_mult=cfg.atr_mult,
         )
     if trigger_name in research.TRIGGER_LAYERS:
-        return research.TRIGGER_LAYERS[trigger_name](frame)
+        return research.TRIGGER_LAYERS[trigger_name](frame, **trigger_params)
     raise ValueError(
         f"trigger de Capa 2 desconocido: {trigger_name!r} "
         f"(esperado uno de {list(research.TRIGGER_LAYERS)})"
@@ -94,13 +126,28 @@ def _raw_events(frame: pd.DataFrame, trigger_name: str, cfg) -> list:
 # AMBAS capas. Filtro de bias/sesión/riesgo degenerado EXACTO al original —  #
 # no se reordena, no se relaja, no se agrega ningún chequeo nuevo.          #
 # --------------------------------------------------------------------------- #
-def find_entries(frame: pd.DataFrame, cfg, trigger_name: str, entry_name: str) -> list[dict]:
+def find_entries(
+    frame: pd.DataFrame, cfg, trigger_name: str, entry_name: str,
+    trigger_params: dict | None = None,
+) -> list[dict]:
     """Generalización de `backtest.find_entries`/`scripts.trigger_campaign.
     find_entries_for_trigger`, parametrizada por Trigger Y Entry (el
     precedente de `scripts/` solo parametrizaba Trigger). Para
     `trigger_name="T1_ema_cross"`, `entry_name="C_market_close"` sobre el
     mismo frame, produce EXACTAMENTE las mismas entradas que
     `backtest.find_entries` — ver `research/tests/test_entries_equivalence.py`.
+
+    `trigger_params` (Automatización Experimental, propagación genérica,
+    2026-09-10): kwargs adicionales pasados al Trigger vía `_raw_events`
+    (ver su docstring para la ruta especial de T1_ema_cross, que nunca los
+    recibe). Default `None` -> `{}`, backward-compatible con todo llamador
+    existente que no pase este argumento (posicional o no) — con
+    `trigger_params={}`/omitido, el comportamiento es IDÉNTICO al de antes
+    de esta extensión. Las claves de `trigger_params` deben ser parámetros
+    reales del Trigger declarado — esa validación vive en
+    `research.runner.validate_contract` (ANTES de tocar datos), no acá,
+    mismo criterio ya aplicado a la compatibilidad Entry<->Trigger un
+    párrafo más abajo.
 
     `entry_name` debe existir en `research.ENTRY_LAYERS`; si requiere campos
     de `event.meta` que `trigger_name` no produce (ver
@@ -110,7 +157,7 @@ def find_entries(frame: pd.DataFrame, cfg, trigger_name: str, entry_name: str) -
     lugares); un `KeyError` dentro de `entry_fn(...)` en ese caso indica que
     algo llamó a esta función sin pasar por `validate_contract` primero.
     """
-    raw_events = _raw_events(frame, trigger_name, cfg)
+    raw_events = _raw_events(frame, trigger_name, cfg, trigger_params)
     entry_fn = research.ENTRY_LAYERS[entry_name]
 
     entries: list[dict] = []
