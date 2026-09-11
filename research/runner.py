@@ -119,6 +119,23 @@ exacto. Ningún otro componente de C1-C8 cambia: sin nuevos mecanismos de
 Gestión, sin cambios de Bias/Entry/sesión/gates, sin ningún sweep ni
 campaña ejecutada como parte de esta extensión.
 
+FASE 4 — DCH-EXIT (2026-09-11, Protocol v2 FINAL pre-registrado):
+registro de Gestión GENERALIZADO. `MANAGEMENT_LAYERS` y
+`_MANAGEMENT_PARAMS` ya NO se derivan por separado de
+`_MANAGEMENT_EXIT_CONFIG_KEYS` -> `research.EXIT_CONFIGS`, sino de un
+registro único `_MANAGEMENT_SPECS` (nombre -> `ManagementSpec(fn,
+params)`). Motivo: la derivación anterior asumía estructuralmente que
+TODO mecanismo es una fila de `EXIT_CONFIGS` con forma `{be, activation,
+distance}` — premisa que se rompe con el primer mecanismo de función de
+simulación propia (`DCH-EXIT`, parámetro canónico `{"exit_lookback":
+5}`), y que habría producido un `KeyError` CRUDO en `validate_contract`
+en vez de un `ContractError` tipado. Unir `fn` y `params` en un mismo
+registro elimina esa clase de bug POR CONSTRUCCIÓN. V3-A/V3-B/Raw se
+siguen construyendo con la MISMA fábrica y los MISMOS valores de
+`research.EXIT_CONFIGS` -> comportamiento byte-idéntico, verificado por
+test de regresión contra el baseline congelado. `simulate_v3` NO se
+modifica; DCH-EXIT vive aislado en `research/simulate_donchian.py`.
+
 DEUDA TÉCNICA RESUELTA EN FASE 4/C2 (2026-09-02): `simulate_v3`/
 `EXIT_CONFIGS` (el motor de simulación en sí) MOVIDOS a
 `research/simulate.py` — ubicación canónica, sin cambiar una línea de su
@@ -208,7 +225,7 @@ from __future__ import annotations
 
 import inspect
 import sys
-from typing import Callable
+from typing import Callable, NamedTuple
 
 sys.path.insert(0, ".")
 
@@ -253,6 +270,13 @@ de alcance de esta fase: E1/V3A+TP) implementaría esta misma interfaz con
 su propio cuerpo, sin cambiarla."""
 
 
+# Parametro canonico y CONGELADO de DCH-EXIT (Fase 4, Protocol v2
+# pre-registrado, 2026-09-11). NO es un parametro explorable: el
+# protocolo prohibe explicitamente probar cualquier otro valor de
+# exit_lookback dentro de Fase 4.
+DCH_EXIT_LOOKBACK = 5
+
+
 # Nombre de mecanismo (MANAGEMENT_LAYERS) -> clave en research.EXIT_CONFIGS.
 # ÚNICA fuente de la relación management.name <-> exit_cfg — agregar un
 # mecanismo nuevo que reutilice simulate_v3 sin función propia es agregar
@@ -282,17 +306,79 @@ def _make_run_config_management(exit_config_key: str) -> ManagementFn:
     return _run
 
 
+def _make_donchian_exit_management(exit_lookback: int) -> ManagementFn:
+    """Fábrica: produce la función de Gestión de DCH-EXIT (Fase 4,
+    2026-09-11), que delega en `research.simulate_donchian.
+    run_config_donchian`/`simulate_donchian_exit` — un mecanismo con
+    función de simulación PROPIA, porque una salida por canal es
+    estructuralmente inexpresable en el esquema `{be, activation,
+    distance}` que consume `simulate_v3`. `simulate_v3` NO se modifica ni
+    se invoca acá; `backtest.run_config` tampoco (ver docstring de
+    `research/simulate_donchian.py` para el motivo exacto).
+
+    Misma forma que `_make_run_config_management`: el parámetro se
+    resuelve UNA vez al construir la función, y la función devuelta
+    cumple exactamente la misma interfaz `ManagementFn` de 3 parámetros,
+    sin ningún `if`/`elif` por nombre de mecanismo en el runner."""
+    def _run(frame, entries, cfg):
+        return research.run_config_donchian(frame, entries, exit_lookback, cfg)
+
+    return _run
+
+
+class ManagementSpec(NamedTuple):
+    """Especificación completa de un mecanismo de Gestión: su función
+    (`ManagementFn`) y sus parámetros canónicos, SIEMPRE juntos.
+
+    Automatización experimental, Fase 4 (2026-09-11) — generalización del
+    registro. ANTES, `MANAGEMENT_LAYERS` y `_MANAGEMENT_PARAMS` se
+    derivaban por separado de `_MANAGEMENT_EXIT_CONFIG_KEYS` ->
+    `research.EXIT_CONFIGS`, lo que asumía estructuralmente que TODO
+    mecanismo es una fila de `EXIT_CONFIGS` con forma `{be, activation,
+    distance}`. Esa premisa se rompe con el primer mecanismo que necesita
+    una función de simulación propia (DCH-EXIT, cuyo parámetro canónico
+    es `{"exit_lookback": N}`): registrarlo solo en `MANAGEMENT_LAYERS`
+    habría dejado `_MANAGEMENT_PARAMS[mgmt_name]` sin entrada, y
+    `validate_contract` habría lanzado un `KeyError` CRUDO en vez de un
+    `ContractError` tipado.
+
+    Unir `fn` y `params` en un único registro elimina esa clase de bug
+    POR CONSTRUCCIÓN: no pueden desincronizarse, porque provienen del
+    mismo registro. No cambia la semántica de ningún mecanismo existente
+    — V3-A/V3-B/Raw se siguen construyendo con la MISMA fábrica
+    (`_make_run_config_management`) y los MISMOS valores de
+    `research.EXIT_CONFIGS`, así que su comportamiento es byte-idéntico
+    (verificado por test de regresión)."""
+    fn: ManagementFn
+    params: dict
+
+
+# ÚNICA fuente de verdad del registro de Gestión: nombre -> (función,
+# parámetros canónicos). Agregar un mecanismo nuevo es agregar una
+# entrada acá, nunca un `if`/`elif` en el runner.
+_MANAGEMENT_SPECS: dict[str, ManagementSpec] = {
+    name: ManagementSpec(
+        fn=_make_run_config_management(key),
+        params=dict(research.EXIT_CONFIGS[key]),
+    )
+    for name, key in _MANAGEMENT_EXIT_CONFIG_KEYS.items()
+}
+_MANAGEMENT_SPECS["DCH-EXIT"] = ManagementSpec(
+    fn=_make_donchian_exit_management(DCH_EXIT_LOOKBACK),
+    params={"exit_lookback": DCH_EXIT_LOOKBACK},
+)
+
 MANAGEMENT_LAYERS: dict[str, ManagementFn] = {
-    name: _make_run_config_management(key) for name, key in _MANAGEMENT_EXIT_CONFIG_KEYS.items()
+    name: spec.fn for name, spec in _MANAGEMENT_SPECS.items()
 }
 
-# Parámetros canónicos por mecanismo (research.EXIT_CONFIGS) — si el
-# contrato declara management.params, DEBE coincidir exacto con el de su
-# management.name (no se acepta una variante paramétrica en este MVP; eso
-# es "crear un mecanismo nuevo de Gestión", explícitamente fuera de
-# alcance).
+# Parámetros canónicos por mecanismo — si el contrato declara
+# management.params, DEBE coincidir exacto con el de su management.name
+# (no se acepta una variante paramétrica: eso es "crear un mecanismo
+# nuevo de Gestión", explícitamente fuera de alcance). Derivado del MISMO
+# registro que MANAGEMENT_LAYERS, nunca de una fuente paralela.
 _MANAGEMENT_PARAMS: dict[str, dict] = {
-    name: dict(research.EXIT_CONFIGS[key]) for name, key in _MANAGEMENT_EXIT_CONFIG_KEYS.items()
+    name: spec.params for name, spec in _MANAGEMENT_SPECS.items()
 }
 
 

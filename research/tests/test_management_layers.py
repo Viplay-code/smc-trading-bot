@@ -48,24 +48,35 @@ def _valid_contract(management_name: str = "V3-A") -> dict:
 # --------------------------------------------------------------------------- #
 # Registro exacto y firma común                                              #
 # --------------------------------------------------------------------------- #
-def test_management_layers_contiene_exactamente_v3a_v3b_y_raw():
-    """Actualizado (registro de V3-B, 2026-09-08, auditoría "V3-B es una
-    segunda parametrización del mismo motor" aceptada) — el conjunto
-    esperado crece de {'V3-A', 'Raw'} a {'V3-A', 'V3-B', 'Raw'} como
-    consecuencia directa y esperada de agregar una entrada a
-    _MANAGEMENT_EXIT_CONFIG_KEYS, no una regresión."""
-    ok = set(runner.MANAGEMENT_LAYERS.keys()) == {"V3-A", "V3-B", "Raw"}
-    return _p(f"MANAGEMENT_LAYERS contiene EXACTAMENTE {{'V3-A', 'V3-B', 'Raw'}} "
+def test_management_layers_contiene_exactamente_v3a_v3b_raw_y_dch_exit():
+    """Actualizado dos veces, siempre como consecuencia DIRECTA y esperada
+    de registrar un mecanismo nuevo, nunca como regresión: {'V3-A','Raw'}
+    -> +'V3-B' (2026-09-08) -> +'DCH-EXIT' (Fase 4, 2026-09-11, Protocol
+    v2 pre-registrado)."""
+    esperado = {"V3-A", "V3-B", "Raw", "DCH-EXIT"}
+    ok = set(runner.MANAGEMENT_LAYERS.keys()) == esperado
+    return _p(f"MANAGEMENT_LAYERS contiene EXACTAMENTE {esperado} "
               f"(actual: {set(runner.MANAGEMENT_LAYERS.keys())})", ok)
 
 
 def test_ambos_mecanismos_son_callable_con_la_interfaz_comun():
     """(frame, entries, cfg) -> DataFrame — sin cost_per_trade (decisión
-    de Fase 5, ver docstring de research/runner.py)."""
-    entry = {"entry_idx": 0, "direction": "long", "entry": 100.0, "sl0": 90.0, "risk_pts": 10.0}
-    idx = pd.date_range("2022-01-01", periods=3, freq="1h", tz="UTC")
-    frame = pd.DataFrame({"open": [100, 100, 100], "high": [101, 101, 101],
-                           "low": [99, 95, 95], "close": [100, 96, 96]}, index=idx)
+    de Fase 5, ver docstring de research/runner.py).
+
+    Frame ampliado de 3 a 8 velas con la entrada en `entry_idx=5` (Fase 4,
+    2026-09-11): DCH-EXIT exige `k - exit_lookback >= 0` y LANZA
+    ValueError si la ventana del canal está incompleta (regla defensiva
+    pre-registrada, nunca truncar en silencio). Con la entrada en la vela
+    0 de un frame de 3 velas — un caso DEGENERADO, imposible en
+    producción, donde `trigger_D_range_breakout` garantiza `i0 >= 10` —
+    esa precondición no puede satisfacerse. El frame se amplía para que
+    cumpla las precondiciones de TODOS los mecanismos registrados; no se
+    relaja ninguna regla de ningún mecanismo."""
+    entry = {"entry_idx": 5, "direction": "long", "entry": 100.0, "sl0": 90.0, "risk_pts": 10.0}
+    idx = pd.date_range("2022-01-01", periods=8, freq="1h", tz="UTC")
+    frame = pd.DataFrame({"open": [100] * 8, "high": [101] * 8,
+                           "low": [99, 99, 99, 99, 99, 99, 95, 95],
+                           "close": [100, 100, 100, 100, 100, 100, 96, 96]}, index=idx)
     cfg = backtest.Config(max_hold=2)
     ok = True
     for name, fn in runner.MANAGEMENT_LAYERS.items():
@@ -76,8 +87,8 @@ def test_ambos_mecanismos_son_callable_con_la_interfaz_comun():
         ok = ok and params_ok and result_ok
         if not (params_ok and result_ok):
             print(f"    {name}: params_ok={params_ok} result_ok={result_ok} sig={sig}")
-    return _p("MANAGEMENT_LAYERS['V3-A']/['Raw'] aceptan exactamente 3 parámetros "
-              "(frame, entries, cfg) y devuelven un DataFrame", ok)
+    return _p("TODOS los mecanismos de MANAGEMENT_LAYERS (V3-A/V3-B/Raw/DCH-EXIT) aceptan "
+              "exactamente 3 parámetros (frame, entries, cfg) y devuelven un DataFrame", ok)
 
 
 def test_raw_resuelve_exit_configs_raw_correctamente():
@@ -352,7 +363,7 @@ def test_v3a_y_raw_siguen_funcionando_sin_cambio_de_semantica_tras_registrar_v3b
 
 
 ALL_TESTS = [
-    test_management_layers_contiene_exactamente_v3a_v3b_y_raw,
+    test_management_layers_contiene_exactamente_v3a_v3b_raw_y_dch_exit,
     test_ambos_mecanismos_son_callable_con_la_interfaz_comun,
     test_raw_resuelve_exit_configs_raw_correctamente,
     test_v3a_y_raw_usan_el_mismo_motor_simulate_v3,
