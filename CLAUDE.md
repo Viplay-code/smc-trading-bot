@@ -40,6 +40,29 @@ different levels of rigor — know which one you're touching:
 Read `FRAMEWORK.md` first for the validation methodology, and
 `DC-v1_Precisiones_Implementacion.md` before touching anything in `dc_v1/`.
 
+### Protocolo V2 (`docs/protocol/`)
+
+A separate, later methodological framework ("Protocolo Científico V2") is being specified
+in `docs/protocol/NORMATIVE_SPEC.md` (current normative state) and
+`docs/protocol/DECISION_LOG.md` (closed decisions, with their stated reasons). It is
+**specification only — none of it is implemented**: no code in this repo allocates margin,
+models a portfolio, or verifies any Protocolo V2 property. It also does not supersede
+`FRAMEWORK.md`; where the two differ (per-trade cost, meaning of the gates, experiment
+identity), the difference is documented in `NORMATIVE_SPEC.md` §I and deliberately left
+uncorrected.
+
+**Name collisions — do not assume a shared meaning** (full list in `NORMATIVE_SPEC.md` §B):
+
+- **C1–C8** is the experiment-automation engine in `research/` (C1 generic trigger/entry,
+  C2 contract, C3 `run_many`, C4 `expand_universe`, C5 decision, C6 persistence write, C8
+  persistence read); in Protocolo V2 it is a *different* list, the critical components
+  C1–C10; in `docs/architecture/TARGET_ARCHITECTURE.md` §6.1 it is yet another list, the
+  migration phases C1–C3.
+- **C6** is persistence in the engine, but "currency/sizing/concurrency/drawdown" in
+  Protocolo V2.
+- **H1/H2** are v1 experiment families in `docs/research/EXPERIMENTAL_ROADMAP.md`, but
+  sub-decisions of C6-8 in Protocolo V2.
+
 ## Commands
 
 ```bash

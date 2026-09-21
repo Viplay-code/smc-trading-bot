@@ -1,0 +1,386 @@
+# Especificación normativa — Protocolo Científico V2
+
+**Fecha de consolidación documental:** 2026-09-21
+**Estado:** vigente y parcial — el Protocolo V2 sigue en curso; este documento registra
+lo que está cerrado a la fecha de consolidación.
+**Fuente:** sesiones de trabajo del Protocolo V2 (conversación). Ver
+`docs/protocol/DECISION_LOG.md` para el registro decisión a decisión y para la matriz de
+trazabilidad de esta consolidación.
+
+---
+
+## A. Propósito y alcance
+
+Este documento es la **fuente canónica del estado normativo vigente del Protocolo V2**:
+qué restricciones son obligatorias para el mecanismo, qué decisiones humanas las
+establecieron, qué hechos matemáticos las acompañan y qué sigue abierto.
+
+**Qué NO es este documento:**
+
+| No es | Dónde vive eso |
+|---|---|
+| Implementación | `research/`, `backtest.py`, `bot.py`, `dc_v1/`, `market_data/` |
+| Metodología de backtesting v1 | `FRAMEWORK.md` |
+| Resultados experimentales | `FRAMEWORK.md`, CSV de la raíz |
+| Arquitectura del software | `docs/architecture/TARGET_ARCHITECTURE.md` |
+| Orden experimental v1 | `docs/research/EXPERIMENTAL_ROADMAP.md` |
+
+**Relación con FRAMEWORK v1.** El Protocolo V2 es un marco distinto y posterior. No
+sustituye ni corrige `FRAMEWORK.md` en esta consolidación. Donde ambos dicen cosas
+distintas, se documenta la coexistencia (§I), no se armoniza.
+
+**Etiquetas usadas en todo el documento:**
+
+| Etiqueta | Significado |
+|---|---|
+| **[N]** | Decisión humana normativa. No es un resultado matemático |
+| **[D]** | Hecho matemático demostrado en sesiones anteriores a la que cerró la decisión |
+| **[D+]** | Hecho matemático demostrado durante el trabajo del Protocolo V2, con el alcance indicado |
+| **ND** | Relación no demostrada ni refutada. **ND no significa falso** |
+
+---
+
+## B. Glosario y colisiones de nombres
+
+**Ninguna de estas colisiones se resuelve renombrando.** Solo se documentan.
+
+| Sigla | Significado A | Significado B | Significado C |
+|---|---|---|---|
+| **C1–C8** | **Motor de automatización experimental** (código): C1 trigger/entry genérico, C2 contrato, C3 `run_many`, C4 `expand_universe`, C5 decisión, C6 persistencia de escritura, C8 persistencia de lectura. Documentado en los docstrings de `research/*.py` | **Componentes críticos del Protocolo V2**: C1 alcance, C2 identidad y falsación, C3 nulo y comparadores, C4 control de gestión, C5 métrica y estimandos, C6 moneda/sizing/concurrencia/DD, C7 estados y re-test, C8 inferencia, C9 datos e independencia, C10 multiplicidad | **Fases de migración** C1–C3 y D en `docs/architecture/TARGET_ARCHITECTURE.md` §6.1 |
+| **C6** | Persistencia de escritura del motor (`research/persistence.py`) | Componente del Protocolo V2 (moneda, sizing, concurrencia, drawdown) | — |
+| **H1 / H2** | En `docs/research/EXPERIMENTAL_ROADMAP.md`: familias de experimentos v1 (p. ej. H2 = `distance`/`activation`/`be` aislados) | En el Protocolo V2: subdecisiones de C6-8 (H1 = frontera C-5 / C6-8e; H2 = saldo disponible y orden contable; H3 = reparto de margen entre exposiciones concurrentes; H4 = consecuencia de margen insuficiente) | — |
+| **C2** | Contrato experimental del motor | Componente C2 del Protocolo V2 (identidad y falsación) | Fase C2 de `TARGET_ARCHITECTURE` (extracción del simulador) |
+
+**Terminología propia de H3:**
+
+| Término | Definición |
+|---|---|
+| **K** | Conjunto de competidores del evento. Un competidor es un cambio neto de posición por símbolo que requiere asignación de margen |
+| **rᵢ** | Margen requerido por el competidor i. Llega a H3 ya calculado y referido a exposiciones ya escaladas por C6-3 |
+| **P** | Saldo disponible del evento |
+| **Pᵢ** | Margen que H3 asigna al competidor i |
+| **f** | La regla de reparto: f(K, (rᵢ), P) → (Pᵢ) |
+| **R_H3** | Remanente: P − Σ Pᵢ |
+| **Abundancia / igualdad / escasez** | P > Σ r / P = Σ r / P < Σ r |
+| **D\*** | Dominio no trivial: escasez con n ≥ 2 y necesidades no todas iguales |
+
+**Clases de reglas** (se usan para acotar el alcance de cada hecho):
+
+| Clase | Qué exige |
+|---|---|
+| **𝓔** | C-1a, B.1′, B-α, AM-3, A.1, O-EF |
+| **𝓔𝓗** | 𝓔 + O-HO |
+| **𝓔𝓗𝓞** | 𝓔𝓗 + OR-award + OR-loss |
+| **𝓒** | 𝓔𝓗𝓞 + MR-pop — clase normativa vigente antes de DM-8 |
+| **𝓒′** | 𝓒 + CT-joint — **clase normativa vigente** |
+
+---
+
+## C. Estado del Protocolo V2
+
+### C.1 Decisiones cerradas de H3-C-1 y H3-C-2
+
+**H3-C-1 — restricciones estructurales del reparto**
+
+| Id | Contenido |
+|---|---|
+| **C-1a** [N] | f usa únicamente K, rᵢ, {rⱼ}, P y magnitudes derivadas de ellos. Quedan excluidos la identidad del símbolo, otros atributos de la exposición o de la señal, información de C6-3 distinta de la ya incorporada en rᵢ, los resultados de ejecución y cualquier orden de enumeración no declarado |
+| **B.1′** [N] | Anonimato: si rᵢ = rⱼ (con los atributos admisibles iguales), entonces Pᵢ = Pⱼ. El reparto no puede depender de la identidad del símbolo |
+| **B-α** | Independencia del orden de enumeración: f es función del conjunto de competidores. Requisito **derivado** de R-1, del determinismo y de G4′ |
+| **AM-3** [N] | 0 ≤ Pᵢ ≤ rᵢ. No existe estado de exceso |
+| **A.1** [N] | Σ Pᵢ ≤ P, y el remanente es R_H3 = P − Σ Pᵢ. La salida de H3 es una partición explícita (decisión H3-A = A.1) |
+
+**H3-C-2 — propiedades del criterio de reparto**
+
+| Decisión | Resultado | Tipo | Estado |
+|---|---|---|---|
+| DM-1 | **(d)**: se exige **O-EF** | [N] | CLOSED |
+| DM-2 | **(a)**: **no** se exige O-CS | [N] | CLOSED |
+| DM-3 | **(b)**: se exige **O-HO** | [N] | CLOSED |
+| DM-4 | **(a)**: **no** se exige MR-P | [N] | CLOSED |
+| DM-5 | **(a)**: **no** se exigen MR-own ni MR-others | [N] | CLOSED |
+| DM-6 | **(d)**: se exigen **OR-award** y **OR-loss** | [N] | CLOSED |
+| DM-7 | **(b)**: se exige **MR-pop** | [N] | CLOSED |
+| DM-8 | **(e)**: se exige **CT-joint** | [N] | CLOSED |
+
+### C.2 Antecedentes normativos de los que depende H3
+
+**Estas decisiones NO forman parte de H3-C-2.** Se cerraron **antes** de H3-C y se
+registran aquí porque H3 carece de sentido sin ellas. El estado actual de H3-C-2 es el de
+§C.1; confundir ambos bloques daría por nuevas decisiones que ya estaban tomadas. Su
+desarrollo está en `DECISION_LOG.md` §1 a §6.
+
+| Id | Decisión |
+|---|---|
+| **C6-8a, decisión A** [N] | Modo de posición: **One-way** |
+| **C6-8b, decisión B** [N] | Tipo de margen: **aislado** |
+| **C-1** [N] | C-1a: unidad contable = posición neta; sin atribución de margen a señales |
+| **C-2** [N] | C-2b: el margen se actualiza en cada cambio de la posición neta |
+| **C-3** [N] | C-3a: reducción proporcional; inversión modelada como cierre completo más apertura nueva. **Regla de modelado [I], no mecánica verificada de Binance** |
+| **C-4** [N] | C-4a: el modelo tiene una variable explícita de saldo no asignado. La cantidad no se fija |
+| **H1** [N] | Frontera: el núcleo de C-5 (viabilidad, comparación requerido/disponible y consecuencia) pertenece a C6-8e/H4. C conserva el residuo contable C-5′ |
+| **H2 · R-1 a R-6** [N] | Ratificaciones de estructura del evento y de fronteras |
+| **H2 · D-I** [N] | D-I.1: flujo de liberación atómico (margen, PnL realizado y coste en el mismo momento). Regla de modelado |
+| **H2 · D-II** [N] | D-II.1: el saldo disponible excluye el PnL no realizado. Regla de modelado |
+| **H3-A** [N] | A.1: la salida de H3 es una partición |
+| **H3-Bβ** [N] | B.1′: anonimato exigido |
+| **AM-3** [N] | Tope Pᵢ ≤ rᵢ |
+| **R-H3-2** [N] | H3 actúa después de C6-3 |
+| **H3-C-0** [N] | rᵢ forma parte del vector que decide si dos competidores son idénticos |
+| **H3-C-1** [N] | C-1a: el criterio usa solo rᵢ, {rⱼ} y P |
+
+### C.3 Decisiones de componentes del Protocolo V2 anteriores a C6-8
+
+Cerradas en conversación. **Su Decision Record completo no está consolidado todavía**; en
+`DECISION_LOG.md` figuran solo como resumen.
+
+| Componente | Estado |
+|---|---|
+| C1 (alcance) | CLOSED — D1.1 a D1.13, P1.a a P1.d |
+| C2 (identidad y falsación) | CLOSED — G1 = A, G2′ = A, G3 = B, G4′ = B, NC1 a NC5 |
+| D1.6 (instrumento) | CLOSED — Binance USDⓈ-M Futures Perpetual |
+| Y-12a (costes) | CLOSED — market ⇒ taker, usuario regular, sin BNB, 0,05 % por lado, 0,10 % ida y vuelta |
+| C5a (métrica) | CLOSED — C5a-0 a C5a-6 |
+| C6 parcial | C6-1 a C6-7 y C6-10 (estructura) aprobados; C6-6 = b. **C6 sigue OPEN** |
+
+---
+
+## D. Espacio normativo actual
+
+### Obligatorio
+
+| Propiedad | Enunciado |
+|---|---|
+| **O-EF** | Σ Pᵢ = mín(P, Σ rⱼ) |
+| **O-HO** | f(K, λr, λP) = λ · f(K, r, P) para todo λ > 0 |
+| **OR-award** | rᵢ ≥ rⱼ ⇒ Pᵢ ≥ Pⱼ |
+| **OR-loss** | rᵢ ≥ rⱼ ⇒ rᵢ − Pᵢ ≥ rⱼ − Pⱼ |
+| **MR-pop** | K ⊂ K′, con P y r_K fijos ⇒ Pᵢ(K′) ≤ Pᵢ(K) para todo i ∈ K |
+| **CT-joint** | (r, P) ↦ Pᵢ(K, r, P) es continua en (0, ∞)ᴷ × [0, ∞), para cada K y todo i |
+
+**Implicadas por CT-joint, no normas añadidas** [D]: **CT-P** (continuidad en P) y **CT-r**
+(continuidad en r).
+
+Más las restricciones estructurales de §C.1: C-1a, B.1′, B-α, AM-3 y A.1.
+
+### No obligatorio
+
+| Propiedad | Enunciado | Decisión |
+|---|---|---|
+| **O-CS** | Consistencia bajo reducción a subgrupos (formulación de referencia: CS-1) | DM-2 = (a) |
+| **MR-P** | P′ ≥ P ⇒ Pᵢ(P′) ≥ Pᵢ(P) | DM-4 = (a) |
+| **MR-own** | rᵢ′ ≥ rᵢ ⇒ Pᵢ′ ≥ Pᵢ | DM-5 = (a) |
+| **MR-others** | rⱼ′ ≥ rⱼ (j ≠ i) ⇒ Pᵢ′ ≤ Pᵢ | DM-5 = (a) |
+
+**"No obligatorio" no significa "indeseable".** Las cuatro decisiones registran
+explícitamente que no se afirma nada sobre el valor de esas propiedades.
+
+### Familias candidatas actuales
+
+**PRO · CEA · CEL**
+
+| Familia | Definición |
+|---|---|
+| **PRO** | Pᵢ = rᵢ · mín(1, P / Σ r) |
+| **CEA** | Pᵢ = mín(rᵢ, λ), con λ tal que Σ Pⱼ = mín(P, Σ r) |
+| **CEL** | Pᵢ = máx(0, rᵢ − μ), con μ ≥ 0 tal que Σ Pⱼ = mín(P, Σ r) |
+
+> **PRO, CEA y CEL NO están seleccionadas. H3-C-3 permanece OPEN.**
+
+El espacio de reglas admisibles es potencialmente infinito [I]. Estas tres son las
+candidatas **estudiadas** que sobreviven, no una enumeración exhaustiva.
+
+### Familias excluidas y motivo
+
+| Familia | Motivo | Etiqueta |
+|---|---|---|
+| **SW½** (PRO si P ≤ Σ r / 2; CEA si no) | Incumple **MR-pop** (DM-7) | [D+] |
+| **SW₁** (PRO si P ≤ 1; CEA si no) | Incumple **O-HO** (DM-3) | [D] |
+| **PMIN** (cobertura por orden creciente de rᵢ) | Incumple **OR-award** (DM-6) | [D] |
+| **PMAX** (cobertura por orden decreciente de rᵢ) | Incumple **OR-loss** (DM-6) | [D] |
+| **EQ** (Pᵢ = mín(rᵢ, P/n)) | Incumple **O-EF** (DM-1) | [D] |
+| **Regla nula** (Pᵢ = 0) | Incumple **O-EF** (DM-1) | [D] |
+| **F-OPT** (maximizar el número de competidores cubiertos) | Choca con B.1′ y con la frontera de ejecución | [D] |
+| **F-W, F-PRI general, F-H** | No evaluables: sin definición formal. **No excluidas**, sino no evaluadas | ND |
+
+Las reglas excluidas por norma **siguen siendo testigos matemáticos válidos** de
+no-implicaciones (§F).
+
+**Formas explícitas registradas de PMIN y PMAX** (auditoría de B-α): con Lᵢ = suma de las
+necesidades estrictamente menores, Uᵢ = suma de las estrictamente mayores y mᵢ = número de
+competidores con la misma necesidad que i:
+PMIN: Pᵢ = mín(rᵢ, máx(0, P − Lᵢ)/mᵢ). PMAX: Pᵢ = mín(rᵢ, máx(0, P − Uᵢ)/mᵢ).
+
+### Testigos auxiliares (no son candidatas)
+
+| Testigo | Definición | Clase |
+|---|---|---|
+| **AVG** | (PRO + CEA)/2 | Pertenece a 𝓒 y a 𝓒′ [D+] |
+| **MIX** | Mezcla continua de PRO y CEA con peso dependiente de P/Σ r, no monótono | Pertenece a 𝓔𝓗𝓞 [D+]; su pertenencia a 𝓒 es **ND** |
+
+---
+
+## E. Hechos matemáticos demostrados
+
+Cada hecho indica la clase en la que está demostrado. Fuera de esa clase no se afirma nada.
+
+> **Alcance de este registro.** Los hechos de esta sección **fueron demostrados durante el
+> proceso de decisión**, en las auditorías previas a cada DM. Esta consolidación documental
+> transcribe **sus enunciados y su alcance o clase**, no las demostraciones.
+> **Las demostraciones completas, las pruebas, los contraejemplos y los cálculos originales
+> no están todavía reproducidos íntegramente en el repositorio**: siguen en el material de
+> las sesiones de trabajo. Un lector no debe entender que dispone localmente de la
+> demostración de cada hecho. La clasificación [D] / [D+], el contenido y el alcance de
+> cada hecho se conservan exactamente como se establecieron.
+
+### E.1 Estructura y dominio
+
+| # | Hecho | Etiqueta |
+|---|---|---|
+| E-1 | Con AM-3 y A.1: R_H3 ≥ máx(0, P − Σ r). El remanente se descompone en R_est = máx(0, P − Σ r), impuesto por el tope, y R_disc = mín(P, Σ r) − Σ Pᵢ, que produce el criterio | [D+] |
+| E-2 | O-EF ⇔ EF-a ∧ EF-b ⇔ "no desperdicio" (si R_H3 > 0 entonces Pᵢ = rᵢ para todo i), bajo AM-3 | [D+] |
+| E-3 | EF-a y EF-b son independientes entre sí | [D+] |
+| E-4 | Con O-EF: si P ≥ Σ r, entonces Pᵢ = rᵢ. El reparto queda totalmente determinado en abundancia e igualdad | [D+] |
+| E-5 | Con O-EF, los casos P = 0, n = 1 y necesidades todas iguales quedan determinados: 0, mín(r₁, P) y mín(ρ, P/n) | [D+] |
+| E-6 | Por tanto, la elección de familia solo tiene contenido en D\* (escasez, n ≥ 2, necesidades distintas) | [D] |
+| E-7 | Con O-EF y AM-3, "Pᵢ < rᵢ" implica R_H3 = 0: todo déficit que llega a C6-8e/H4 procede de escasez, no de margen que H3 dejó sin asignar | [D+] |
+
+### E.2 Escala
+
+| # | Hecho | Etiqueta |
+|---|---|---|
+| E-8 | Con AM-3, la única homogeneidad no trivial posible es la de **grado 1**. Con grado k ≠ 1 el tope falla al hacer λ → ∞ o λ → 0, salvo reparto idénticamente nulo | [D+] |
+| E-9 | O-HO equivale a la invariancia de la cobertura Pᵢ/rᵢ ante escala común, siempre que el dominio sea cerrado ante escala, rᵢ > 0 y la igualdad valga para todo λ > 0 | [D+] |
+| E-10 | La transformación de escala conserva el régimen y transforma D\* en sí mismo. O-HO solo restringe en D\* | [D+] |
+| E-11 | O-HO implica la invariancia ordinal, pero no al revés | [D+] |
+| E-12 | Umbrales absolutos sobre P o sobre r rompen O-HO. Los umbrales relativos (a P o a Σ r) la conservan | [D+] |
+
+### E.3 Monotonías
+
+| # | Hecho | Clase | Etiqueta |
+|---|---|---|---|
+| E-13 | MR-others ⇒ MR-own | 𝓔 | [D+] |
+| E-14 | MR-own ⇒ la versión agregada de MR-others (la suma de lo que reciben los demás no aumenta) | 𝓔 | [D+] |
+| E-15 | Con n = 2, MR-own ⇔ MR-others | 𝓔 | [D+] |
+| E-16 | MR-own ∧ MR-others ∧ B.1′ ⇒ OR-award | 𝓔 | [D] |
+| E-17 | MR-others ⇒ OR-award (por E-13 y E-16) | 𝓔 | [D+] |
+| E-18 | MR-others ∧ CT-K ⇒ MR-pop | 𝓔 | [D] |
+| E-19 | O-EF ∧ MR-P ⇒ CT-P | 𝓔 | [D+] |
+| E-20 | La versión agregada de MR-P (Σ Pᵢ no decrece con P) ya la garantiza O-EF | [D+] |
+| E-21 | La versión agregada de MR-pop (Σ_{i∈K} Pᵢ no aumenta al añadir competidores) ya la garantiza O-EF | [D+] |
+| E-22 | Añadir un competidor o varios es equivalente en MR-pop, y equivale a leerla como "la salida de un competidor no perjudica a los que quedan" | [D+] |
+| E-23 | MR-pop solo restringe cuando \|K\| ≥ 2 y K está en escasez | [D+] |
+
+### E.4 Orden y continuidad
+
+| # | Hecho | Etiqueta |
+|---|---|---|
+| E-24 | OR-award y OR-loss son independientes entre sí, ya con n = 2 | [D] |
+| E-25 | Exigir ambas equivale, para rᵢ ≥ rⱼ, a **0 ≤ Pᵢ − Pⱼ ≤ rᵢ − rⱼ**. Lo recibido y el déficit crecen con la necesidad, y la diferencia de necesidad se reparte entre ambos | [D+] |
+| E-26 | Con n = 2, exigir ambas equivale a que el reparto quede entre el de CEL y el de CEA. Con n ≥ 3 no hay caracterización análoga (ND) | [D+] |
+| E-27 | OR-award y OR-loss se evalúan dentro de un mismo estado. Una regla que cambia de fórmula según el estado las cumple si cada fórmula las cumple | [D+] |
+| E-28 | CT-joint ⇒ CT-P y CT-joint ⇒ CT-r | [D] |
+| E-29 | Con O-EF, CT-P, CT-r y CT-joint son automáticas en abundancia, en la frontera P = Σ r, cuando P → 0⁺ y con n = 1. Solo restringen en el interior de la escasez con n ≥ 2 | [D+] |
+| E-30 | CT-joint ⇒ O-CS es **falso** dentro de 𝓒 (testigo AVG, que es continua e inconsistente) | [D+] |
+| E-31 | Las propiedades de continuidad no se siguen del determinismo, de la reconstruibilidad (G4′), de la independencia del orden ni de la estabilidad numérica. Son conceptos distintos | [D+] |
+
+### E.5 Familias
+
+| # | Hecho | Etiqueta |
+|---|---|---|
+| E-32 | PRO, CEA y CEL cumplen O-EF, O-HO, OR-award, OR-loss, MR-pop, CT-P, CT-r y CT-joint. También cumplen CT-K, MR-P, MR-own, MR-others y O-CS | [D] / [D+] |
+| E-33 | SW½ cumple O-EF, O-HO, OR-award, OR-loss y CT-K; incumple MR-pop, MR-P, MR-own, MR-others, O-CS, CT-P y CT-r | [D] / [D+] |
+| E-34 | PMIN cumple O-EF, O-HO, MR-P, MR-pop, O-CS, OR-loss, CT-P y CT-K; incumple OR-award, MR-own, MR-others y CT-r | [D] / [D+] |
+| E-35 | PMAX cumple O-EF, O-HO, MR-P, MR-own, MR-others, MR-pop, O-CS, OR-award, CT-P y CT-K; incumple OR-loss y CT-r | [D] / [D+] |
+| E-36 | EQ y la regla nula incumplen O-EF | [D] |
+| E-37 | AVG pertenece a 𝓒 y a 𝓒′ e incumple O-CS. MIX pertenece a 𝓔𝓗𝓞, cumple CT-P e incumple MR-P | [D+] |
+| E-38 | Las 14 propiedades candidatas de H3-C-2 son satisfacibles a la vez: PRO y CEA las cumplen todas. Ninguna combinación de exigencias deja vacío el espacio ni lo reduce a una única regla | [D] / [D+] |
+| E-39 | Las formas explícitas de PMIN y PMAX cumplen C-1a, B.1′, B-α, AM-3, O-EF y O-HO: no dependen de ninguna enumeración, y los empates se tratan por grupo | [D+] |
+
+---
+
+## F. Relaciones ND
+
+**ND no significa falso.** Cuando una no-implicación está demostrada en una clase más
+amplia pero no hay testigo dentro de la clase normativa, el estado dentro de esa clase
+sigue siendo ND.
+
+| Relación | Estado |
+|---|---|
+| MR-own ⇒ MR-others individual, con n ≥ 3 | ND en 𝓔 |
+| MR-own ⇒ OR-award | ND |
+| MR-own ∧ MR-others ⇒ MR-P; ídem ⇒ CT-P | Falsas en 𝓔 (testigo SW₁). **ND en 𝓔𝓗 y en 𝓒** |
+| MR-others ⇒ MR-pop | ND en 𝓔 |
+| O-CS ⇒ MR-P, ⇒ MR-pop, ⇒ CT-P | ND |
+| MR-P ⇒ MR-pop | ND |
+| MR-own ⇒ MR-pop | ND |
+| CT-P ⇒ MR-pop | ND |
+| CT-P ⇒ MR-P | Falsa en 𝓔𝓗𝓞 (testigo MIX). **ND en 𝓒** |
+| CT-P ⇒ CT-r | Falsa en 𝓔𝓗 (testigo PMIN). **ND en 𝓒** |
+| CT-r ⇒ CT-P | Falsa en 𝓔 (testigo SW₁). **ND en 𝓔𝓗 y en 𝓒** |
+| CT-P ∧ CT-r ⇒ CT-joint | ND en todas las clases |
+| Las restricciones de 𝓒 ⇒ CT-P, CT-r o CT-joint | ND |
+| CT-joint ⇒ CT-K | Falsa fuera de 𝓔 (testigo EQ). **ND en 𝓔, en 𝓒 y en 𝓒′** |
+| CT-K ⇒ CT-P | Falsa en 𝓔 (SW₁). **ND en 𝓔𝓗 y en 𝓒** |
+| CT-K ⇒ CT-r | Falsa en 𝓔𝓗 (PMIN). **ND en 𝓔𝓗𝓞 y en 𝓒** |
+| MR-pop ⇒ CT-K | Falsa fuera de 𝓔 (EQ). **ND en 𝓔** |
+| MR-pop ⇒ CT-P | Falsa en 𝓔 (SW₁). **ND en 𝓒** |
+| CT-joint ⇒ MR-own o MR-others | ND |
+| OR-award ⇒ MR-own | ND |
+| Que exigir CT-P sea distinto de exigir CT-r dentro de 𝓒 | ND |
+| Que las opciones (a) a (e) de DM-8 impongan restricciones distintas dentro de 𝓒 | ND |
+| Cuántas familias además de PRO, CEA y CEL quedan en el espacio actual | ND |
+| Si MIX cumple MR-pop | ND |
+
+---
+
+## G. Estado de componentes
+
+| Componente | Estado |
+|---|---|
+| H3-C-1 (C-1a, B.1′, B-α, AM-3, A.1) | CLOSED |
+| H3-C-2 · DM-1 a DM-8 | CLOSED |
+| H3-C-2 · B1, B2 | Sin objeto (por DM-1 = (d)) |
+| **H3-C-2 · DM-9** (CT-K) | **OPEN** |
+| **H3-C-2 · B3** (declarar o no las propiedades implicadas) | **OPEN** |
+| **H3-C-3** (selección de familia) | **OPEN** |
+| **H3-C-4** (parámetros, si la familia los tuviera) | **OPEN** |
+| **H3-D** (destino del remanente y reasignación) | **OPEN** |
+| **H3-E** (coherencia con C6-3) | **OPEN** |
+| **D-III** (visibilidad de las liberaciones dentro del evento; opciones D-III.1 a D-III.4; D-III.5 descartada por B.1′) | **OPEN** |
+| **H4 / C6-8e** (viabilidad, consecuencia de Pᵢ < rᵢ, atomicidad, ejecución parcial) | **OPEN** |
+| **C9** (datos, independencia, blind) | **OPEN** |
+| **C6** (moneda, sizing, concurrencia, drawdown) | **OPEN** |
+| Otros componentes del Protocolo V2: C3, C4, C5b, C7, C8, C10 | **OPEN** |
+| C-5 · decisión D (tratamiento histórico R1–R4) | **OPEN** |
+
+---
+
+## H. Implementación
+
+> **No existe implementación de H3 en el código actual.**
+
+| Hecho | Detalle |
+|---|---|
+| El motor C1–C8 de `research/` **no implementa H3** | Evalúa un activo y un periodo por ejecución. No tiene capa de cartera, margen, colateral ni concurrencia |
+| El sizing actual es de riesgo fijo por operación | `risk_per_trade = 0.005` en `bot.py`; `risk=0.005` por defecto en el motor |
+| No existe código que verifique O-EF, O-HO, OR-award, OR-loss, MR-pop ni CT-joint | — |
+| La coincidencia de nombres entre el motor C1–C8 y los componentes del Protocolo V2 **no implica ninguna correspondencia funcional** | Ver §B |
+
+Cuando exista implementación, este documento debe indicar qué propiedad verifica qué
+prueba. Hoy, la columna de implementación está vacía para todas las propiedades.
+
+---
+
+## I. Coexistencia con FRAMEWORK v1
+
+Diferencias registradas, **no corregidas** en esta consolidación:
+
+| Tema | FRAMEWORK v1 y código | Protocolo V2 |
+|---|---|---|
+| **Coste por operación** | Comisión maker 0,02 % por lado; `COST_PER_TRADE = 0.0009` (0,04 % de comisión ida y vuelta más 0,05 % de slippage), documentado en `FRAMEWORK.md` y `CLAUDE.md` | Y-12a: las órdenes a mercado son taker; 0,05 % por lado; **0,10 % ida y vuelta** |
+| **Gates** | PF ≥ 1,5, max DD ≤ −10 %, expectativa positiva y 6–12 operaciones al mes por activo, como criterio de aceptación (`research/metrics.py::gate_check`) | Los gates no equivalen a un estado de confirmación (C2/G7). Ningún gate se ha incorporado al Protocolo V2 |
+| **Identidad del experimento** | `research/schema.py::compute_contract_hash` incluye el contexto de evaluación | G3: la identidad de la proposición **excluye** el contexto de evaluación |
+
+Estas diferencias son **de versión**. Nada de v1 se recalcula ni se modifica por esta
+consolidación.
