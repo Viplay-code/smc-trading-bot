@@ -336,7 +336,7 @@ estado CLOSED.
 
 ---
 
-## 8. H3-C-3 · Objeto (O) y universo (U) de selección
+## 8. H3-C-3 · Objeto (O), universo (U) y arquitectura (T-0) de selección
 
 ### O — Objeto de selección de H3-C-3
 - **Fecha de la decisión:** 2026-09-23 (fecha documentada).
@@ -402,17 +402,81 @@ estado CLOSED.
 - **Procedencia:** auditoría del nodo U, auditoría comparativa U-A / U-B con Decision
   Brief, y auditoría de cierre de U.
 
+> **Nota de actualización posterior — no forma parte del registro de U.**
+>
+> El registro de U se conserva **literal**. Su frase «T y R siguen OPEN» y la mención de T
+> en el punto 8 de C₁ describen el estado **en la fecha en que U se cerró**, cuando T era
+> un nodo de trabajo.
+>
+> **Qué ocurrió después.** T-0 se cerró con la decisión **B** (registro siguiente): T no es
+> un nodo vigente. La referencia a T en el punto 8 de C₁ queda **sin objeto**; la
+> obligación de evaluar el efecto de un cambio de U sobre **R y H3-C-3** sigue vigente.
+>
+> **Efecto sobre U y C₁: ninguno.** U = {PRO, CEA, CEL} y C₁ no cambian.
+
+### T-0 — Arquitectura de la decisión de H3-C-3 (decisión B)
+- **Fecha de la decisión:** 2026-09-23 (fecha documentada).
+- **Decisión humana** [N]: se adopta la **arquitectura B** como arquitectura vigente del
+  protocolo: **O + U + R → H3-C-3**, con **R = (R_regla, R_motivo)**. La naturaleza de la
+  razón **no** es un nodo T independiente. **T-0 queda CLOSED.** T no es un nodo vigente.
+- **Estatus epistémico:** **el expediente no determina A ni B. El humano adopta B como
+  arquitectura vigente del protocolo porque es compatible con el expediente y reproduce la
+  estructura histórica de registro sin introducir un nodo independiente no requerido.**
+- **Alternativa no adoptada:** **A**, O + U + T + R → H3-C-3, con T como nodo previo e
+  independiente.
+- **Antecedentes registrados:**
+  - T no existía en el expediente histórico: la ficha de H3-C-3 no indicaba con qué clase de
+    razón se elige. Surgió en los encargos del **2026-09-22**: la tipología (normativa,
+    modelado/representación, empírica, metodológica) en el encargo de la auditoría de
+    H3-C-3, que pedía determinar «cuál(es)» correspondían; el símbolo T y
+    𝒯 = {normativa, modelado, empírica, metodológica} en el encargo de la auditoría de
+    arquitectura. Ninguna decisión [N] lo adoptó como nodo.
+  - En los precedentes, el humano declaró la naturaleza **en el mismo acto** de decidir y
+    el registro la anotó como atributo: D1.6 («decisión de alcance de V1»), C-3a, D-I.1 y
+    D-II.1 («regla de modelado [I]»), y el campo «Motivo» de DM-1 a DM-9 y de B3.
+- **Contenido:**
+  - **R_regla**: parte operativa. Si H3-C-3 termina por selección, aplicada a U da una única
+    e\* ∈ U, con type(e\*) = RULE.
+  - **R_motivo**: naturaleza o motivo de la decisión, registrado **en el mismo acto** que
+    R_regla.
+- **Destino de las tres funciones que representaba T:**
+  1. **Naturaleza de la razón** → pasa a **R_motivo**, atributo registrado en el mismo acto
+     que R_regla.
+  2. **Diferimiento** → **no** pasa a R_motivo, **no** es un tipo de R y **no** es un valor
+     de T. Es una situación procedimental de H3-C-3, representada con el estado existente
+     **OPEN**. Si en el futuro se decide diferir, la instrucción y su condición se
+     registrarán explícitamente en ese momento.
+  3. **Compromiso previo con una vía** → **no** forma parte de la arquitectura vigente. Si
+     alguna vez hiciera falta, requeriría una nueva decisión procedimental explícita.
+- **Retiro de 𝒯:** la tipología queda **retirada como estructura del protocolo**. **No** es
+  taxonomía de R_motivo. Se conserva solo como historia de auditoría.
+- **R sigue OPEN.** Adoptar B no define R. Siguen sin resolver: criterio de selección,
+  evidencia admisible, forma exacta de R_regla, vocabulario de R_motivo, tratamiento de
+  empates, cualquier condición de diferimiento y la selección entre PRO, CEA y CEL.
+- **Consecuencias:** **H3-C-3 sigue OPEN.** **H3-C-4 sigue OPEN**, inalcanzable bajo el U
+  vigente. **𝓒′ no cambia**: B trata sobre cómo se decide entre entradas, no sobre
+  ningún predicado de f.
+- **Qué no se reabre:** O = C, U = {PRO, CEA, CEL}, C₁, C-1a, 𝓒′, DM-1 a DM-9, B3, R-B3,
+  E-32 ni E-38. Las menciones de T en textos cerrados se conservan con nota posterior
+  (registro de U y C₁).
+- **Revisión:** B solo puede revisarse mediante una **decisión humana explícita de
+  reapertura de la arquitectura**. No existe ninguna condición automática, plazo, evento
+  ni prueba de revisión.
+- **Procedencia:** auditoría del nodo T, auditoría de legitimidad y ontología de T (T-0) y
+  auditoría de cierre de la decisión B.
+
 ---
 
 ## 9. Decisiones que permanecen OPEN
 
-H3-C-3 (T y R) · H3-C-4 · H3-D · H3-E · D-III · H4 · C9 · C6 · C3 · C4 · C5b · C7 · C8 ·
+H3-C-3 (R) · H3-C-4 · H3-D · H3-E · D-III · H4 · C9 · C6 · C3 · C4 · C5b · C7 · C8 ·
 C10 · C-5 decisión D (tratamiento histórico R1–R4).
 
 **DM-9 ya no figura en esta lista:** quedó CLOSED con la decisión (d).
 **B3 tampoco:** quedó CLOSED con P1 = (b), P2 = (a), P3 = (b), P4 (regla R-B3) y
 P5 = (a).
-**O y U** quedaron CLOSED (§8). **H3-C-3 sigue OPEN** porque T y R siguen OPEN.
+**O y U** quedaron CLOSED (§8). **T-0** quedó CLOSED con la decisión B: T no es un nodo
+vigente. **H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
 Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
@@ -435,6 +499,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | B3 (P1 a P5) | Conversación (auditoría, Decision Brief y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C.1, §D, §G | Sí. Se apoya únicamente en **E-28**, ya registrado |
 | O = C | Conversación (auditorías del nodo O, Decision Brief, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §G | Sí. Decisión humana de diseño; **el expediente no demuestra O = C** |
 | U = {PRO, CEA, CEL} y C₁ | Conversación (auditoría de U, auditoría comparativa U-A / U-B, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Los hechos de U se apoyan en **E-32**, **E-37** y la verificación directa de las condiciones de base, que **no tiene fila propia en §E** |
+| T-0 (decisión B) | Conversación (auditoría de T, auditoría T-0, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; **el expediente no determina A ni B** |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |

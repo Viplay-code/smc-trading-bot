@@ -74,9 +74,10 @@ distintas, se documenta la coexistencia (§I), no se armoniza.
 | **𝓒** | 𝓔𝓗𝓞 + MR-pop — clase normativa vigente antes de DM-8 |
 | **𝓒′** | 𝓒 + CT-joint — **clase normativa vigente** |
 
-**Términos de H3-C-3: objeto de selección (O = C) y universo (U).** Decisiones humanas de
-diseño [N] del 2026-09-23 (`DECISION_LOG.md` §8). **El expediente no demuestra O = C**:
-dejó O indeterminado, y la ambigüedad se resolvió por decisión humana.
+**Términos de H3-C-3: objeto de selección (O = C), universo (U) y regla de selección (R,
+arquitectura B).** Decisiones humanas de diseño [N] del 2026-09-23 (`DECISION_LOG.md` §8).
+**El expediente no demuestra O = C**: dejó O indeterminado, y la ambigüedad se resolvió
+por decisión humana. **Tampoco determina la arquitectura A ni la B**: el humano adoptó B.
 
 | Término | Definición |
 |---|---|
@@ -92,12 +93,20 @@ dejó O indeterminado, y la ambigüedad se resolvió por decisión humana.
 | **out(e)** | Regla producida por la entrada: out(e) = rule(e) si type(e) = RULE; out(e, θ) = f_θ si type(e) = FAMILY y θ ∈ Θ_e está fijado |
 | **U** | Universo de selección de H3-C-3: **U := {PRO, CEA, CEL}**, definido por lista (§D) |
 | **e\*** | Entrada que seleccione H3-C-3, con e\* ∈ U |
-| **T** | Naturaleza del criterio con que H3-C-3 seleccionará dentro de U. **OPEN** |
-| **R** | Regla de selección que, aplicada a U, da e\*. **OPEN**; no existe para ningún valor de T |
+| **R** | Regla de selección de H3-C-3: **R = (R_regla, R_motivo)**. **R_regla** es la parte operativa: si H3-C-3 termina por selección, aplicada a U da una única e\* ∈ U. **R_motivo** es la naturaleza o el motivo de la decisión, registrado en el mismo acto que R_regla. **OPEN**: no existe todavía ningún criterio, y el vocabulario de R_motivo no está fijado |
 
 rule y mem tienen **dominios disjuntos**. **No existe la convención de «familia unitaria»**:
 una RULE no es una FAMILY de un solo miembro. **U y 𝓒′ son de tipos distintos**
 (entradas frente a reglas): no se escribe U ⊆ 𝓒′, sino ∀e ∈ U: rule(e) ∈ 𝓒′ (§D).
+
+**Arquitectura vigente de H3-C-3 (decisión B): O + U + R → H3-C-3.** El diferimiento **no**
+es un componente de R: es una situación procedimental de H3-C-3, representada como OPEN.
+Si se decide diferir, la instrucción y su condición se registrarán en ese momento.
+
+**T (constructo de auditoría, retirado por la decisión B).** No es un nodo ni una variable
+vigente del protocolo. Designaba la tipología 𝒯 = {normativa, modelado, empírica,
+metodológica}, introducida en los encargos del 2026-09-22; se retiró sin convertirse en
+taxonomía de R_motivo. No confundir con T-1, T-1a (§E.6) ni con T\* (D1.9, D1.10).
 
 **Tipos registrados:** PRO, CEA, CEL, EQ, regla nula, PMIN, PMAX, SW½ y SW₁ son **RULE**;
 F-W, F-PRI y F-H son **FAMILY**; type(F-OPT) es **ND**.
@@ -354,6 +363,11 @@ una entrada FAMILY es **ND**. Están fuera de U por **alcance**, y solo C₁ pue
 > 8. Si U cambia, debe evaluarse el efecto del cambio sobre T, R y H3-C-3, que dependen
 >    de U. Cómo se propaga ese efecto **no está definido (ND)**.
 
+> **Nota posterior — no forma parte del texto de C₁.** El punto 8 menciona T, que era un
+> nodo de trabajo cuando se cerró U. Tras la decisión B (`DECISION_LOG.md` §8), T no es un
+> nodo vigente y esa referencia queda **sin objeto**. La obligación de evaluar el efecto
+> de un cambio de U sobre **R y H3-C-3** sigue vigente.
+
 ### Entradas de Cat excluidas por norma
 
 | Entrada | Motivo | Etiqueta |
@@ -539,7 +553,9 @@ O-EF y AM-3; sigue siendo falsa fuera de 𝓔 (testigo EQ, que incumple O-EF).
 | H3-C-2 · B3 (estatus de las propiedades implicadas) | CLOSED — CT-P y CT-r quedan como teoremas **[D]** (Γ = {CT-joint}, E-28); regla **R-B3** en §D; OR-award y MR-pop **sin objeto** |
 | H3-C-3 · O (objeto de selección) | CLOSED — **C**: entrada de Cat, de tipo RULE o FAMILY (§B). Decisión humana; el expediente no la demuestra |
 | H3-C-3 · U (universo de selección) | CLOSED — **U = {PRO, CEA, CEL}**, definido por lista; solo revisable por decisión humana explícita (**C₁**, §D) |
-| **H3-C-3** (selección de entrada en U) | **OPEN** — T y R siguen **OPEN**; no hay selección entre PRO, CEA y CEL |
+| H3-C-3 · T-0 (arquitectura: ¿naturaleza de la razón como nodo T?) | CLOSED — **B**: O + U + R → H3-C-3; la naturaleza de la razón es el atributo R_motivo de R. **T no es un nodo vigente.** Decisión humana; el expediente no determina A ni B |
+| **H3-C-3 · R** (regla de selección, R = (R_regla, R_motivo)) | **OPEN** — sin criterio de selección, evidencia admisible, forma de R_regla, vocabulario de R_motivo ni tratamiento de empates |
+| **H3-C-3** (selección de entrada en U) | **OPEN** — R sigue **OPEN**; no hay selección entre PRO, CEA y CEL. Un diferimiento se representaría como OPEN, con su instrucción y condición registradas al decidirlo |
 | **H3-C-4** (parámetros de la entrada seleccionada) | **OPEN** — solo se activa si type(e\*) = FAMILY. **Inalcanzable bajo el U vigente**: U ∩ type⁻¹(FAMILY) = ∅, luego e\* ∈ U ⇒ type(e\*) = RULE |
 | **H3-D** (destino del remanente y reasignación) | **OPEN** |
 | **H3-E** (coherencia con C6-3) | **OPEN** |
