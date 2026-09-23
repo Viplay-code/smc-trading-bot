@@ -74,6 +74,38 @@ distintas, se documenta la coexistencia (§I), no se armoniza.
 | **𝓒** | 𝓔𝓗𝓞 + MR-pop — clase normativa vigente antes de DM-8 |
 | **𝓒′** | 𝓒 + CT-joint — **clase normativa vigente** |
 
+**Términos de H3-C-3: objeto de selección (O = C) y universo (U).** Decisiones humanas de
+diseño [N] del 2026-09-23 (`DECISION_LOG.md` §8). **El expediente no demuestra O = C**:
+dejó O indeterminado, y la ambigüedad se resolvió por decisión humana.
+
+| Término | Definición |
+|---|---|
+| **ℱ** | Espacio de todas las reglas f. 𝓒′ ⊆ ℱ es una clase de **reglas** |
+| **Cat** | Catálogo de entradas registradas: PRO, CEA, CEL, F-W, F-PRI, F-H, EQ, regla nula, PMIN, PMAX, SW½, SW₁ y F-OPT. Si Cat puede ampliarse es **ND** |
+| **Entrada** (e) | Elemento de Cat. Una entrada es un **nombre**, no una regla |
+| **type** | type : Cat → {RULE, FAMILY}. Toda entrada tiene tipo; el valor de type(F-OPT) es **ND** |
+| **RULE** | Tipo de entrada que designa una única regla |
+| **FAMILY** | Tipo de entrada que designa una familia parametrizada de reglas |
+| **rule(e)** | Definida solo si type(e) = RULE: rule(e) ∈ ℱ |
+| **Θ_e** | Espacio de parámetros. Definido solo si type(e) = FAMILY |
+| **mem(e)** | Definida solo si type(e) = FAMILY: mem(e) = {f_θ : θ ∈ Θ_e} ⊆ ℱ |
+| **out(e)** | Regla producida por la entrada: out(e) = rule(e) si type(e) = RULE; out(e, θ) = f_θ si type(e) = FAMILY y θ ∈ Θ_e está fijado |
+| **U** | Universo de selección de H3-C-3: **U := {PRO, CEA, CEL}**, definido por lista (§D) |
+| **e\*** | Entrada que seleccione H3-C-3, con e\* ∈ U |
+| **T** | Naturaleza del criterio con que H3-C-3 seleccionará dentro de U. **OPEN** |
+| **R** | Regla de selección que, aplicada a U, da e\*. **OPEN**; no existe para ningún valor de T |
+
+rule y mem tienen **dominios disjuntos**. **No existe la convención de «familia unitaria»**:
+una RULE no es una FAMILY de un solo miembro. **U y 𝓒′ son de tipos distintos**
+(entradas frente a reglas): no se escribe U ⊆ 𝓒′, sino ∀e ∈ U: rule(e) ∈ 𝓒′ (§D).
+
+**Tipos registrados:** PRO, CEA, CEL, EQ, regla nula, PMIN, PMAX, SW½ y SW₁ son **RULE**;
+F-W, F-PRI y F-H son **FAMILY**; type(F-OPT) es **ND**.
+
+**Uso histórico de «familia».** En §E (E-6 y el título de E.5) y en §F, «familia» se
+conserva en su sentido anterior, equivalente a «regla». El término técnico **FAMILY** es
+solo el tipo de entrada definido aquí.
+
 ---
 
 ## C. Estado del Protocolo V2
@@ -262,24 +294,69 @@ es opcional de hecho: **toda** regla de 𝓒′ la cumple necesariamente (E-42).
 es la tabla de propiedades implicadas de más arriba. Las cuatro propiedades de esta tabla,
 en cambio, **pueden fallar** dentro de 𝓒′.
 
-### Familias candidatas actuales
+### Universo de selección de H3-C-3: U = {PRO, CEA, CEL}
 
-**PRO · CEA · CEL**
+**U := {PRO, CEA, CEL}** [N], decisión humana del 2026-09-23 (`DECISION_LOG.md` §8).
+U está **definido por lista**: no existe regla de construcción de U, y U **no se deriva**
+de DM-7 aunque coincida con su «Espacio resultante».
 
-| Familia | Definición |
-|---|---|
-| **PRO** | Pᵢ = rᵢ · mín(1, P / Σ r) |
-| **CEA** | Pᵢ = mín(rᵢ, λ), con λ tal que Σ Pⱼ = mín(P, Σ r) |
-| **CEL** | Pᵢ = máx(0, rᵢ − μ), con μ ≥ 0 tal que Σ Pⱼ = mín(P, Σ r) |
+| Entrada | type | rule(e) = f_e |
+|---|---|---|
+| **PRO** | RULE | Pᵢ = rᵢ · mín(1, P / Σ r) |
+| **CEA** | RULE | Pᵢ = mín(rᵢ, λ), con λ tal que Σ Pⱼ = mín(P, Σ r) |
+| **CEL** | RULE | Pᵢ = máx(0, rᵢ − μ), con μ ≥ 0 tal que Σ Pⱼ = mín(P, Σ r) |
 
 > **PRO, CEA y CEL NO están seleccionadas. H3-C-3 permanece OPEN.**
 
+**Hechos sobre el U vigente:**
+
+- **∀e ∈ U: type(e) = RULE ∧ out(e) = rule(e) = f_e ∈ ℱ** [D]. Seleccionar e\* ∈ U
+  determina la regla en el mismo acto. Esto no cierra H3-D, H3-E, D-III ni H4.
+- **∀e ∈ U: rule(e) ∈ 𝓒′** [D]. O-EF, O-HO, OR-award, OR-loss, MR-pop y CT-joint por
+  **E-32**; C-1a, B.1′, B-α, AM-3 y A.1 por inspección directa de las tres fórmulas (sin
+  fila propia en §E). Es un hecho sobre este U, **no una norma** sobre universos futuros.
+- **rule[U] ⊊ 𝓒′** [D]: AVG ∈ 𝓒′ (E-37) y AVG ∉ rule[U].
+- **U ∩ type⁻¹(FAMILY) = ∅** [D]. Por tanto e\* ∈ U ⇒ type(e\*) = RULE, y **H3-C-4 es
+  inalcanzable bajo el U vigente** (§G).
+
 El espacio de reglas admisibles es potencialmente infinito [I]. Estas tres son las
-candidatas **estudiadas** que sobreviven, no una enumeración exhaustiva.
+candidatas **estudiadas** que sobreviven, no una enumeración exhaustiva: U es un
+**alcance declarado**, no una descripción de 𝓒′.
 
-### Familias excluidas y motivo
+### Entradas FAMILY de Cat fuera de U
 
-| Familia | Motivo | Etiqueta |
+| Entrada | type | Θ_e | Estado |
+|---|---|---|---|
+| **F-W** | FAMILY | ND | En Cat · **fuera de U** · no evaluada |
+| **F-PRI** (antes «F-PRI general») | FAMILY | ND | En Cat · **fuera de U** · no evaluada |
+| **F-H** | FAMILY | ND | En Cat · **fuera de U** · no evaluada |
+
+**«Fuera de U» no significa «excluida».** Estas entradas **no incumplen ninguna norma**:
+no tienen definición formal y no se han evaluado. Sus parámetros originales, w(aᵢ) y
+ρ(aᵢ), dependían de atributos que C-1a excluye, y no existe una re-especificación sobre
+K, rᵢ, {rⱼ} y P; solo podrían ser admisibles como funciones de rᵢ. La admisibilidad de
+una entrada FAMILY es **ND**. Están fuera de U por **alcance**, y solo C₁ puede cambiarlo.
+
+### C₁ — Cláusula de revisión de U
+
+> **C₁ [N]**, decisión humana de diseño del 2026-09-23. El expediente no la demuestra.
+>
+> 1. U queda **CLOSED** en su alcance actual: {PRO, CEA, CEL}.
+> 2. U **no crece automáticamente**. No existe regla de construcción de U.
+> 3. Cualquier modificación de U requiere una **decisión humana explícita**.
+> 4. **Añadir o quitar cualquier entrada**, sea RULE o FAMILY, requiere reabrir U.
+> 5. Especificar Θ_e de una FAMILY **no** implica que e entre en U.
+> 6. Que una entrada sea compatible con 𝓒′ **no** implica que pertenezca a U.
+> 7. C₁ **no reabre por sí misma** O ni ninguna decisión normativa anterior. Una
+>    modificación de U solo afectaría a O si la entrada propuesta no pudiera tener tipo
+>    RULE ni FAMILY, y a 𝓒′ o a una DM solo si dependiera expresamente de ellas.
+>    Añadir entradas nuevas a Cat exige decidir antes si Cat puede ampliarse (hoy ND).
+> 8. Si U cambia, debe evaluarse el efecto del cambio sobre T, R y H3-C-3, que dependen
+>    de U. Cómo se propaga ese efecto **no está definido (ND)**.
+
+### Entradas de Cat excluidas por norma
+
+| Entrada | Motivo | Etiqueta |
 |---|---|---|
 | **SW½** (PRO si P ≤ Σ r / 2; CEA si no) | Incumple **MR-pop** (DM-7) | [D+] |
 | **SW₁** (PRO si P ≤ 1; CEA si no) | Incumple **O-HO** (DM-3) | [D] |
@@ -288,7 +365,6 @@ candidatas **estudiadas** que sobreviven, no una enumeración exhaustiva.
 | **EQ** (Pᵢ = mín(rᵢ, P/n)) | Incumple **O-EF** (DM-1) | [D] |
 | **Regla nula** (Pᵢ = 0) | Incumple **O-EF** (DM-1) | [D] |
 | **F-OPT** (maximizar el número de competidores cubiertos) | Choca con B.1′ y con la frontera de ejecución | [D] |
-| **F-W, F-PRI general, F-H** | No evaluables: sin definición formal. **No excluidas**, sino no evaluadas | ND |
 
 Las reglas excluidas por norma **siguen siendo testigos matemáticos válidos** de
 no-implicaciones (§F).
@@ -298,7 +374,7 @@ necesidades estrictamente menores, Uᵢ = suma de las estrictamente mayores y m�
 competidores con la misma necesidad que i:
 PMIN: Pᵢ = mín(rᵢ, máx(0, P − Lᵢ)/mᵢ). PMAX: Pᵢ = mín(rᵢ, máx(0, P − Uᵢ)/mᵢ).
 
-### Testigos auxiliares (no son candidatas)
+### Testigos auxiliares (no son candidatas ni entradas de Cat)
 
 | Testigo | Definición | Clase |
 |---|---|---|
@@ -461,8 +537,10 @@ O-EF y AM-3; sigue siendo falsa fuera de 𝓔 (testigo EQ, que incumple O-EF).
 | H3-C-2 · B1, B2 | Sin objeto (por DM-1 = (d)) |
 | H3-C-2 · DM-9 (CT-K) | CLOSED — **(d)**: no es norma [N]; queda como teorema [D] (E-40 a E-42) |
 | H3-C-2 · B3 (estatus de las propiedades implicadas) | CLOSED — CT-P y CT-r quedan como teoremas **[D]** (Γ = {CT-joint}, E-28); regla **R-B3** en §D; OR-award y MR-pop **sin objeto** |
-| **H3-C-3** (selección de familia) | **OPEN** |
-| **H3-C-4** (parámetros, si la familia los tuviera) | **OPEN** |
+| H3-C-3 · O (objeto de selección) | CLOSED — **C**: entrada de Cat, de tipo RULE o FAMILY (§B). Decisión humana; el expediente no la demuestra |
+| H3-C-3 · U (universo de selección) | CLOSED — **U = {PRO, CEA, CEL}**, definido por lista; solo revisable por decisión humana explícita (**C₁**, §D) |
+| **H3-C-3** (selección de entrada en U) | **OPEN** — T y R siguen **OPEN**; no hay selección entre PRO, CEA y CEL |
+| **H3-C-4** (parámetros de la entrada seleccionada) | **OPEN** — solo se activa si type(e\*) = FAMILY. **Inalcanzable bajo el U vigente**: U ∩ type⁻¹(FAMILY) = ∅, luego e\* ∈ U ⇒ type(e\*) = RULE |
 | **H3-D** (destino del remanente y reasignación) | **OPEN** |
 | **H3-E** (coherencia con C6-3) | **OPEN** |
 | **D-III** (visibilidad de las liberaciones dentro del evento; opciones D-III.1 a D-III.4; D-III.5 descartada por B.1′) | **OPEN** |

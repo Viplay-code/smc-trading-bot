@@ -13,7 +13,7 @@ demostrado · **[I]** inferencia · **ND** no demostrado ni refutado.
 consolidación documental. Donde la fecha original consta en la propia decisión, se indica.
 
 **Sobre el alcance de este registro.** Los bloques 0.1 a 0.6 son **resúmenes**: sus
-Decision Records completos **no están consolidados todavía**. Los bloques 1 a 9 recogen el
+Decision Records completos **no están consolidados todavía**. Los bloques 1 a 10 recogen el
 contenido completo tal como se cerró.
 
 ---
@@ -336,20 +336,90 @@ estado CLOSED.
 
 ---
 
-## 8. Decisiones que permanecen OPEN
+## 8. H3-C-3 · Objeto (O) y universo (U) de selección
 
-H3-C-3 · H3-C-4 · H3-D · H3-E · D-III · H4 · C9 · C6 · C3 · C4 · C5b · C7 · C8 ·
+### O — Objeto de selección de H3-C-3
+- **Fecha de la decisión:** 2026-09-23 (fecha documentada).
+- **Decisión humana** [N]: **O = C**. H3-C-3 selecciona una **entrada** de un catálogo
+  heterogéneo, Cat, con type : Cat → {RULE, FAMILY}. Definiciones en
+  `NORMATIVE_SPEC.md` §B.
+- **Estatus epistémico:** **el expediente dejó O indeterminado; el humano resolvió la
+  ambigüedad adoptando C.** El expediente **no** demuestra O = C: es una decisión humana
+  de diseño del protocolo.
+- **Antecedentes registrados:** la tabla fundacional del catálogo mezclaba reglas de forma
+  cerrada (PRO, CEA, CEL, EQ) con familias parametrizadas sobre atributos (F-W, F-PRI,
+  F-H). El vocabulario osciló entre «familia» y «regla». H3-C-4 se formuló originalmente
+  solo para F-W, F-PRI y F-H.
+- **Contenido:**
+  - RULE designa una regla: rule(e) ∈ ℱ. FAMILY designa una familia parametrizada:
+    mem(e) = {f_θ : θ ∈ Θ_e}. rule y mem tienen **dominios disjuntos**; Θ_e solo está
+    definido para FAMILY.
+  - out(e) = rule(e) si e es RULE; out(e, θ) = f_θ si e es FAMILY y θ está fijado.
+  - **No existe la convención de «familia unitaria».**
+  - **PRO, CEA y CEL son RULE.** **F-W, F-PRI y F-H son FAMILY**, con Θ_e = ND (sus
+    parámetros originales dependían de atributos excluidos por C-1a). EQ, regla nula, PMIN,
+    PMAX, SW½ y SW₁ son RULE. type(F-OPT) es **ND**.
+  - H3-C-4 solo se activa si la entrada seleccionada es FAMILY.
+  - 𝓒′ sigue siendo una clase de **reglas**. La admisibilidad de una entrada FAMILY queda
+    **ND**. También queda **ND** si existe una entrada FAMILY para las reglas de
+    conmutación (SW); SW½ y SW₁ siguen excluidas una a una como RULE.
+- **Consecuencias:** ninguna regla se excluye ni se añade; 𝓒′ no cambia. H3-C-3 pasa a
+  ser «selección de entrada»; la etiqueta «selección de familia» queda superada.
+- **Procedencia:** auditoría histórica, semántica y ontológica del nodo O, auditoría de
+  opciones y Decision Brief, previas a la decisión; auditoría de cierre, posterior.
+
+### U — Universo de selección de H3-C-3 (U-A + C₁)
+- **Fecha de la decisión:** 2026-09-23 (fecha documentada).
+- **Decisión humana** [N]: **U = {PRO, CEA, CEL}**, definido por lista (alternativa U-A),
+  con la cláusula de revisión **C₁**.
+- **Estatus epistémico:** U y C₁ son decisiones humanas de diseño; el expediente no las
+  demuestra. **U no se deriva** de DM-7, aunque coincida con su «Espacio resultante».
+  No existe regla de construcción de U.
+- **Pertenencia:** PRO ∈ U, CEA ∈ U, CEL ∈ U. F-W ∉ U, F-PRI ∉ U, F-H ∉ U. Estas tres
+  **siguen en Cat y no están excluidas**: no incumplen ninguna norma y están fuera de U
+  solo por alcance.
+- **Hechos:** ∀e ∈ U: type(e) = RULE ∧ out(e) = rule(e) = f_e ∈ ℱ [D].
+  ∀e ∈ U: rule(e) ∈ 𝓒′ [D] (E-32 más verificación directa de C-1a, B.1′, B-α, AM-3 y
+  A.1). rule[U] ⊊ 𝓒′ [D] (AVG ∈ 𝓒′ por E-37, AVG ∉ rule[U]).
+  U ∩ type⁻¹(FAMILY) = ∅ [D].
+- **Notación registrada:** **no** se escribe U ⊆ 𝓒′ (U contiene entradas y 𝓒′
+  reglas) ni rule(e) = e (una entrada es un nombre, no una regla).
+- **C₁ (texto completo en `NORMATIVE_SPEC.md` §D):**
+  1. U queda CLOSED en su alcance actual.
+  2. U no crece automáticamente.
+  3. Cualquier modificación de U requiere una decisión humana explícita.
+  4. Añadir o quitar cualquier entrada, sea RULE o FAMILY, requiere reabrir U.
+  5. Especificar Θ_e de una FAMILY no implica que entre en U.
+  6. La compatibilidad con 𝓒′ no implica pertenencia a U.
+  7. C₁ no reabre por sí misma O ni ninguna decisión normativa anterior.
+  8. Si U cambia, debe evaluarse el efecto sobre T, R y H3-C-3; cómo se propaga es ND.
+- **Consecuencias:** **H3-C-4 sigue OPEN, pero es inalcanzable bajo el U vigente**
+  (e\* ∈ U ⇒ type(e\*) = RULE). Seleccionar dentro de U determina la regla en el mismo
+  acto. **No se selecciona entre PRO, CEA y CEL:** T y R siguen OPEN, y E-38 sigue
+  vigente (ninguna propiedad registrada distingue entre las tres).
+- **Qué no se reabre:** O = C, H3-C-0, H3-C-1 (C-1a), 𝓒′, DM-1 a DM-9, B3, R-B3, E-32,
+  E-38 ni ninguna exclusión cerrada.
+- **Procedencia:** auditoría del nodo U, auditoría comparativa U-A / U-B con Decision
+  Brief, y auditoría de cierre de U.
+
+---
+
+## 9. Decisiones que permanecen OPEN
+
+H3-C-3 (T y R) · H3-C-4 · H3-D · H3-E · D-III · H4 · C9 · C6 · C3 · C4 · C5b · C7 · C8 ·
 C10 · C-5 decisión D (tratamiento histórico R1–R4).
 
 **DM-9 ya no figura en esta lista:** quedó CLOSED con la decisión (d).
 **B3 tampoco:** quedó CLOSED con P1 = (b), P2 = (a), P3 = (b), P4 (regla R-B3) y
 P5 = (a).
+**O y U** quedaron CLOSED (§8). **H3-C-3 sigue OPEN** porque T y R siguen OPEN.
+**H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
 Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 
 ---
 
-## 9. Matriz de trazabilidad de esta consolidación
+## 10. Matriz de trazabilidad de esta consolidación
 
 | Decisión | Fuente reconstruida | Archivo destino | ¿Completamente respaldada? |
 |---|---|---|---|
@@ -363,6 +433,8 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | DM-1 a DM-8 | Conversación (DR completo de cada una) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C, §D | Sí |
 | DM-9 | Conversación (auditoría, revisión adversarial y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C, §D, §E | Sí. **Las demostraciones de E-40 a E-43 y la verificación numérica de SW-n no están transcritas**: solo constan sus enunciados, hipótesis y alcance |
 | B3 (P1 a P5) | Conversación (auditoría, Decision Brief y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C.1, §D, §G | Sí. Se apoya únicamente en **E-28**, ya registrado |
+| O = C | Conversación (auditorías del nodo O, Decision Brief, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §G | Sí. Decisión humana de diseño; **el expediente no demuestra O = C** |
+| U = {PRO, CEA, CEL} y C₁ | Conversación (auditoría de U, auditoría comparativa U-A / U-B, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Los hechos de U se apoyan en **E-32**, **E-37** y la verificación directa de las condiciones de base, que **no tiene fila propia en §E** |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
