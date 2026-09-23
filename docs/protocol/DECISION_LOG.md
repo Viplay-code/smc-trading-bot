@@ -167,7 +167,7 @@ registran porque H3 depende de ellos: A = One-way, B = aislado, C-1 a C-4, H1, H
 
 ---
 
-## 7. H3-C-2 · DM-1 a DM-8
+## 7. H3-C-2 · DM-1 a DM-9 y decisiones auxiliares
 
 Las ocho decisiones comparten componente (H3-C-2, propiedades del criterio f), tipo [N] y
 estado CLOSED.
@@ -246,12 +246,104 @@ estado CLOSED.
   excluida: PRO, CEA y CEL las cumplen. Se activa el caso de B3 (declararlas o no de forma
   explícita), que sigue OPEN. **DM-9 no queda resuelto**: CT-joint ⇒ CT-K sigue siendo ND.
 
+> **Nota de actualización posterior — no forma parte del registro de DM-8.**
+>
+> El texto de DM-8 se conserva **literal y sin modificar**, como registro histórico de lo
+> que se sabía y se decidió en ese momento. Su última afirmación
+> —«CT-joint ⇒ CT-K sigue siendo ND»— describe el **estado del conocimiento al cierre
+> de DM-8**, no el estado matemático vigente del protocolo.
+>
+> **Qué ocurrió después.** La auditoría de DM-9 produjo **E-43**, que mediante el testigo
+> **SW-n** resolvió esa relación: **CT-joint ⇏ CT-K**, falsa en 𝓔, 𝓔𝓗 y
+> 𝓔𝓗𝓞. Dentro de 𝓒 y 𝓒′ la implicación se cumple, pero de forma
+> **degenerada**: no porque CT-joint implique CT-K, sino porque la clase ya implica CT-K
+> por **E-41**.
+>
+> **Efecto sobre DM-8: ninguno.** La decisión DM-8 = (e) y sus consecuencias registradas
+> no cambian. Lo único superado es la etiqueta **ND** de esa relación concreta.
+> Estado vigente: `NORMATIVE_SPEC.md` §E.6 (E-43) y la nota final de §F.
+
+### DM-9 — Continuidad ante la entrada de un competidor (CT-K)
+- **Fecha de la decisión:** 2026-09-21 (fecha documentada; a diferencia de DM-1 a DM-8, que
+  se cerraron en sesiones cuya fecha exacta no consta).
+- **Decisión humana** [N]: **(d)** — **NO se exige CT-K como norma independiente**, y se
+  registra formalmente como **teorema [D]** derivado de condiciones ya adoptadas.
+- **Motivo normativo registrado:** CT-K **no se adopta como preferencia independiente**. Su
+  validez dentro de la clase vigente queda demostrada matemáticamente a partir de
+  condiciones que ya fueron elegidas (O-EF por DM-1, AM-3 por H3-C-1 y MR-pop por DM-7). No
+  se afirma que CT-K sea deseable ni indeseable por sí misma, ni que su carácter derivado
+  sea por sí solo una razón para adoptarla o descartarla.
+- **Alcance explícito de lo decidido:** lo que se decide es **el estatus normativo** de
+  CT-K, no su verdad matemática. CT-K **es verdadera** para toda regla de 𝓒′; lo que
+  se declara es que **no es una norma [N]**.
+- **Hechos:** E-40 (T-1a), E-41 (T-1), E-42 (𝓒 ⇒ CT-K, 𝓒′ ⇒ CT-K y
+  𝓒′ ∩ {CT-K} = 𝓒′) y E-43 (CT-joint ⇒ CT-K es falsa en 𝓔, 𝓔𝓗 y
+  𝓔𝓗𝓞, testigo SW-n). La jerarquía lógica registrada es
+  **T-1a ⇒ T-1**, y **no al revés**.
+- **Hipótesis registradas:** S-a (f definida para toda cardinalidad finita), S-b (K finito)
+  y **S-c** (MR-pop cuantificada sobre todo rₖ > 0, incluidas necesidades arbitrariamente
+  pequeñas). **S-c es la dependencia frágil:** una futura restricción de materialidad que
+  limitara MR-pop a entrantes con rₖ ≥ δ > 0 dejaría T-1 sin demostración automática. Se
+  registra **como dependencia, no como decisión abierta**.
+- **Consecuencias:** **ninguna familia excluida y ningún cambio en el espacio de reglas.**
+  La decisión no altera 𝓒′ porque 𝓒′ ⇒ CT-K: exigir CT-K y no exigirla
+  producen el **mismo conjunto de reglas**, no solo las mismas familias conocidas. PRO, CEA
+  y CEL siguen siendo las candidatas. **B3 sigue OPEN** y ahora alcanza también a CT-K,
+  junto a CT-P y CT-r. **No se cierra H3-C-3:** CT-K no aporta ningún criterio de selección
+  de familia, porque las tres candidatas la cumplen.
+- **Procedencia:** auditoría formal de CT-K, revisión adversarial de sus resultados (que
+  corrigió la jerarquía T-1a/T-1, rectificó el testigo SW₁ y explicitó S-a/S-b/S-c) y
+  versión corregida de la auditoría, previas a esta decisión.
+
+### B3 — Estatus de las propiedades implicadas
+- **Fecha de la decisión:** 2026-09-22 (fecha documentada).
+- **Decisión humana** [N], en cinco puntos:
+  - **P1 = (b)** — **CT-P** se registra como **teorema [D]** derivado, con
+    **Γ = {CT-joint}** y referencia **E-28**. **No es una norma [N].**
+  - **P2 = (a)** — **CT-r** recibe **el mismo estatus** que CT-P: **teorema [D]**, con
+    **Γ = {CT-joint}** y referencia **E-28**. **No es una norma [N].**
+  - **P3 = (b)** — **no** se añaden requisitos adicionales de trazabilidad para CT-P ni
+    CT-r. Basta con registrar la propiedad, Γ = {CT-joint} y E-28. **No** se crea una
+    sección de hipótesis auxiliares equivalente a S-a/S-b/S-c de DM-9.
+  - **P4** — se establece una **regla metodológica general reutilizable**, **R-B3**,
+    registrada en `NORMATIVE_SPEC.md` §D.
+  - **P5 = (a)** — las ramas **OR-award** y **MR-pop** se declaran formalmente
+    **sin objeto** dentro de B3.
+- **Motivo normativo registrado:** ni CT-P ni CT-r se adoptan como preferencias
+  normativas independientes. Ambas son **consecuencias demostradas** de una condición ya
+  elegida (CT-joint, por DM-8 = (e)), y el protocolo las registra como tales. No se afirma
+  que sean deseables ni indeseables por sí mismas.
+- **Alcance explícito de lo decidido:** se decide **el estatus documental-normativo** de
+  CT-P y CT-r, no su verdad matemática. Ambas **son verdaderas** para toda regla de
+  𝓒′ (E-28); lo que se declara es que **no son normas [N]**.
+- **Advertencia registrada:** que CT-P y CT-r reciban el **mismo estatus** (P2 = (a))
+  **no** significa que sean equivalentes. Su **independencia mutua** sigue vigente y no se
+  modifica: **CT-P ⇏ CT-r** y **CT-r ⇏ CT-P**, con testigos registrados en
+  `NORMATIVE_SPEC.md` §F.
+- **Hechos:** **E-28** (CT-joint ⇒ CT-P y CT-joint ⇒ CT-r, [D]). Las no-implicaciones
+  entre CT-P y CT-r constan en §F y **no se alteran**.
+- **Por qué OR-award y MR-pop quedan sin objeto** [D]: su activación dependía de que se
+  exigieran MR-own o MR-others (E-16, E-17, E-18), y **DM-5 = (a)** no las exige. Ambas
+  fueron decididas **directamente** como normas [N]: **DM-6 = (d)** y **DM-7 = (b)**. B3
+  no las reabre.
+- **Consecuencias:** **ninguna familia excluida y ningún cambio en el espacio de reglas.**
+  𝓒′ ∩ {CT-P} ∩ {CT-r} = 𝓒′ (E-28), de modo que la decisión es de
+  registro, no de contenido. PRO, CEA y CEL siguen siendo las candidatas. **H3-C-3 sigue
+  OPEN** y B3 no le aporta ningún criterio. **DM-9 = (d) y el estatus de CT-K no se
+  modifican.**
+- **Procedencia:** auditoría de B3 y Decision Brief preparatorio (preguntas P1 a P5),
+  previos a esta decisión.
+
 ---
 
 ## 8. Decisiones que permanecen OPEN
 
-DM-9 · B3 · H3-C-3 · H3-C-4 · H3-D · H3-E · D-III · H4 · C9 · C6 · C3 · C4 · C5b · C7 ·
-C8 · C10 · C-5 decisión D (tratamiento histórico R1–R4).
+H3-C-3 · H3-C-4 · H3-D · H3-E · D-III · H4 · C9 · C6 · C3 · C4 · C5b · C7 · C8 ·
+C10 · C-5 decisión D (tratamiento histórico R1–R4).
+
+**DM-9 ya no figura en esta lista:** quedó CLOSED con la decisión (d).
+**B3 tampoco:** quedó CLOSED con P1 = (b), P2 = (a), P3 = (b), P4 (regla R-B3) y
+P5 = (a).
 
 Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 
@@ -269,6 +361,8 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | H3-A, H3-Bβ, AM-3, R-H3-2, H3-C-0 | Conversación (DR completo) | `DECISION_LOG.md` §5 | Sí |
 | H3-C-1 | Conversación (DR completo) | `DECISION_LOG.md` §6 | Sí |
 | DM-1 a DM-8 | Conversación (DR completo de cada una) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C, §D | Sí |
+| DM-9 | Conversación (auditoría, revisión adversarial y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C, §D, §E | Sí. **Las demostraciones de E-40 a E-43 y la verificación numérica de SW-n no están transcritas**: solo constan sus enunciados, hipótesis y alcance |
+| B3 (P1 a P5) | Conversación (auditoría, Decision Brief y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C.1, §D, §G | Sí. Se apoya únicamente en **E-28**, ya registrado |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |

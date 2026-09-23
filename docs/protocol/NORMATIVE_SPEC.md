@@ -102,6 +102,20 @@ distintas, se documenta la coexistencia (§I), no se armoniza.
 | DM-6 | **(d)**: se exigen **OR-award** y **OR-loss** | [N] | CLOSED |
 | DM-7 | **(b)**: se exige **MR-pop** | [N] | CLOSED |
 | DM-8 | **(e)**: se exige **CT-joint** | [N] | CLOSED |
+| DM-9 | **(d)**: **no** se exige CT-K como norma independiente; queda registrada como **teorema [D]** (E-40 a E-42) | [N] | CLOSED |
+
+**H3-C-2 — decisiones auxiliares**
+
+| Decisión | Resultado | Tipo | Estado |
+|---|---|---|---|
+| B1, B2 | Sin objeto (por DM-1 = (d)) | — | CLOSED |
+| **B3** | **P1 = (b)**: CT-P como teorema **[D]**, Γ = {CT-joint}, E-28 · **P2 = (a)**: CT-r, mismo estatus · **P3 = (b)**: no se añade trazabilidad adicional · **P4**: regla **R-B3** (§D) · **P5 = (a)**: OR-award y MR-pop, **sin objeto** | [N] | CLOSED |
+
+**Por qué OR-award y MR-pop quedan sin objeto dentro de B3** [D]: su condición de
+activación era que se exigieran las propiedades que las implican (E-16, E-17 para
+OR-award; E-18 para MR-pop), y **DM-5 = (a)** no exige MR-own ni MR-others. Además ambas
+se decidieron **directamente como normas [N]**: OR-award por **DM-6 = (d)** y MR-pop por
+**DM-7 = (b)**. **B3 no las reabre.**
 
 ### C.2 Antecedentes normativos de los que depende H3
 
@@ -158,10 +172,78 @@ Cerradas en conversación. **Su Decision Record completo no está consolidado to
 | **MR-pop** | K ⊂ K′, con P y r_K fijos ⇒ Pᵢ(K′) ≤ Pᵢ(K) para todo i ∈ K |
 | **CT-joint** | (r, P) ↦ Pᵢ(K, r, P) es continua en (0, ∞)ᴷ × [0, ∞), para cada K y todo i |
 
-**Implicadas por CT-joint, no normas añadidas** [D]: **CT-P** (continuidad en P) y **CT-r**
-(continuidad en r).
-
 Más las restricciones estructurales de §C.1: C-1a, B.1′, B-α, AM-3 y A.1.
+
+### Propiedades implicadas que NO son normas
+
+Ninguna de las tres es una decisión [N]. Todas se cumplen necesariamente dentro de la clase
+vigente 𝓒′, pero por **implicación demostrada**, no por elección normativa.
+
+| Propiedad | Enunciado | Por qué se cumple en 𝓒′ | Estatus |
+|---|---|---|---|
+| **CT-P** | Con K y r fijos, P ↦ Pᵢ(K, r, P) es continua | Implicada por CT-joint (E-28) | **Teorema [D]**, no [N] — **B3 · P1 = (b)**. Γ = {CT-joint}; referencia **E-28** |
+| **CT-r** | Con K y P fijos, r ↦ Pᵢ(K, r, P) es continua en (0, ∞)ᴷ | Implicada por CT-joint (E-28) | **Teorema [D]**, no [N] — **B3 · P2 = (a)**, mismo estatus que CT-P. Γ = {CT-joint}; referencia **E-28** |
+| **CT-K** | **Continuidad ante la entrada de un competidor.** Para cada K, cada k ∉ K, cada r_K ∈ (0, ∞)ᴷ y cada P ≥ 0: **lím_{rₖ → 0⁺} Pᵢ(K ∪ {k}, (r_K, rₖ), P) = Pᵢ(K, r_K, P)** para todo i ∈ K | Implicada por **O-EF ∧ AM-3 ∧ MR-pop** (E-40, E-41). CT-joint **no** interviene | **No es [N]** — **DM-9 = (d)**. Es un **teorema [D]** |
+
+**Precisiones de la definición de CT-K** (parte del enunciado registrado, no añadidos):
+
+- El dominio es **rₖ > 0** y el límite es **por la derecha**: rₖ = 0 **no pertenece** al
+  dominio de f, por lo que CT-K es una condición de **frontera**, no un caso particular de
+  CT-r (que es continuidad en el abierto (0, ∞)^{K ∪ {k}}).
+- Que el propio entrante reciba Pₖ → 0 **no hace falta exigirlo**: lo garantiza AM-3 [D].
+- CT-K **no** es continuidad respecto de K en ninguna topología sobre conjuntos: compara
+  Pᵢ(K) con Pᵢ(K ∪ {k}) a través de la proyección de coordenadas sobre K, y traslada toda
+  la variación a la única variable real rₖ. Cualquier noción topológica sobre K exigiría
+  **estructura adicional** que el protocolo no tiene, y sería una propiedad **distinta**
+  (**ND**: no evaluable con el material actual).
+
+> **DM-9 = (d) [N].** CT-K **no** se adopta como preferencia normativa independiente. Su
+> validez dentro de la clase vigente está **demostrada** a partir de condiciones que ya
+> fueron elegidas: **𝓒′ ⇒ CT-K** (E-42). No se afirma que CT-K sea deseable ni
+> indeseable por sí misma.
+
+**Las implicaciones que sostienen a CT-P y CT-r se mantienen expresamente** [D, E-28]:
+**CT-joint ⇒ CT-P** y **CT-joint ⇒ CT-r**. Γ = {CT-joint} para ambas, por DM-8 = (e).
+
+**Mismo estatus no significa equivalencia.** CT-P y CT-r reciben el mismo estatus por
+**B3 · P2 = (a)**, pero son **propiedades distintas y mutuamente independientes**:
+**CT-P ⇏ CT-r** y **CT-r ⇏ CT-P**, con testigos registrados en §F. B3 **no** afirma
+que sean equivalentes ni intercambiables, y **no** altera esas no-implicaciones.
+
+**Alcance de B3** (§C.1): se aplicó a **CT-P** y **CT-r**. **CT-K** ya tenía su estatus
+fijado por **DM-9 = (d)**. Las ramas **OR-award** y **MR-pop** quedaron **sin objeto**
+(**B3 · P5 = (a)**).
+
+### Regla metodológica R-B3
+
+> **R-B3 (B3 · P4) [N].** Cuando una propiedad quede **demostrada** como consecuencia
+> lógica de condiciones o normas ya adoptadas, su estatus es **[D]**: se registran la
+> propiedad, su **antecedente lógico Γ** y su **referencia demostrativa**, y **no** se
+> convierte automáticamente en una norma **[N]** nueva.
+>
+> **Condiciones de aplicación. Las tres son necesarias:**
+>
+> 1. Debe existir una **demostración registrada**. R-B3 **no autoriza** etiquetar [D]
+>    ninguna afirmación no demostrada: sin demostración registrada, el estado sigue siendo
+>    **ND**.
+> 2. El **antecedente Γ debe estar explícito**: qué condiciones ya adoptadas la implican.
+> 3. Debe mantenerse la distinción entre **propiedad matemáticamente derivada [D]** y
+>    **preferencia normativa [N]**. R-B3 no convierte una en la otra en ningún sentido.
+>
+> **Límites de R-B3:**
+>
+> - Es una regla **metodológica** sobre cómo se documenta el protocolo, **no** una
+>   restricción sobre f: no añade, quita ni modifica ninguna regla de reparto, y **no
+>   cambia 𝓒′**.
+> - **No invalida ninguna decisión [N] posterior** que establezca un requisito
+>   independiente. Si una decisión humana futura exige como norma una propiedad que
+>   además sea derivable, **esa decisión prevalece**; R-B3 fija únicamente el estatus por
+>   defecto en ausencia de tal decisión.
+> - No prejuzga cómo documentar las **hipótesis auxiliares** de una demostración: eso se
+>   resuelve caso por caso, como en §E.6 con S-a, S-b y S-c.
+>
+> **Aplicaciones registradas:** **DM-9 = (d)** para CT-K; **B3 · P1 = (b)** y
+> **B3 · P2 = (a)** para CT-P y CT-r.
 
 ### No obligatorio
 
@@ -174,6 +256,11 @@ Más las restricciones estructurales de §C.1: C-1a, B.1′, B-α, AM-3 y A.1.
 
 **"No obligatorio" no significa "indeseable".** Las cuatro decisiones registran
 explícitamente que no se afirma nada sobre el valor de esas propiedades.
+
+**CT-K no figura en esta tabla.** No es obligatoria como norma (DM-9 = (d)), pero tampoco
+es opcional de hecho: **toda** regla de 𝓒′ la cumple necesariamente (E-42). Su lugar
+es la tabla de propiedades implicadas de más arriba. Las cuatro propiedades de esta tabla,
+en cambio, **pueden fallar** dentro de 𝓒′.
 
 ### Familias candidatas actuales
 
@@ -217,6 +304,7 @@ PMIN: Pᵢ = mín(rᵢ, máx(0, P − Lᵢ)/mᵢ). PMAX: Pᵢ = mín(rᵢ, máx(
 |---|---|---|
 | **AVG** | (PRO + CEA)/2 | Pertenece a 𝓒 y a 𝓒′ [D+] |
 | **MIX** | Mezcla continua de PRO y CEA con peso dependiente de P/Σ r, no monótono | Pertenece a 𝓔𝓗𝓞 [D+]; su pertenencia a 𝓒 es **ND** |
+| **SW-n** | PRO si \|K\| ≤ 2; CEA si \|K\| ≥ 3 | Pertenece a 𝓔𝓗𝓞 [D+]. Cumple CT-joint e incumple CT-K y MR-pop: testigo de E-43. **No pertenece a 𝓒** |
 
 ---
 
@@ -297,6 +385,33 @@ Cada hecho indica la clase en la que está demostrado. Fuera de esa clase no se 
 | E-38 | Las 14 propiedades candidatas de H3-C-2 son satisfacibles a la vez: PRO y CEA las cumplen todas. Ninguna combinación de exigencias deja vacío el espacio ni lo reduce a una única regla | [D] / [D+] |
 | E-39 | Las formas explícitas de PMIN y PMAX cumplen C-1a, B.1′, B-α, AM-3, O-EF y O-HO: no dependen de ninguna enumeración, y los empates se tratan por grupo | [D+] |
 
+### E.6 Entrada de competidores y CT-K (DM-9)
+
+| # | Hecho | Etiqueta |
+|---|---|---|
+| E-40 | **T-1a — resultado primario.** Bajo S-a, S-b, S-c y **O-EF ∧ AM-3 ∧ MR-pop**: para todo K, todo k ∉ K y **todo rₖ > 0**, **0 ≤ Pᵢ(K, r_K, P) − Pᵢ(K ∪ {k}, (r_K, rₖ), P) ≤ rₖ** para todo i ∈ K, y en forma agregada **0 ≤ Σ_{i∈K} [Pᵢ(K) − Pᵢ(K ∪ {k})] ≤ rₖ**. Es una cota **uniforme**, no un enunciado de límite. **No usa** O-HO, OR-award, OR-loss, CT-joint, CT-P, CT-r ni B.1′ | [D] |
+| E-41 | **T-1 — corolario de E-40.** **O-EF ∧ AM-3 ∧ MR-pop ⇒ CT-K**, tomando rₖ → 0⁺ en la cota de E-40 y aplicando el encaje. El límite queda **demostrado**, no supuesto: no se usa continuidad de ninguna clase. **Dependencia lógica: E-40 ⇒ E-41, y no al revés** — un enunciado de límite no puede producir una cota uniforme. Ambos se obtienen de los mismos pasos algebraicos | [D] |
+| E-42 | **𝓒 ⇒ CT-K** y **𝓒′ ⇒ CT-K**, por E-41: 𝓒 contiene O-EF, AM-3 y MR-pop, y 𝓒′ ⊆ 𝓒. Por tanto **𝓒′ ∩ {CT-K} = 𝓒′**, igualdad de conjuntos cuantificada sobre **toda** regla de 𝓒′ — afirmación distinta y más fuerte que «PRO, CEA y CEL cumplen CT-K» (E-32), que solo cubre tres reglas concretas | [D] |
+| E-43 | **CT-joint ⇒ CT-K es falsa en 𝓔, 𝓔𝓗 y 𝓔𝓗𝓞** (testigo SW-n). Dentro de 𝓒 y 𝓒′ la implicación se cumple, pero de forma **degenerada**: no porque CT-joint implique CT-K, sino porque la clase ya implica CT-K por E-41 | [D+] |
+
+> **Hipótesis de E-40 y E-41 (T-1a y T-1).** Además de O-EF, AM-3 y MR-pop:
+>
+> - **S-a** — f está definida **para toda cardinalidad finita** (regla de población
+>   variable). Ya presupuesta por MR-pop y por el propio enunciado de CT-K.
+> - **S-b** — **K es finito.** Esencial: la deducción «cada sumando ≤ la suma» exige una
+>   suma finita de términos no negativos.
+> - **S-c** — **MR-pop está cuantificada sobre todo rₖ > 0**, incluidas necesidades
+>   arbitrariamente pequeñas. Es la lectura registrada de MR-pop —solo se fijan P y r_K— y
+>   es coherente con E-22.
+>
+> **S-c es la dependencia frágil.** Si más adelante se introdujera una restricción de
+> materialidad que limitara MR-pop a entrantes con necesidad mínima positiva (rₖ ≥ δ > 0),
+> **T-1 (E-41) dejaría de estar demostrado automáticamente**: el paso al límite exige
+> MR-pop para rₖ arbitrariamente pequeño. T-1a (E-40) seguiría valiendo, pero solo en el
+> rango rₖ ≥ δ. Esto queda registrado **como dependencia, no como decisión abierta**: no
+> se prejuzga si el umbral de materialidad pendiente en el protocolo llegará a afectar a
+> MR-pop.
+
 ---
 
 ## F. Relaciones ND
@@ -320,10 +435,8 @@ sigue siendo ND.
 | CT-r ⇒ CT-P | Falsa en 𝓔 (testigo SW₁). **ND en 𝓔𝓗 y en 𝓒** |
 | CT-P ∧ CT-r ⇒ CT-joint | ND en todas las clases |
 | Las restricciones de 𝓒 ⇒ CT-P, CT-r o CT-joint | ND |
-| CT-joint ⇒ CT-K | Falsa fuera de 𝓔 (testigo EQ). **ND en 𝓔, en 𝓒 y en 𝓒′** |
 | CT-K ⇒ CT-P | Falsa en 𝓔 (SW₁). **ND en 𝓔𝓗 y en 𝓒** |
 | CT-K ⇒ CT-r | Falsa en 𝓔𝓗 (PMIN). **ND en 𝓔𝓗𝓞 y en 𝓒** |
-| MR-pop ⇒ CT-K | Falsa fuera de 𝓔 (EQ). **ND en 𝓔** |
 | MR-pop ⇒ CT-P | Falsa en 𝓔 (SW₁). **ND en 𝓒** |
 | CT-joint ⇒ MR-own o MR-others | ND |
 | OR-award ⇒ MR-own | ND |
@@ -331,6 +444,11 @@ sigue siendo ND.
 | Que las opciones (a) a (e) de DM-8 impongan restricciones distintas dentro de 𝓒 | ND |
 | Cuántas familias además de PRO, CEA y CEL quedan en el espacio actual | ND |
 | Si MIX cumple MR-pop | ND |
+
+**Resueltas por la auditoría de DM-9, ya no son ND:** «CT-joint ⇒ CT-K» pasa a **E-43**
+(falsa en 𝓔, 𝓔𝓗 y 𝓔𝓗𝓞, testigo SW-n; degenerada en 𝓒 y 𝓒′).
+«MR-pop ⇒ CT-K» queda **demostrada dentro de 𝓔** por **E-41**, porque 𝓔 contiene
+O-EF y AM-3; sigue siendo falsa fuera de 𝓔 (testigo EQ, que incumple O-EF).
 
 ---
 
@@ -341,8 +459,8 @@ sigue siendo ND.
 | H3-C-1 (C-1a, B.1′, B-α, AM-3, A.1) | CLOSED |
 | H3-C-2 · DM-1 a DM-8 | CLOSED |
 | H3-C-2 · B1, B2 | Sin objeto (por DM-1 = (d)) |
-| **H3-C-2 · DM-9** (CT-K) | **OPEN** |
-| **H3-C-2 · B3** (declarar o no las propiedades implicadas) | **OPEN** |
+| H3-C-2 · DM-9 (CT-K) | CLOSED — **(d)**: no es norma [N]; queda como teorema [D] (E-40 a E-42) |
+| H3-C-2 · B3 (estatus de las propiedades implicadas) | CLOSED — CT-P y CT-r quedan como teoremas **[D]** (Γ = {CT-joint}, E-28); regla **R-B3** en §D; OR-award y MR-pop **sin objeto** |
 | **H3-C-3** (selección de familia) | **OPEN** |
 | **H3-C-4** (parámetros, si la familia los tuviera) | **OPEN** |
 | **H3-D** (destino del remanente y reasignación) | **OPEN** |
