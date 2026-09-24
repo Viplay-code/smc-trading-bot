@@ -88,6 +88,19 @@ registran porque H3 depende de ellos: A = One-way, B = aislado, C-1 a C-4, H1, H
 | **Consecuencias** | Una posición neta por símbolo; las señales opuestas netean o reducen; margen dedicado por posición; no se modelan LONG y SHORT simultáneos como exposiciones independientes |
 | **Abierto tras la decisión** | C (regla de asignación de margen) y D (tratamiento de la información histórica no reconstruible) |
 
+> **Nota de consolidación posterior — no forma parte del registro de C6-8a/b.**
+>
+> Este registro no transcribió la **regla de neutralidad** que el humano fijó al preparar
+> la matriz de C6-8a (§7, 2026-09-17). Texto literal:
+>
+> «Todas las decisiones deben quedar formuladas como una única configuración
+> metodológica uniforme para todas las familias. No debe existir: una configuración para
+> SMC; otra para Donchian; otra para una familia que eventualmente resulte prometedora. La
+> configuración debe fijarse antes de observar resultados de la familia evaluada.»
+>
+> Su alcance histórico son las decisiones de esa matriz. Su **extensión a H3-C-3** es una
+> decisión humana posterior (**N-H3**, §8). El contenido de este registro no cambia.
+
 ---
 
 ## 2. C — Regla de asignación de margen (C-1 a C-4)
@@ -336,7 +349,7 @@ estado CLOSED.
 
 ---
 
-## 8. H3-C-3 · Objeto (O), universo (U) y arquitectura (T-0) de selección
+## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0) y neutralidad (N-H3) de selección
 
 ### O — Objeto de selección de H3-C-3
 - **Fecha de la decisión:** 2026-09-23 (fecha documentada).
@@ -465,6 +478,93 @@ estado CLOSED.
 - **Procedencia:** auditoría del nodo T, auditoría de legitimidad y ontología de T (T-0) y
   auditoría de cierre de la decisión B.
 
+### N-H3 — Extensión de la regla de neutralidad de C6-8a/b a H3-C-3
+- **Fecha de la decisión:** 2026-09-23 (fecha documentada).
+- **Origen [E]:** regla fijada por el humano el **2026-09-17** en la matriz de decisión de
+  C6-8a, §7. Texto literal:
+
+  > «Todas las decisiones deben quedar formuladas como una única configuración
+  > metodológica uniforme para todas las familias. No debe existir: una configuración para
+  > SMC; otra para Donchian; otra para una familia que eventualmente resulte prometedora. La
+  > configuración debe fijarse antes de observar resultados de la familia evaluada.»
+
+  Alcance histórico: las decisiones de esa matriz (A, B, C y D de C6-8).
+- **Hecho epistemológico:** el expediente **no establecía ni deducía** que la regla
+  alcanzara H3. H3 desciende de la decisión C (C-5 → H1 → H3), pero no existe ninguna
+  regla registrada por la que las subdecisiones posteriores hereden las condiciones de C.
+  D1.1 («núcleo general más anexos por clase») impide tratar la uniformidad entre familias
+  como principio general del que deducirla.
+- **Decisión humana** [N]: la regla de neutralidad de C6-8a/b **se extiende explícitamente a
+  H3-C-3**. **Es [N], no [E] ni [D].**
+- **Consecuencias, y solo estas:**
+  - **N-H3-1:** La entrada seleccionada e\* debe quedar fijada antes de observar resultados
+    de la familia de estrategias evaluada. Por tanto, R no puede seleccionar PRO/CEA/CEL
+    utilizando resultados experimentales de las familias de estrategias que posteriormente
+    serán evaluadas con esa configuración.
+  - **N-H3-2:** existe **una única e\* para todas las familias de estrategias**. No puede haber
+    una e\* para SMC, otra para Donchian ni otra para cualquier otra familia. La selección de
+    H3-C-3 es una configuración común a las familias de estrategias.
+- **Significado de «familias»:** familias de estrategias o señales (SMC, Donchian y las que
+  se evalúen después). **No** son entradas con type(e) = FAMILY del catálogo (F-W, F-PRI,
+  F-H), ni PRO, CEA o CEL. La neutralidad **no selecciona ni excluye** ninguna entrada de U.
+- **Lo que N-H3 no implica:** que R sea determinista; que R sea una función; que R sea
+  reconstruible por un tercero; que haga falta evidencia para seleccionar e\*; ninguna forma
+  concreta de R_regla (A, B o C); ninguna preferencia ni exclusión entre PRO, CEA y CEL.
+- **Efecto sobre R:** R sigue **OPEN**, con su espacio de diseño restringido por N-H3-1 y
+  N-H3-2. Siguen OPEN el criterio, la forma de R_regla, los empates y la selección entre
+  PRO, CEA y CEL. El determinismo de R sigue OPEN y su reconstruibilidad, ND / OPEN. La
+  evidencia admisible sigue OPEN, pero **ya excluye** los resultados experimentales de las
+  familias evaluadas para seleccionar e\*. Queda **ND** si otras formas de evidencia (por
+  ejemplo, simulaciones calibradas con resultados de una familia) cuentan como
+  «resultados de la familia evaluada».
+- **Efecto sobre H3-C-3:** sigue **OPEN**. e\* deberá ser **única, común a las familias de
+  estrategias y fijada antes de observar sus resultados**.
+- **Qué no se reabre:** O, U, C₁, T-0 / B, 𝓒′, DM-1 a DM-9, B3, R-B3, E-32, E-38 ni
+  C6-8a/b. N-H3 es una norma nueva sobre el nodo OPEN H3-C-3 / R.
+- **Procedencia:** auditoría de R, auditoría de precisión (determinismo, dominio y
+  reconstruibilidad), auditoría del alcance de la regla de C6-8a/b y auditoría del acto
+  normativo necesario para resolver su extensión.
+
+### N-H3 · U — Interpretación de N-H3-1: independencia de uso
+- **Fecha de la decisión:** 2026-09-24 (fecha documentada).
+- **Decisión humana** [N]: la ambigüedad entre «antes de observar» y «sin usar ni
+  condicionarse a» se resuelve con la lectura **U, independencia de uso**. Formulación
+  literal:
+
+  > «e\* debe quedar fijada sin utilizar, ajustar ni condicionar su selección a resultados
+  > experimentales de las familias de estrategias que posteriormente serán evaluadas con esa
+  > configuración.»
+
+- **Razones registradas por el humano (literales):**
+  - «No queremos excluir SMC ni Donchian de H3 simplemente porque sus resultados v1 ya
+    existen y ya fueron observados.»
+  - «Queremos proteger la independencia de la selección de e\*, no imponer una barrera
+    temporal que haga imposible evaluar familias cuyos resultados históricos ya existen.»
+  - «La existencia previa de resultados no invalida por sí misma la futura evaluación.»
+  - «Lo que queda prohibido es utilizar esos resultados, directa o indirectamente, para
+    seleccionar e\*.»
+
+  Las razones se registran como motivo; **el alcance operativo es el texto de N-H3-1**.
+- **Lecturas no adoptadas:**
+  - **T absoluta:** e\* debe fijarse antes de observar cualquier resultado de una familia que
+    posteriormente será evaluada.
+  - **T acotada:** e\* debe fijarse antes de observar resultados producidos por la
+    evaluación de esa familia con la configuración de H3.
+- **Formulación original de N-H3-1 (2026-09-23), conservada como historia:**
+
+  > «La entrada seleccionada e\* debe quedar fijada antes de observar resultados de la familia
+  > de estrategias evaluada. Por tanto, R no puede seleccionar PRO/CEA/CEL utilizando
+  > resultados experimentales de las familias de estrategias que posteriormente serán
+  > evaluadas con esa configuración.»
+
+- **Siguen ND:** la periferia de «resultados» (qué productos de ejecutar una familia, sin
+  medir desempeño, cuentan como resultados); la familia de calibración (una familia cuyos
+  resultados se usan y que nunca se evalúa con esa configuración); los generadores de
+  exposición y las simulaciones calibradas con una familia. **También sigue ND** si la
+  lectura U rige la regla original de C6-8a/b.
+- **Procedencia:** auditorías del alcance semántico de N-H3-1, de las lecturas T y U, de
+  la lectura T acotada, de implementación y de revisión de la redacción mínima.
+
 ---
 
 ## 9. Decisiones que permanecen OPEN
@@ -476,7 +576,8 @@ C10 · C-5 decisión D (tratamiento histórico R1–R4).
 **B3 tampoco:** quedó CLOSED con P1 = (b), P2 = (a), P3 = (b), P4 (regla R-B3) y
 P5 = (a).
 **O y U** quedaron CLOSED (§8). **T-0** quedó CLOSED con la decisión B: T no es un nodo
-vigente. **H3-C-3 sigue OPEN** porque R sigue OPEN.
+vigente. **N-H3** quedó CLOSED: extiende la regla de neutralidad de C6-8a/b a H3-C-3.
+**H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
 Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
@@ -500,6 +601,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | O = C | Conversación (auditorías del nodo O, Decision Brief, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §G | Sí. Decisión humana de diseño; **el expediente no demuestra O = C** |
 | U = {PRO, CEA, CEL} y C₁ | Conversación (auditoría de U, auditoría comparativa U-A / U-B, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Los hechos de U se apoyan en **E-32**, **E-37** y la verificación directa de las condiciones de base, que **no tiene fila propia en §E** |
 | T-0 (decisión B) | Conversación (auditoría de T, auditoría T-0, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; **el expediente no determina A ni B** |
+| N-H3 (neutralidad en H3-C-3) | Conversación (texto literal de la matriz C6-8a §7; auditorías de alcance y del acto normativo; decisión humana; interpretación de uso (2026-09-24)) | `DECISION_LOG.md` §1 (nota) y §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Origen [E]; extensión a H3 [N]. **El texto de la regla no estaba consolidado**: se transcribe ahora literal |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |

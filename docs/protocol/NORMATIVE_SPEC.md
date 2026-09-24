@@ -93,7 +93,7 @@ por decisión humana. **Tampoco determina la arquitectura A ni la B**: el humano
 | **out(e)** | Regla producida por la entrada: out(e) = rule(e) si type(e) = RULE; out(e, θ) = f_θ si type(e) = FAMILY y θ ∈ Θ_e está fijado |
 | **U** | Universo de selección de H3-C-3: **U := {PRO, CEA, CEL}**, definido por lista (§D) |
 | **e\*** | Entrada que seleccione H3-C-3, con e\* ∈ U |
-| **R** | Regla de selección de H3-C-3: **R = (R_regla, R_motivo)**. **R_regla** es la parte operativa: si H3-C-3 termina por selección, aplicada a U da una única e\* ∈ U. **R_motivo** es la naturaleza o el motivo de la decisión, registrado en el mismo acto que R_regla. **OPEN**: no existe todavía ningún criterio, y el vocabulario de R_motivo no está fijado |
+| **R** | Regla de selección de H3-C-3: **R = (R_regla, R_motivo)**. **R_regla** es la parte operativa: si H3-C-3 termina por selección, aplicada a U da una única e\* ∈ U. **R_motivo** es la naturaleza o el motivo de la decisión, registrado en el mismo acto que R_regla. **OPEN**: no existe todavía ningún criterio, y el vocabulario de R_motivo no está fijado. Su espacio de diseño está restringido por **N-H3-1** y **N-H3-2** (§D) |
 
 rule y mem tienen **dominios disjuntos**. **No existe la convención de «familia unitaria»**:
 una RULE no es una FAMILY de un solo miembro. **U y 𝓒′ son de tipos distintos**
@@ -368,6 +368,39 @@ una entrada FAMILY es **ND**. Están fuera de U por **alcance**, y solo C₁ pue
 > nodo vigente y esa referencia queda **sin objeto**. La obligación de evaluar el efecto
 > de un cambio de U sobre **R y H3-C-3** sigue vigente.
 
+### Neutralidad de la selección de H3-C-3 (N-H3)
+
+**Origen [E].** La regla de neutralidad pertenece históricamente a **C6-8a/b**: la fijó el
+humano el **2026-09-17** en la matriz de decisión de C6-8a, §7, para las decisiones de esa
+matriz. Texto literal:
+
+> «Todas las decisiones deben quedar formuladas como una única configuración
+> metodológica uniforme para todas las familias. No debe existir: una configuración para
+> SMC; otra para Donchian; otra para una familia que eventualmente resulte prometedora. La
+> configuración debe fijarse antes de observar resultados de la familia evaluada.»
+
+**Extensión a H3-C-3 [N]** (2026-09-23, `DECISION_LOG.md` §8). El expediente **no
+establecía ni deducía** que la regla alcanzara H3. El humano la extiende explícitamente a
+H3-C-3. **Es [N], no [E] ni [D].** Sus únicas consecuencias son:
+
+| Id | Restricción sobre H3-C-3 y R |
+|---|---|
+| **N-H3-1** | e\* debe quedar fijada sin utilizar, ajustar ni condicionar su selección a resultados experimentales de las familias de estrategias que posteriormente serán evaluadas con esa configuración |
+| **N-H3-2** | Existe **una única e\* para todas las familias de estrategias**: no puede haber una e\* para SMC, otra para Donchian ni otra para cualquier otra familia. La selección de H3-C-3 es una configuración común a las familias de estrategias |
+
+**Interpretación [N]** (2026-09-24): en H3-C-3, «antes de observar resultados» se interpreta
+como independencia de uso; la formulación operativa es N-H3-1.
+
+**«Familias» significa aquí familias de estrategias o señales** (SMC, Donchian y las que se
+evalúen después). **No** significa entradas con type(e) = FAMILY del catálogo (F-W, F-PRI,
+F-H), ni PRO, CEA o CEL. La neutralidad **no selecciona ni excluye** ninguna entrada de U.
+
+**Lo que N-H3 no implica:** que R sea determinista; que R sea una función; que R sea
+reconstruible por un tercero; que haga falta evidencia para seleccionar e\*; ninguna forma
+concreta de R_regla; ninguna preferencia ni exclusión entre PRO, CEA y CEL. Tampoco cambia
+O, U, C₁, T-0 / B, 𝓒′, DM-1 a DM-9, B3 ni R-B3. Solo restringe el uso de resultados
+experimentales en la selección de H3-C-3 y entre qué familias debe mantenerse constante.
+
 ### Entradas de Cat excluidas por norma
 
 | Entrada | Motivo | Etiqueta |
@@ -554,8 +587,9 @@ O-EF y AM-3; sigue siendo falsa fuera de 𝓔 (testigo EQ, que incumple O-EF).
 | H3-C-3 · O (objeto de selección) | CLOSED — **C**: entrada de Cat, de tipo RULE o FAMILY (§B). Decisión humana; el expediente no la demuestra |
 | H3-C-3 · U (universo de selección) | CLOSED — **U = {PRO, CEA, CEL}**, definido por lista; solo revisable por decisión humana explícita (**C₁**, §D) |
 | H3-C-3 · T-0 (arquitectura: ¿naturaleza de la razón como nodo T?) | CLOSED — **B**: O + U + R → H3-C-3; la naturaleza de la razón es el atributo R_motivo de R. **T no es un nodo vigente.** Decisión humana; el expediente no determina A ni B |
-| **H3-C-3 · R** (regla de selección, R = (R_regla, R_motivo)) | **OPEN** — sin criterio de selección, evidencia admisible, forma de R_regla, vocabulario de R_motivo ni tratamiento de empates |
-| **H3-C-3** (selección de entrada en U) | **OPEN** — R sigue **OPEN**; no hay selección entre PRO, CEA y CEL. Un diferimiento se representaría como OPEN, con su instrucción y condición registradas al decidirlo |
+| H3-C-3 · N-H3 (neutralidad; extensión de la regla de C6-8a/b) | CLOSED — **N-H3-1**: e\* debe quedar fijada sin utilizar, ajustar ni condicionar su selección a resultados experimentales de las familias de estrategias que posteriormente serán evaluadas con esa configuración. **N-H3-2**: una única e\* para todas las familias de estrategias. Decisión humana [N]; no implica determinismo ni reconstruibilidad de R (§D) |
+| **H3-C-3 · R** (regla de selección, R = (R_regla, R_motivo)) | **OPEN** — sin criterio de selección, forma de R_regla, vocabulario de R_motivo ni tratamiento de empates. Evidencia admisible **OPEN**, pero excluye resultados experimentales de las familias que posteriormente serán evaluadas con esa configuración (N-H3-1). Espacio de diseño restringido por N-H3-1 y N-H3-2 |
+| **H3-C-3** (selección de entrada en U) | **OPEN** — R sigue **OPEN**; no hay selección entre PRO, CEA y CEL. e\* deberá ser **única, común a las familias de estrategias y fijada sin utilizar, ajustar ni condicionar su selección a resultados experimentales en los términos de N-H3-1** (N-H3). Un diferimiento se representaría como OPEN, con su instrucción y condición registradas al decidirlo |
 | **H3-C-4** (parámetros de la entrada seleccionada) | **OPEN** — solo se activa si type(e\*) = FAMILY. **Inalcanzable bajo el U vigente**: U ∩ type⁻¹(FAMILY) = ∅, luego e\* ∈ U ⇒ type(e\*) = RULE |
 | **H3-D** (destino del remanente y reasignación) | **OPEN** |
 | **H3-E** (coherencia con C6-3) | **OPEN** |
