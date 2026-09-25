@@ -286,6 +286,14 @@ fijado por **DM-9 = (d)**. Las ramas **OR-award** y **MR-pop** quedaron **sin ob
 > **Aplicaciones registradas:** **DM-9 = (d)** para CT-K; **B3 · P1 = (b)** y
 > **B3 · P2 = (a)** para CT-P y CT-r.
 
+**Interpretación [N] de la condición 1** (2026-09-25, `DECISION_LOG.md` §7): **R-a**. En
+R-B3, condición 1, «demostración registrada» significa que el hecho consta en el
+repositorio con su **enunciado**, su **alcance** y una **referencia demostrativa**, aunque
+la demostración completa no esté transcrita en el repositorio. **La condición sigue
+exigiendo que exista una demostración**: ninguna afirmación puede recibir [D] sin haber
+sido demostrada. Es una aclaración del significado de R-B3: no modifica su texto, B3 ·
+P1 a P5, DM-8, DM-9 ni ningún estatus, ni el significado matemático de CT-P, CT-r o CT-K.
+
 ### No obligatorio
 
 | Propiedad | Enunciado | Decisión |

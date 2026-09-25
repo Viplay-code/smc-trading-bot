@@ -347,6 +347,41 @@ estado CLOSED.
 - **Procedencia:** auditoría de B3 y Decision Brief preparatorio (preguntas P1 a P5),
   previos a esta decisión.
 
+### R-B3 · Interpretación de la condición 1 («demostración registrada»)
+- **Fecha:** 2026-09-25 (fecha documentada).
+- **Decisión humana** [N], interpretación adoptada: **R-a**. Texto literal:
+
+  > «En R-B3, condición 1, «demostración registrada» significa que el hecho consta en el
+  > repositorio con su enunciado, su alcance y una referencia demostrativa, aunque la
+  > demostración completa no esté transcrita en el repositorio.»
+
+- **Naturaleza:** interpretación [N] de R-B3 (B3 · P4). No es una norma sustantiva nueva
+  sobre CT-P, CT-r ni CT-K, ni una deducción [D]: la auditoría mostró que el corpus no
+  fijaba el significado de «demostración registrada».
+- **Límite:** la condición sigue exigiendo que exista una demostración. R-B3 sigue sin
+  autorizar la etiqueta [D] para afirmaciones no demostradas. Lo que se interpreta es solo
+  qué significa que esa demostración esté «registrada».
+- **Fundamento documental:**
+  - primera frase de R-B3: al aplicarla, «se registran la propiedad, su antecedente lógico
+    Γ y su referencia demostrativa»;
+  - `NORMATIVE_SPEC.md` §A: [D] es un «Hecho matemático demostrado en sesiones anteriores
+    a la que cerró la decisión»;
+  - `NORMATIVE_SPEC.md` §E, «Alcance de este registro»: se transcriben «sus enunciados y su
+    alcance o clase, no las demostraciones», y las demostraciones completas siguen en el
+    material de las sesiones de trabajo.
+- **Coherencia con las aplicaciones registradas** (DM-9 = (d), B3 · P1 y P2): es una
+  consecuencia de esta interpretación, no su fundamento. La auditoría identificó que usarla
+  como fundamento sería circular.
+- **Lecturas no adoptadas:** R-b (la demostración completa debe estar transcrita en el
+  repositorio) y R-c (la demostración consta en el material de las sesiones y el
+  repositorio la referencia).
+- **No retroactividad:** es una aclaración interpretativa. No modifica el texto de R-B3 ni
+  los registros de B3, DM-8 ni DM-9; no cambia B3 · P1 a P5, E-28 ni E-40 a E-42; no
+  cambia ningún estatus [D] a [N] ni a ND; no transcribe demostraciones; no cambia el
+  significado matemático de CT-P, CT-r ni CT-K; no reabre ninguna decisión cerrada.
+- **Procedencia:** Decision Brief de B3, auditoría de la condición 1 de R-B3 (que
+  identificó la ambigüedad), Decision Memo sobre R-a, R-b y R-c, y decisión humana.
+
 ---
 
 ## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto) y alcance de F2 respecto de una φ enumerativa
@@ -714,6 +749,9 @@ C10 · C-5 decisión D (tratamiento histórico R1–R4).
 **DM-9 ya no figura en esta lista:** quedó CLOSED con la decisión (d).
 **B3 tampoco:** quedó CLOSED con P1 = (b), P2 = (a), P3 = (b), P4 (regla R-B3) y
 P5 = (a).
+**R-B3, condición 1:** interpretación [N] adoptada (R-a): «demostración registrada» es el
+hecho con enunciado, alcance y referencia demostrativa en el repositorio, sin necesidad de
+transcribir la demostración completa.
 **O y U** quedaron CLOSED (§8). **T-0** quedó CLOSED con la decisión B: T no es un nodo
 vigente. **N-H3** quedó CLOSED: extiende la regla de neutralidad de C6-8a/b a H3-C-3.
 **R-EV** quedó CLOSED: la evidencia admisible para R es la de la Alternativa C.
@@ -743,6 +781,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | DM-1 a DM-8 | Conversación (DR completo de cada una) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C, §D | Sí |
 | DM-9 | Conversación (auditoría, revisión adversarial y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C, §D, §E | Sí. **Las demostraciones de E-40 a E-43 y la verificación numérica de SW-n no están transcritas**: solo constan sus enunciados, hipótesis y alcance |
 | B3 (P1 a P5) | Conversación (auditoría, Decision Brief y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C.1, §D, §G | Sí. Se apoya únicamente en **E-28**, ya registrado |
+| R-B3 · interpretación de la condición 1 (R-a) | Conversación (Decision Brief de B3, auditoría de la condición 1, Decision Memo y decisión humana) | `DECISION_LOG.md` §7; `NORMATIVE_SPEC.md` §D | Sí. Interpretación [N]; fundamento documental en R-B3, §A y §E |
 | O = C | Conversación (auditorías del nodo O, Decision Brief, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §G | Sí. Decisión humana de diseño; **el expediente no demuestra O = C** |
 | U = {PRO, CEA, CEL} y C₁ | Conversación (auditoría de U, auditoría comparativa U-A / U-B, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Los hechos de U se apoyan en **E-32**, **E-37** y la verificación directa de las condiciones de base, que **no tiene fila propia en §E** |
 | T-0 (decisión B) | Conversación (auditoría de T, auditoría T-0, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; **el expediente no determina A ni B** |
