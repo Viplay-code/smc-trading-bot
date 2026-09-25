@@ -554,6 +554,52 @@ la subsección de G-1:
 
 La numeración G-3 a G-11 se mantiene.
 
+### Alcance de F2 respecto de una φ enumerativa — resolución interpretativa
+
+**Resolución interpretativa [D]** (2026-09-25, `DECISION_LOG.md` §8). No es una decisión
+normativa nueva: registra lo que se deduce de normas ya cerradas. **G-1 y G-2 no se
+reabren.**
+
+> **Enunciado [D].** Con las normas cerradas a esta fecha, una φ definida por enumeración de
+> valores sobre rule[U] es compatible con F2: ninguna norma cerrada la excluye. F2 **no
+> exige** que φ sea enumerativa.
+>
+> **Γ** = {G-1 (F2; φ no definido; decisión de arquitectura, no de contenido), G-2 (la
+> invariancia no restringe cómo se define φ), R-EV (E14 admisible para fundamentar R),
+> N-H3-1, N-H3-2}, junto con §A (esta especificación es la fuente canónica del estado
+> normativo; [N] designa decisiones humanas).
+>
+> **Derivación.**
+> 1. El texto de la decisión G-1 no menciona F1. F1 figura solo en la anotación del registro
+>    «Alternativas no adoptadas (Decision Brief de G-1): F1 (declarativa), F3…», y esta
+>    especificación no registra ninguna restricción derivada de F1.
+> 2. Ninguna norma registrada restringe la forma, el dominio, la enumeración ni la
+>    referencia a reglas concretas en la definición de φ.
+> 3. Los documentos no registran ninguna norma que excluya una φ enumerativa.
+> 4. Con F2, R_regla queda determinada por φ. E14, admisible para fundamentar R_regla, es
+>    admisible para fundamentar φ.
+> 5. Una φ enumerativa fundamentada en evidencia admisible, sin utilizar resultados de
+>    familias, cumple N-H3-1 y N-H3-2. Por 3, 4 y 5, una φ enumerativa es compatible con F2
+>    en el estado normativo vigente. ∎
+
+**Alcance y límites.**
+
+- Es **[D]**, no [N]: describe el estado normativo vigente. No autoriza ni prefiere ninguna
+  forma de φ, y no crea ninguna restricción ni libertad normativa nueva.
+- Vale para las normas cerradas a esta fecha. Una decisión futura sobre el contenido de φ,
+  que sigue OPEN, podría restringir su forma. Eso sería una norma nueva, no una
+  interpretación de G-1.
+- F1 queda excluida **como forma** de R_regla, porque las formas F1 y F2 son incompatibles
+  [D]. No se fija un significado general de «alternativa no adoptada».
+- **E14:** tras G-1, la glosa «R_regla puede ser una declaración» no tiene aplicación como
+  forma de R_regla. Su contenido como evidencia se mantiene y alcanza a φ [D]. R-EV no
+  cambia.
+- La mención de E3, E4 o E5 en la fila φ de «Siguen abiertas» (G-1) describe lo pendiente.
+  No excluye otras clases admisibles por R-EV, porque esa tabla no contiene decisiones.
+- La distinción entre φ enumerativa y φ por propiedades queda **sin objeto** para esta
+  cuestión. Si una declaración puede intervenir en los desempates sigue en **G-3**. G-3 a
+  G-11 siguen abiertas.
+
 ### Entradas de Cat excluidas por norma
 
 | Entrada | Motivo | Etiqueta |

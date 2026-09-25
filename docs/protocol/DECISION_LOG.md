@@ -349,7 +349,7 @@ estado CLOSED.
 
 ---
 
-## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1) y G-2 (sin objeto)
+## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto) y alcance de F2 respecto de una φ enumerativa
 
 ### O — Objeto de selección de H3-C-3
 - **Fecha de la decisión:** 2026-09-23 (fecha documentada).
@@ -675,6 +675,35 @@ estado CLOSED.
   G2-B1 y G2-C1, auditoría de la función normativa de G-2 y auditoría documental de D-a
   y D-c.
 
+### Alcance de F2 respecto de una φ enumerativa — resolución interpretativa
+- **Fecha:** 2026-09-25 (fecha documentada).
+- **Acto humano** (paráfrasis): aceptación de la conclusión de la auditoría interpretativa,
+  según la cual la cuestión se resuelve como cuestión interpretativa, y autorización de su
+  registro. La cuestión se registra **sin número ND**, para no confundirla con la serie ND-2,
+  ND-3 y ND-4, que procede de otra familia de ambigüedades.
+- **Pregunta:** si F2 admite una φ que enumere valores sobre rule[U], o si alguna norma
+  cerrada lo impide.
+- **Estatus epistémico:** resolución **[D]** derivada de normas cerradas. **No es [N]**. El
+  acto humano autoriza su registro, pero no añade contenido normativo.
+- **Antecedente conservado:** en la justificación de G-2, la cuestión quedó ND («permanece
+  ND y NO debe resolverse ahora»). Ese texto se conserva como historia, sin modificarlo. La
+  cuestión se resolvió después, en las auditorías posteriores sobre ella.
+- **Lecturas examinadas:** L1 (textual), que se deriva sin premisas no registradas. L2
+  (exclusión), que no se deriva: requiere P-L2a (la no adopción de una alternativa excluye
+  su efecto) y P-L2b (un criterio de «φ enumerativa»). Como regla general, P-L2a choca con
+  R-EV, donde B, no adoptada, está contenida en C.
+- **Corrección registrada:** el primer Decision Brief sobre esta cuestión concluyó que hacía
+  falta una decisión normativa. La auditoría interpretativa posterior corrigió esa
+  conclusión.
+- **Contenido:** enunciado, Γ, derivación y límites en `NORMATIVE_SPEC.md` §D. F1 queda
+  excluida como forma de R_regla; no se fija un significado general de «alternativa no
+  adoptada».
+- **Lo que no hace:** no reabre G-1, G-2 ni R-EV; no exige una φ enumerativa; no decide el
+  contenido de φ; no cambia el conjunto de e\*; no crea una libertad normativa nueva; no
+  resuelve G-3 a G-11.
+- **Procedencia:** Decision Brief sobre esta cuestión, auditoría interpretativa L1 / L2 y
+  auditoría de impacto documental.
+
 ---
 
 ## 9. Decisiones que permanecen OPEN
@@ -691,6 +720,8 @@ vigente. **N-H3** quedó CLOSED: extiende la regla de neutralidad de C6-8a/b a H
 **G-1** quedó CLOSED: R_regla tiene la arquitectura F2 (criterio único); φ sigue sin definir.
 **G-2** quedó **sin objeto**: F2 ya garantiza la invariancia respecto de identificadores, que
 se registra como [D].
+El **alcance de F2 respecto de una φ enumerativa** quedó resuelto como cuestión
+interpretativa [D]: ninguna norma cerrada excluye una φ enumerativa; F2 no la exige.
 **H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
@@ -719,6 +750,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | R-EV (evidencia admisible para R) | Conversación (auditoría de dependencias de H3, auditoría de admisibilidad, Decision Brief, decisión humana y precisión sobre E14) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; las clases E1 a E14 proceden de la auditoría de admisibilidad |
 | G-1 (arquitectura de R_regla) | Conversación (auditoría de R, Decision Brief de G-1, decisión humana y auditoría de consistencia previa) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de arquitectura; φ sin definir |
 | G-2 (sin objeto) | Conversación (Decision Brief de G-2, auditoría semántica y formal, auditoría de función normativa, auditoría documental y decisión humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D, §G | Sí. Invariancia [D] con la demostración transcrita completa |
+| Alcance de F2 respecto de una φ enumerativa (resolución interpretativa) | Conversación (Decision Brief sobre esta cuestión, auditoría interpretativa, auditoría de impacto y aceptación humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Resolución [D] con la derivación transcrita |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
