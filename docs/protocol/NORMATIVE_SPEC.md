@@ -93,7 +93,7 @@ por decisión humana. **Tampoco determina la arquitectura A ni la B**: el humano
 | **out(e)** | Regla producida por la entrada: out(e) = rule(e) si type(e) = RULE; out(e, θ) = f_θ si type(e) = FAMILY y θ ∈ Θ_e está fijado |
 | **U** | Universo de selección de H3-C-3: **U := {PRO, CEA, CEL}**, definido por lista (§D) |
 | **e\*** | Entrada que seleccione H3-C-3, con e\* ∈ U |
-| **R** | Regla de selección de H3-C-3: **R = (R_regla, R_motivo)**. **R_regla** es la parte operativa: si H3-C-3 termina por selección, aplicada a U da una única e\* ∈ U. **R_motivo** es la naturaleza o el motivo de la decisión, registrado en el mismo acto que R_regla. **OPEN**: no existe todavía ningún criterio, y el vocabulario de R_motivo no está fijado. Su espacio de diseño está restringido por **N-H3-1** y **N-H3-2** (§D) |
+| **R** | Regla de selección de H3-C-3: **R = (R_regla, R_motivo)**. **R_regla** es la parte operativa: si H3-C-3 termina por selección, aplicada a U da una única e\* ∈ U. **R_motivo** es la naturaleza o el motivo de la decisión, registrado en el mismo acto que R_regla. **OPEN**: no existe todavía ningún criterio, y el vocabulario de R_motivo no está fijado. Su espacio de diseño está restringido por **N-H3-1** y **N-H3-2**, y la evidencia admisible la fija **R-EV** (§D) |
 
 rule y mem tienen **dominios disjuntos**. **No existe la convención de «familia unitaria»**:
 una RULE no es una FAMILY de un solo miembro. **U y 𝓒′ son de tipos distintos**
@@ -401,6 +401,58 @@ concreta de R_regla; ninguna preferencia ni exclusión entre PRO, CEA y CEL. Tam
 O, U, C₁, T-0 / B, 𝓒′, DM-1 a DM-9, B3 ni R-B3. Solo restringe el uso de resultados
 experimentales en la selección de H3-C-3 y entre qué familias debe mantenerse constante.
 
+### Evidencia admisible para R (R-EV)
+
+**Decisión humana [N]** (2026-09-24, `DECISION_LOG.md` §8): para fundamentar R (R_regla y
+R_motivo) se adopta la **Alternativa C** del Decision Brief sobre evidencia admisible. El
+expediente no determinaba esta elección.
+
+> **Aviso de nombres.** E1 a E14 designan **clases de evidencia**; no confundir con los
+> hechos matemáticos E-1 a E-43 de §E. «Alternativa C» se refiere al Decision Brief sobre
+> evidencia; no confundir con las formas A, B y C de R_regla, que **siguen sin elegir**.
+
+| Clase | Definición | Estado |
+|---|---|---|
+| **E1** | Normas internas cerradas de H3 | Admisible |
+| **E2** | Hechos matemáticos registrados (§E) y fórmulas de §D | Admisible |
+| **E3** | Propiedades matemáticas de f que no están entre las 14 propiedades de H3-C-2, deducidas de las fórmulas | Admisible |
+| **E4** | Criterios declarados de modelado o representación | Admisible |
+| **E5** | Análisis matemático o computacional abstracto de PRO, CEA y CEL | Admisible, con los límites de abajo |
+| **E6** | Simulación sintética no calibrada: distribuciones hipotéticas de rᵢ y P | **Excluida** |
+| **E7** | Datos reales de mercado sin señales de ninguna familia | **Excluida** |
+| **E8** | Simulaciones calibradas con una familia y generadores de exposiciones | **Excluida** |
+| **E9** | Productos de ejecutar una familia que no miden desempeño (recuento de señales, concurrencia, rᵢ empíricos) | **Excluida** |
+| **E10** | Resultados de desempeño de familias que se evaluarán | **Excluida**; además, por N-H3-1 |
+| **E11** | Resultados de una familia de calibración que nunca se evalúa | **Excluida** |
+| **E12** | Backtests con H3 aplicando PRO, CEA o CEL | **Excluida**; además, por N-H3-1 respecto de las familias que se evaluarán |
+| **E13** | Fuentes documentales externas | Admisible **solo como evidencia documental o descriptiva**, con los límites de abajo: no es un criterio automático de selección de e\* ni sustituye una decisión normativa del protocolo |
+| **E14** | Declaración humana sin evidencia | Admisible: R_regla puede ser una declaración, con R_motivo registrado en el mismo acto |
+
+**Límites de E5.** E5 es el cálculo, simbólico o numérico, de propiedades de PRO, CEA y CEL
+sobre instancias (K, r, P) especificadas explícitamente. No asigna probabilidades, pesos ni
+frecuencias de ocurrencia a las instancias (si lo hace, es E6). Las instancias no proceden
+de datos de mercado (E7) ni de la ejecución de ninguna familia (E8, E9). Puede requerir
+código fuera del motor, pero no usa el motor de backtest, señales, operaciones ni métricas
+de trading: **no es un experimento de trading**.
+
+**Límites de E13.** Una fuente externa puede aportar definiciones, caracterizaciones,
+axiomas, propiedades matemáticas, resultados teóricos y antecedentes documentales sobre las
+reglas. **No** puede usarse como fundamento de R para aportar resultados de desempeño,
+backtests, resultados de trading, simulaciones, métricas operativas, resultados empíricos
+de ejecución, evidencia calibrada con familias ni ningún otro resultado que funcionalmente
+pertenezca a E6 a E12.
+
+**Lo que R-EV deja como estaba:**
+
+- Admitir E3 **no reabre H3-C-2**. Usar una propiedad de E3 como **exigencia** a f requeriría
+  una DM nueva; si un motivo que cita E3 es exigencia o descripción **sigue abierto**.
+- Si son admisibles dentro de E4 los motivos que no describen el comportamiento de f
+  (simplicidad, reconstrucción, convención) **sigue abierto**.
+- ND-2, ND-3, ND-4 y la aplicación de U a la regla original de C6-8a/b **no se activan**,
+  porque E7, E8, E9 y E11 están excluidas. **Siguen ND.**
+- No cambia U, no introduce dependencias con H4, D-III ni C6 y mantiene la selección de e\*
+  separada de la evaluación posterior de las familias.
+
 ### Entradas de Cat excluidas por norma
 
 | Entrada | Motivo | Etiqueta |
@@ -588,7 +640,8 @@ O-EF y AM-3; sigue siendo falsa fuera de 𝓔 (testigo EQ, que incumple O-EF).
 | H3-C-3 · U (universo de selección) | CLOSED — **U = {PRO, CEA, CEL}**, definido por lista; solo revisable por decisión humana explícita (**C₁**, §D) |
 | H3-C-3 · T-0 (arquitectura: ¿naturaleza de la razón como nodo T?) | CLOSED — **B**: O + U + R → H3-C-3; la naturaleza de la razón es el atributo R_motivo de R. **T no es un nodo vigente.** Decisión humana; el expediente no determina A ni B |
 | H3-C-3 · N-H3 (neutralidad; extensión de la regla de C6-8a/b) | CLOSED — **N-H3-1**: e\* debe quedar fijada sin utilizar, ajustar ni condicionar su selección a resultados experimentales de las familias de estrategias que posteriormente serán evaluadas con esa configuración. **N-H3-2**: una única e\* para todas las familias de estrategias. Decisión humana [N]; no implica determinismo ni reconstruibilidad de R (§D) |
-| **H3-C-3 · R** (regla de selección, R = (R_regla, R_motivo)) | **OPEN** — sin criterio de selección, forma de R_regla, vocabulario de R_motivo ni tratamiento de empates. Evidencia admisible **OPEN**, pero excluye resultados experimentales de las familias que posteriormente serán evaluadas con esa configuración (N-H3-1). Espacio de diseño restringido por N-H3-1 y N-H3-2 |
+| H3-C-3 · R-EV (evidencia admisible para R) | CLOSED — **Alternativa C**: E1 a E5 y E14; E13 solo como evidencia documental o descriptiva; E6 a E12 excluidas. Decisión humana [N] (§D) |
+| **H3-C-3 · R** (regla de selección, R = (R_regla, R_motivo)) | **OPEN** — sin criterio de selección, forma de R_regla, vocabulario de R_motivo ni tratamiento de empates. Evidencia admisible fijada por **R-EV** (§D); excluye además resultados experimentales de las familias que posteriormente serán evaluadas con esa configuración (N-H3-1). Espacio de diseño restringido por N-H3-1, N-H3-2 y R-EV |
 | **H3-C-3** (selección de entrada en U) | **OPEN** — R sigue **OPEN**; no hay selección entre PRO, CEA y CEL. e\* deberá ser **única, común a las familias de estrategias y fijada sin utilizar, ajustar ni condicionar su selección a resultados experimentales en los términos de N-H3-1** (N-H3). Un diferimiento se representaría como OPEN, con su instrucción y condición registradas al decidirlo |
 | **H3-C-4** (parámetros de la entrada seleccionada) | **OPEN** — solo se activa si type(e\*) = FAMILY. **Inalcanzable bajo el U vigente**: U ∩ type⁻¹(FAMILY) = ∅, luego e\* ∈ U ⇒ type(e\*) = RULE |
 | **H3-D** (destino del remanente y reasignación) | **OPEN** |

@@ -349,7 +349,7 @@ estado CLOSED.
 
 ---
 
-## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0) y neutralidad (N-H3) de selección
+## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3) y evidencia de R (R-EV)
 
 ### O — Objeto de selección de H3-C-3
 - **Fecha de la decisión:** 2026-09-23 (fecha documentada).
@@ -565,6 +565,50 @@ estado CLOSED.
 - **Procedencia:** auditorías del alcance semántico de N-H3-1, de las lecturas T y U, de
   la lectura T acotada, de implementación y de revisión de la redacción mínima.
 
+### R-EV — Evidencia admisible para R (Alternativa C)
+- **Fecha de la decisión:** 2026-09-24 (fecha documentada).
+- **Decisión humana** [N], texto literal:
+
+  > «Para fundamentar R en H3-C-3 se adopta la Alternativa C: E1 + E2 + E3 + E4 + E5.
+  > Además, E13 (fuentes documentales externas) es admisible únicamente como evidencia
+  > documental/descriptiva, no como criterio automático de selección de e\* ni como sustituto
+  > de una decisión normativa del protocolo. E6, E7, E8, E9, E10, E11 y E12 quedan fuera del
+  > conjunto de evidencia admisible para R. En particular, E10 y E12 permanecen excluidas
+  > por N-H3-1.»
+
+- **Precisión humana del mismo día:** E14 (declaración humana sin evidencia) queda
+  **incluida**, como en la definición de la Alternativa C del Decision Brief (C = B + E5, y
+  B incluye E14).
+- **Precisión humana del mismo día — límites de E13:** una fuente externa puede aportar
+  definiciones, caracterizaciones, axiomas, propiedades matemáticas, resultados teóricos y
+  antecedentes documentales sobre las reglas. No puede usarse como fundamento de R para
+  aportar resultados de desempeño, backtests, resultados de trading, simulaciones, métricas
+  operativas, resultados empíricos de ejecución, evidencia calibrada con familias ni ningún
+  otro resultado que funcionalmente pertenezca a E6 a E12. La decisión C no cambia.
+- **Estatus epistémico:** el expediente no determinaba qué evidencia es admisible para R.
+  Es una decisión humana [N].
+- **Alternativas no adoptadas** (Decision Brief): A (solo normativa), B (sin análisis
+  computacional), D (con simulación sintética), E (con evidencia empírica no vinculada a
+  familias evaluadas), F (con clases ND) y G (con resultados de desempeño de familias
+  evaluadas).
+- **Contenido:** tabla de clases E1 a E14 y límites de E5 en `NORMATIVE_SPEC.md` §D. Los
+  límites de E5 (sin probabilidades, pesos ni frecuencias; sin datos de mercado ni
+  ejecución de familias; sin motor de backtest ni métricas de trading) precisan la frontera
+  con E6 a E9 a partir de las definiciones del Decision Brief.
+- **Consecuencias:** H3-C-3 puede resolverse sin depender de H4, D-III, H3-D, C6, C9 ni
+  C10. R-EV no cambia U ni 𝓒′. La selección de e\* queda separada de la evaluación
+  posterior de las familias.
+- **Cuestiones abiertas que se mantienen:** si un motivo que cita una propiedad de E3 es
+  exigencia (DM nueva) o descripción; si los motivos que no describen el comportamiento de f
+  son admisibles dentro de E4. **Resuelta por esta decisión:** la admisibilidad de E13, solo
+  como evidencia documental o descriptiva. **Sin objeto:** la elección de distribuciones y
+  métricas de simulación, porque E6 queda excluida. **No activadas y siguen ND:** ND-2,
+  ND-3, ND-4 y la aplicación de U a la regla original de C6-8a/b.
+- **Qué no se reabre:** H3-C-2, O, U, C₁, T-0 / B, N-H3, 𝓒′, DM-1 a DM-9, B3, R-B3, E-32 ni
+  E-38.
+- **Procedencia:** auditoría de dependencias de H3, auditoría de admisibilidad de evidencia
+  para R, Decision Brief neutral y auditoría de consistencia previa a este registro.
+
 ---
 
 ## 9. Decisiones que permanecen OPEN
@@ -577,6 +621,7 @@ C10 · C-5 decisión D (tratamiento histórico R1–R4).
 P5 = (a).
 **O y U** quedaron CLOSED (§8). **T-0** quedó CLOSED con la decisión B: T no es un nodo
 vigente. **N-H3** quedó CLOSED: extiende la regla de neutralidad de C6-8a/b a H3-C-3.
+**R-EV** quedó CLOSED: la evidencia admisible para R es la de la Alternativa C.
 **H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
@@ -602,6 +647,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | U = {PRO, CEA, CEL} y C₁ | Conversación (auditoría de U, auditoría comparativa U-A / U-B, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Los hechos de U se apoyan en **E-32**, **E-37** y la verificación directa de las condiciones de base, que **no tiene fila propia en §E** |
 | T-0 (decisión B) | Conversación (auditoría de T, auditoría T-0, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; **el expediente no determina A ni B** |
 | N-H3 (neutralidad en H3-C-3) | Conversación (texto literal de la matriz C6-8a §7; auditorías de alcance y del acto normativo; decisión humana; interpretación de uso (2026-09-24)) | `DECISION_LOG.md` §1 (nota) y §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Origen [E]; extensión a H3 [N]. **El texto de la regla no estaba consolidado**: se transcribe ahora literal |
+| R-EV (evidencia admisible para R) | Conversación (auditoría de dependencias de H3, auditoría de admisibilidad, Decision Brief, decisión humana y precisión sobre E14) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; las clases E1 a E14 proceden de la auditoría de admisibilidad |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
