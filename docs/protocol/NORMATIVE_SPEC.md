@@ -93,7 +93,7 @@ por decisión humana. **Tampoco determina la arquitectura A ni la B**: el humano
 | **out(e)** | Regla producida por la entrada: out(e) = rule(e) si type(e) = RULE; out(e, θ) = f_θ si type(e) = FAMILY y θ ∈ Θ_e está fijado |
 | **U** | Universo de selección de H3-C-3: **U := {PRO, CEA, CEL}**, definido por lista (§D) |
 | **e\*** | Entrada que seleccione H3-C-3, con e\* ∈ U |
-| **R** | Regla de selección de H3-C-3: **R = (R_regla, R_motivo)**. **R_regla** es la parte operativa: si H3-C-3 termina por selección, aplicada a U da una única e\* ∈ U. **R_motivo** es la naturaleza o el motivo de la decisión, registrado en el mismo acto que R_regla. **OPEN**: no existe todavía ningún criterio, y el vocabulario de R_motivo no está fijado. Su espacio de diseño está restringido por **N-H3-1** y **N-H3-2**, y la evidencia admisible la fija **R-EV** (§D) |
+| **R** | Regla de selección de H3-C-3: **R = (R_regla, R_motivo)**. **R_regla** es la parte operativa: si H3-C-3 termina por selección, aplicada a U da una única e\* ∈ U. **R_motivo** es la naturaleza o el motivo de la decisión, registrado en el mismo acto que R_regla. **OPEN**: no existe todavía ningún criterio, y el vocabulario de R_motivo no está fijado. Su espacio de diseño está restringido por **N-H3-1** y **N-H3-2**, la evidencia admisible la fija **R-EV** y su arquitectura, **G-1 = F2** (§D) |
 
 rule y mem tienen **dominios disjuntos**. **No existe la convención de «familia unitaria»**:
 una RULE no es una FAMILY de un solo miembro. **U y 𝓒′ son de tipos distintos**
@@ -453,6 +453,107 @@ pertenezca a E6 a E12.
 - No cambia U, no introduce dependencias con H4, D-III ni C6 y mantiene la selección de e\*
   separada de la evaluación posterior de las familias.
 
+### Arquitectura de R_regla (G-1)
+
+**Decisión humana [N]** (2026-09-24, `DECISION_LOG.md` §8): **G-1 = F2, criterio único.**
+
+> **R_regla(Ev) = argmax_{e∈U} φ(rule(e))**, donde **φ no está definido**.
+
+G-1 es una decisión **de arquitectura, no de contenido**. El expediente no la determinaba.
+
+> **Aviso de nombres.** G-1 a G-11 son los identificadores de las decisiones pendientes de
+> R en la auditoría de R (2026-09-24). No confundir con G1, G2′, G3, G4′ ni G7 de C2
+> (§C.3). En particular, **G-4** (determinismo de R y reconstruibilidad de su motivo) **no
+> es G4′** (reconstruibilidad de los hechos del estatus confirmatorio). F1 a F7 designan
+> las arquitecturas del Decision Brief de G-1; no confundir con §F ni con F-W, F-PRI, F-H
+> ni F-OPT.
+
+**Términos de la fórmula:**
+
+- **Ev** designa la evidencia admisible para R según R-EV.
+- **argmax_{e∈U}** designa el conjunto de entradas de U en las que φ(rule(e)) es máximo.
+  Si ese conjunto tiene un único elemento, ese elemento es e\*. Qué ocurre si tiene más de
+  uno pertenece a **G-3**.
+- La estructura de orden del codominio de φ forma parte de φ y **sigue abierta**.
+
+**Hechos [D] sobre esta arquitectura:**
+
+- φ se evalúa sobre rule(e), que está definida para las tres entradas de U porque las tres
+  son RULE. La identidad de la familia de estrategias no es argumento de φ ni de R_regla:
+  **N-H3-2** se cumple por la forma.
+- Un φ que solo registre el cumplimiento de las propiedades enumeradas en **E-32** da como
+  argmax todo U. Por **E-6**, un φ que dependa del comportamiento de f solo puede
+  discriminar en D\*.
+- Para una entrada FAMILY, rule(e) no está definida: si U cambiara por C₁ para incluir una,
+  φ(rule(e)) no estaría definido sin fijar θ (H3-C-4). La evaluación de ese efecto
+  corresponde a **C₁.8**.
+- La forma solo usa U, rule y Ev: **no introduce por sí misma** dependencias con H4, D-III,
+  H3-D, H3-E ni C6. Una dependencia así solo podría venir del contenido de φ (**G-10**).
+- Con la notación de la auditoría de precisión de R, F2 tiene dominio Ev y es un caso de
+  la forma **C**; su codominio es U, salvo lo que decida G-3.
+
+**F7 no se incorpora.** Si se admite ⊥ = no-selección como salida de R_regla es **G-3**.
+
+**Siguen abiertas** (identificadores de la auditoría de R; no son decisiones tomadas):
+
+| Id | Cuestión |
+|---|---|
+| **φ** | Contenido del criterio, estructura de orden de su codominio y clases concretas de E3, E4 o E5 que use, dentro de R-EV |
+| **G-3** | Codominio de R_regla (total o con salidas de no-selección, incluida ⊥) y tratamiento de empates |
+| **G-4** | Si R debe ser determinista y si su motivo debe poder reconstruirlo un tercero |
+| **G-5** | Z1 y Z2 |
+| **G-6** | Contenido mínimo y vocabulario de R_motivo |
+| **G-7** | Si el criterio debe fijarse antes de los cálculos E5 que lo resuelvan |
+| **G-8** | Si φ puede componerse de varios criterios y, en ese caso, con qué agregación |
+| **G-9 / G-9′** | Con E5: cuantificación e instancias; tolerancia numérica |
+| **G-10** | Si R puede depender de nodos OPEN (H4, D-III, H3-D, H3-E, C6) |
+| **G-11** | Admisibilidad del sorteo como desempate |
+
+**G-2** (si R debe ser invariante respecto del nombre o del orden de la lista de U) quedó
+**sin objeto** el 2026-09-25: ver la subsección siguiente.
+
+**Lo que G-1 no decide:** PRO, CEA ni CEL; e\*; el contenido de φ; Z1; Z2; G-2 a G-11;
+F7. **R sigue OPEN** y **H3-C-3 sigue OPEN**.
+
+### G-2 — Sin objeto
+
+**Decisión humana [N]** (2026-09-25, `DECISION_LOG.md` §8): **G-2 queda sin objeto**
+(opción D-a). G-2 preguntaba si R debe ser invariante respecto del nombre o del orden de
+la lista de U. F2 ya garantiza esa invariancia, que se registra como deducción **[D]** y
+**no** como norma nueva (R-B3). **G-1 no se reabre.**
+
+> **Invariancia de R_regla respecto de identificadores [D].** Sea φ fija y sea σ : U → U′
+> una biyección entre conjuntos de nombres con rule′(σ(e)) = rule(e) para todo e ∈ U.
+> Entonces argmax_{e′∈U′} φ(rule′(e′)) = σ(argmax_{e∈U} φ(rule(e))). En particular,
+> rule(e) = rule(e′) ⇒ φ(rule(e)) = φ(rule(e′)), y ningún orden de enumeración de U
+> interviene en el argmax.
+>
+> **Γ** = {G-1 (F2)}.
+>
+> **Demostración.** Por hipótesis sobre σ, φ(rule′(σ(e))) = φ(rule(e)) para todo e ∈ U,
+> así que σ lleva el conjunto de maximizadores en U al de U′. El argmax se define sobre el
+> conjunto U, sin ningún orden. ∎
+
+**Estatus y alcance.** Es **[D]**, no [N]. Es un hecho sobre la forma de R_regla fijada por
+G-1: **no restringe cómo se define φ**. Si G-1 se reabriera, esta deducción perdería su
+antecedente Γ.
+
+**«Sin objeto» no significa «decidido».** Los contenidos residuales examinados en la
+auditoría de G-2 pertenecen a otros nodos, que **siguen abiertos** con la descripción de
+la subsección de G-1:
+
+| Contenido residual | Nodo |
+|---|---|
+| Desempates, incluido cualquier uso del orden de la lista de U | **G-3** |
+| Reconstruibilidad | **G-4** |
+| Identificadores (nombres, posiciones) como motivo | **G-5** (Z2) |
+| Motivo | **G-6** |
+| Preregistro | **G-7** |
+| Composición de φ | **G-8** |
+| Instancias y tolerancia | **G-9 / G-9′** |
+
+La numeración G-3 a G-11 se mantiene.
+
 ### Entradas de Cat excluidas por norma
 
 | Entrada | Motivo | Etiqueta |
@@ -641,7 +742,9 @@ O-EF y AM-3; sigue siendo falsa fuera de 𝓔 (testigo EQ, que incumple O-EF).
 | H3-C-3 · T-0 (arquitectura: ¿naturaleza de la razón como nodo T?) | CLOSED — **B**: O + U + R → H3-C-3; la naturaleza de la razón es el atributo R_motivo de R. **T no es un nodo vigente.** Decisión humana; el expediente no determina A ni B |
 | H3-C-3 · N-H3 (neutralidad; extensión de la regla de C6-8a/b) | CLOSED — **N-H3-1**: e\* debe quedar fijada sin utilizar, ajustar ni condicionar su selección a resultados experimentales de las familias de estrategias que posteriormente serán evaluadas con esa configuración. **N-H3-2**: una única e\* para todas las familias de estrategias. Decisión humana [N]; no implica determinismo ni reconstruibilidad de R (§D) |
 | H3-C-3 · R-EV (evidencia admisible para R) | CLOSED — **Alternativa C**: E1 a E5 y E14; E13 solo como evidencia documental o descriptiva; E6 a E12 excluidas. Decisión humana [N] (§D) |
-| **H3-C-3 · R** (regla de selección, R = (R_regla, R_motivo)) | **OPEN** — sin criterio de selección, forma de R_regla, vocabulario de R_motivo ni tratamiento de empates. Evidencia admisible fijada por **R-EV** (§D); excluye además resultados experimentales de las familias que posteriormente serán evaluadas con esa configuración (N-H3-1). Espacio de diseño restringido por N-H3-1, N-H3-2 y R-EV |
+| H3-C-3 · G-1 (arquitectura de R_regla) | CLOSED — **F2, criterio único**: R_regla(Ev) = argmax_{e∈U} φ(rule(e)), con φ **sin definir**. Decisión de arquitectura, no de contenido; F7 no incorporada. Decisión humana [N] (§D) |
+| H3-C-3 · G-2 (invariancia de R respecto de identificadores) | Sin objeto — F2 ya garantiza la invariancia respecto de nombres y del orden de enumeración; registrada como **[D]** con Γ = {G-1 (F2)}, no como norma. Contenidos residuales remitidos a G-3, G-4, G-5 (Z2), G-6, G-7, G-8 y G-9 / G-9′. Decisión humana [N] (§D) |
+| **H3-C-3 · R** (regla de selección, R = (R_regla, R_motivo)) | **OPEN** — sin criterio de selección (φ sin definir), vocabulario de R_motivo ni tratamiento de empates. Arquitectura fijada por **G-1 = F2** (§D). Evidencia admisible fijada por **R-EV** (§D); excluye además resultados experimentales de las familias que posteriormente serán evaluadas con esa configuración (N-H3-1). Espacio de diseño restringido por N-H3-1, N-H3-2, R-EV y G-1 |
 | **H3-C-3** (selección de entrada en U) | **OPEN** — R sigue **OPEN**; no hay selección entre PRO, CEA y CEL. e\* deberá ser **única, común a las familias de estrategias y fijada sin utilizar, ajustar ni condicionar su selección a resultados experimentales en los términos de N-H3-1** (N-H3). Un diferimiento se representaría como OPEN, con su instrucción y condición registradas al decidirlo |
 | **H3-C-4** (parámetros de la entrada seleccionada) | **OPEN** — solo se activa si type(e\*) = FAMILY. **Inalcanzable bajo el U vigente**: U ∩ type⁻¹(FAMILY) = ∅, luego e\* ∈ U ⇒ type(e\*) = RULE |
 | **H3-D** (destino del remanente y reasignación) | **OPEN** |

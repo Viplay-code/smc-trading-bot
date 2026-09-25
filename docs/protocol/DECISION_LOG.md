@@ -349,7 +349,7 @@ estado CLOSED.
 
 ---
 
-## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3) y evidencia de R (R-EV)
+## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1) y G-2 (sin objeto)
 
 ### O — Objeto de selección de H3-C-3
 - **Fecha de la decisión:** 2026-09-23 (fecha documentada).
@@ -609,6 +609,72 @@ estado CLOSED.
 - **Procedencia:** auditoría de dependencias de H3, auditoría de admisibilidad de evidencia
   para R, Decision Brief neutral y auditoría de consistencia previa a este registro.
 
+### G-1 — Arquitectura de R_regla (F2, criterio único)
+- **Fecha de la decisión:** 2026-09-24 (fecha documentada).
+- **Decisión humana** [N], texto literal:
+
+  > «G-1 = F2, Criterio único. R_regla adopta la arquitectura:
+  > `R_regla(Ev) = argmax_{e∈U} φ(rule(e))` donde `φ` todavía NO está definido. La decisión G-1 debe
+  > entenderse estrictamente como una decisión de arquitectura, no de contenido.»
+
+- **Sobre F7**, texto literal: «NO incorpores F7 en G-1. La cuestión de permitir
+  `⊥ = no-selección` queda para G-3, porque incorporarla ahora resolvería parcialmente G-3.»
+- **Estatus epistémico:** el expediente no determinaba la arquitectura de R_regla. Es una
+  decisión humana [N].
+- **Alternativas no adoptadas** (Decision Brief de G-1): F1 (declarativa), F3
+  (lexicográfica), F4 (agregación multicriterio), F5 (filtro más declaración) y F6 (función
+  de elección). F7 (variante con diferimiento) no se incorpora: su cuestión queda en G-3.
+- **Comprobación de consistencia previa:** sin conflicto con O, U, T-0, N-H3-1, N-H3-2,
+  R-EV ni C₁.8. La forma no introduce por sí misma dependencias con H4, D-III, H3-D, H3-E
+  ni C6.
+- **Contenido:** fórmula, términos, hechos [D] sobre la forma y cuestiones abiertas en
+  `NORMATIVE_SPEC.md` §D. Aviso de nombres: G-1 a G-11 no son G1, G2′, G3, G4′ ni G7 de C2;
+  en particular, G-4 no es G4′.
+- **Lo que G-1 no decide** (enumeración humana): PRO, CEA ni CEL; e\*; el contenido de φ;
+  las clases E3, E4 o E5 concretas que utilizará φ; Z1; Z2; G-3; G-4; G-6; G-7; G-8; G-9;
+  G-9′; G-10; G-11; F7. G-2 tampoco queda decidida.
+- **Consecuencias:** **R sigue OPEN** y **H3-C-3 sigue OPEN**. De lo que el registro T-0
+  dejaba sin resolver, queda fijada la arquitectura de R_regla; su contenido (φ) sigue
+  abierto.
+- **Qué no se reabre:** O, U, C₁, T-0 / B, N-H3, R-EV, H3-C-2, 𝓒′, DM-1 a DM-9, B3, R-B3,
+  E-32 ni E-38.
+- **Procedencia:** auditoría de R, Decision Brief de G-1 y auditoría de consistencia previa
+  a este registro.
+
+### G-2 — Sin objeto (D-a)
+- **Fecha de la decisión:** 2026-09-25 (fecha documentada).
+- **Decisión humana** [N], texto literal: «G-2 → D-a: SIN OBJETO».
+- **Justificación registrada por el humano** (literal):
+  - «F2 ya garantiza formalmente la invariancia de R_regla respecto de identificadores y del
+    orden de enumeración.»
+  - «Esa propiedad se registra como una deducción [D], no como una nueva norma.»
+  - «G-2 no tiene otra función normativa indispensable.»
+  - «Los contenidos residuales pertenecen a G-3, G-4, G-5/Z2, G-6, G-7, G-8 y G-9/G-9′
+    según lo establecido en las auditorías.»
+  - «La cuestión F2 vs F1 sobre si φ puede enumerar valores sobre U permanece ND y NO debe
+    resolverse ahora.»
+  - «G-1 NO se reabre.»
+- **Estatus epistémico:** la decisión sobre el destino del identificador es [N]. La
+  invariancia es **[D]** por R-B3: Γ = {G-1 (F2)}, con la demostración registrada en
+  `NORMATIVE_SPEC.md` §D. **No es una norma nueva.**
+- **Alternativas no adoptadas** (auditoría documental de G-2): D-b (mantener G-2 con un
+  contenido reformulado elevado a norma) y D-c (eliminar el identificador y reasignar sus
+  contenidos).
+- **Contenido:** enunciado, Γ y demostración de la invariancia, y remisiones, en
+  `NORMATIVE_SPEC.md` §D; fila en §G. G-2 sale de la tabla «Siguen abiertas» de G-1.
+- **Remisiones** («sin objeto» no significa «decidido»): desempates → G-3;
+  reconstruibilidad → G-4; identificadores como motivo → G-5 (Z2); motivo → G-6;
+  preregistro → G-7; composición → G-8; instancias y tolerancia → G-9 / G-9′. Esos nodos
+  siguen abiertos y sin cambios.
+- **Lo que G-2 no decide:** ninguna restricción sobre cómo se define φ; el contenido de φ;
+  G-3 a G-11; PRO, CEA ni CEL; e\*. La cuestión F2 / F1 (si φ puede enumerar valores sobre
+  U) **sigue ND**, separada de G-2.
+- **Qué no se reabre:** G-1, O, U, C₁, T-0 / B, N-H3, R-EV, H3-C-2, 𝓒′, DM-1 a DM-9, B3
+  ni R-B3. La numeración G-3 a G-11 se mantiene.
+- **Procedencia:** Decision Brief de G-2, auditoría semántica y formal de G2-0, G2-A,
+  G2-B1 y G2-C1, auditoría de la función normativa de G-2 y auditoría documental de D-a
+  y D-c.
+
 ---
 
 ## 9. Decisiones que permanecen OPEN
@@ -622,6 +688,9 @@ P5 = (a).
 **O y U** quedaron CLOSED (§8). **T-0** quedó CLOSED con la decisión B: T no es un nodo
 vigente. **N-H3** quedó CLOSED: extiende la regla de neutralidad de C6-8a/b a H3-C-3.
 **R-EV** quedó CLOSED: la evidencia admisible para R es la de la Alternativa C.
+**G-1** quedó CLOSED: R_regla tiene la arquitectura F2 (criterio único); φ sigue sin definir.
+**G-2** quedó **sin objeto**: F2 ya garantiza la invariancia respecto de identificadores, que
+se registra como [D].
 **H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
@@ -648,6 +717,8 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | T-0 (decisión B) | Conversación (auditoría de T, auditoría T-0, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; **el expediente no determina A ni B** |
 | N-H3 (neutralidad en H3-C-3) | Conversación (texto literal de la matriz C6-8a §7; auditorías de alcance y del acto normativo; decisión humana; interpretación de uso (2026-09-24)) | `DECISION_LOG.md` §1 (nota) y §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Origen [E]; extensión a H3 [N]. **El texto de la regla no estaba consolidado**: se transcribe ahora literal |
 | R-EV (evidencia admisible para R) | Conversación (auditoría de dependencias de H3, auditoría de admisibilidad, Decision Brief, decisión humana y precisión sobre E14) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; las clases E1 a E14 proceden de la auditoría de admisibilidad |
+| G-1 (arquitectura de R_regla) | Conversación (auditoría de R, Decision Brief de G-1, decisión humana y auditoría de consistencia previa) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de arquitectura; φ sin definir |
+| G-2 (sin objeto) | Conversación (Decision Brief de G-2, auditoría semántica y formal, auditoría de función normativa, auditoría documental y decisión humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D, §G | Sí. Invariancia [D] con la demostración transcrita completa |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
