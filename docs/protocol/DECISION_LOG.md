@@ -384,7 +384,7 @@ estado CLOSED.
 
 ---
 
-## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto) y alcance de F2 respecto de una φ enumerativa
+## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto), alcance de F2 respecto de una φ enumerativa y lugar de la declaración de T-c
 
 ### O — Objeto de selección de H3-C-3
 - **Fecha de la decisión:** 2026-09-23 (fecha documentada).
@@ -739,6 +739,58 @@ estado CLOSED.
 - **Procedencia:** Decision Brief sobre esta cuestión, auditoría interpretativa L1 / L2 y
   auditoría de impacto documental.
 
+### Lugar de la declaración de T-c respecto de Ev — interpretación
+- **Fecha:** 2026-09-25 (fecha documentada).
+- **Decisión humana** [N], lectura β, texto literal:
+
+  > «Para efectos de T-c, cuando una declaración humana se utiliza para resolver un empate
+  > `|A| ≥ 2`, la declaración debe tratarse como un acto humano externo a `Ev`, posterior al
+  > cálculo de `A`.»
+  >
+  > «Importante: esta decisión NO debe interpretarse como autorización para seleccionar
+  > cualquier elemento de `U`. T-c solo puede resolver la multiplicidad existente dentro de
+  > `A`.»
+
+  Estructura: Ev → A = argmax_{e∈U} φ(rule(e)); solo si |A| ≥ 2, T-c → e\* ∈ A.
+- **Aviso de nombres:** α y β designan aquí las dos lecturas del Decision Brief sobre el
+  lugar de la declaración de T-c. No confundir con **B-α** (independencia del orden de
+  enumeración, H3-C-1) ni con **H3-Bβ** (anonimato, `NORMATIVE_SPEC.md` §C.2).
+- **Naturaleza:** interpretación [N], no deducida del corpus. Es **condicional a T-c**: queda
+  sin objeto si G-3.2 no adopta T-c.
+- **Interpretación de alcance adoptada con β** [N]. El texto de estos hechos no cambia; se
+  fija su alcance:
+  1. «F2 tiene dominio Ev y es un caso de la forma C; su codominio es U, salvo lo que decida
+     G-3» (`NORMATIVE_SPEC.md` §D, G-1): vale para el **núcleo argmax**, en el que Ev
+     determina A. Si |A| ≥ 2 con T-c, el valor de R_regla depende además del acto,
+     restringido a A.
+  2. «La forma solo usa U, rule y Ev… Una dependencia así solo podría venir del contenido
+     de φ (G-10)»: exacto para el núcleo. Con β, una dependencia de nodos OPEN también
+     podría venir del motivo del acto, y queda igualmente bajo G-10.
+  3. «N-H3-2 se cumple por la forma»: vale para el núcleo. Para el acto, N-H3-2 se cumple
+     porque la norma lo exige directamente.
+  4. Paso 4 de la derivación sobre el alcance de F2, «Con F2, R_regla queda determinada
+     por φ»: la premisa vale para el núcleo. La conclusión (E14 es admisible para
+     fundamentar φ) no cambia.
+- **Papel del acto** [D]: es externo a Ev y posterior al cálculo de A, y solo puede elegir
+  e\* ∈ A. No es evidencia E14 dentro de Ev, ni entrada de φ, ni criterio de selección
+  (E13). Su motivo se fundamenta solo con evidencia admisible según R-EV, que puede incluir
+  E14 como fundamento, y se registra como R_motivo en el mismo acto (T-0, E14). N-H3-1 y
+  N-H3-2 se le aplican directamente. No es un diferimiento ni un nodo T.
+- **Consecuencia condicional para G-4** [D]: si G-3.2 adopta T-c, G-4 no podrá exigir el
+  determinismo respecto de Ev para R_regla completa. G-4 sigue OPEN.
+- **Lectura no adoptada:** α (la declaración como elemento de Ev, evidencia E14 dentro del
+  dominio de R_regla).
+- **Sigue ND (n1):** si el acto T-c ocurre una sola vez; si puede repetirse, por evento o a
+  lo largo del tiempo; cuándo queda fijada e\*; si R_regla puede reaplicarse con otra Ev.
+  No está asignada a ningún nodo y queda fuera de G-3.
+- **Lo que no resuelve:** no modifica G-1, G-2, R-EV, E13, E14 ni T-0; no decide G-3.1
+  (I-1 o I-2), G-3.2 (T-c o T-e) ni G-3.3 (⊥); no decide qué ocurre si no existe
+  declaración; no decide G-4 ni G-6; no resuelve φ, A = ∅ ni n1; no introduce condiciones
+  nuevas de G-3.2.
+- **Procedencia:** auditoría de las combinaciones C1 a C4 de G-3, auditoría α / β, auditoría
+  procedimental, Decision Brief de α / β, decisión humana, auditoría post-β y Decision
+  Brief de registro.
+
 ---
 
 ## 9. Decisiones que permanecen OPEN
@@ -760,6 +812,10 @@ vigente. **N-H3** quedó CLOSED: extiende la regla de neutralidad de C6-8a/b a H
 se registra como [D].
 El **alcance de F2 respecto de una φ enumerativa** quedó resuelto como cuestión
 interpretativa [D]: ninguna norma cerrada excluye una φ enumerativa; F2 no la exige.
+**Lugar de la declaración de T-c:** interpretación [N] (β): acto humano externo a Ev,
+posterior al cálculo de A, que solo elige e\* ∈ A; los hechos [D] de G-1 sobre «F2» y
+«dominio Ev» se refieren al núcleo argmax. Condicional a T-c. Sigue ND si el acto ocurre
+una sola vez.
 **H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
@@ -790,6 +846,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | G-1 (arquitectura de R_regla) | Conversación (auditoría de R, Decision Brief de G-1, decisión humana y auditoría de consistencia previa) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de arquitectura; φ sin definir |
 | G-2 (sin objeto) | Conversación (Decision Brief de G-2, auditoría semántica y formal, auditoría de función normativa, auditoría documental y decisión humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D, §G | Sí. Invariancia [D] con la demostración transcrita completa |
 | Alcance de F2 respecto de una φ enumerativa (resolución interpretativa) | Conversación (Decision Brief sobre esta cuestión, auditoría interpretativa, auditoría de impacto y aceptación humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Resolución [D] con la derivación transcrita |
+| Lugar de la declaración de T-c respecto de Ev (interpretación β) | Conversación (auditoría de C1 a C4, auditoría α / β, auditoría procedimental, Decision Brief, decisión humana, auditoría post-β y Decision Brief de registro) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Interpretación [N], condicional a T-c; n1 sigue ND |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |

@@ -500,6 +500,15 @@ G-1 es una decisión **de arquitectura, no de contenido**. El expediente no la d
 - Con la notación de la auditoría de precisión de R, F2 tiene dominio Ev y es un caso de
   la forma **C**; su codominio es U, salvo lo que decida G-3.
 
+**Interpretación [N] de alcance** (2026-09-25, `DECISION_LOG.md` §8): los hechos anteriores
+sobre «F2», «la forma» y «dominio Ev», y el paso 4 de la derivación sobre el alcance de F2,
+se refieren al **núcleo argmax**: Ev determina A. Si |A| ≥ 2 y G-3.2 adopta T-c, e\* ∈ A la
+elige un **acto humano externo a Ev, posterior al cálculo de A**, que no es evidencia dentro
+de Ev, ni entrada de φ, ni criterio de selección, y que **no puede elegir fuera de A**. Su
+motivo se fundamenta solo con evidencia admisible (R-EV) y se registra como R_motivo en el
+mismo acto. N-H3-1 y N-H3-2 se le aplican directamente, y una dependencia de nodos OPEN a
+través del motivo queda bajo G-10. Si el acto ocurre una sola vez es ND. No modifica G-1.
+
 **F7 no se incorpora.** Si se admite ⊥ = no-selección como salida de R_regla es **G-3**.
 
 **Siguen abiertas** (identificadores de la auditoría de R; no son decisiones tomadas):
