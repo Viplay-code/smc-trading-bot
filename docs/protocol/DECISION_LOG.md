@@ -457,6 +457,100 @@ estado CLOSED.
   formalización del nombramiento expreso, comprobaciones de consistencia y decisiones
   humanas.
 
+### Criterio 2 · Determinaciones casuísticas sobre dos elementos del Decision Brief de β
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Decisión humana A** [N], texto literal:
+
+  > «En el Decision Brief de registro de β (historial l. 10656), el elemento "Decisión
+  > humana β, en tus términos:", con todo su texto, incluido ", en tus términos:", cuenta
+  > como rótulo a efectos del criterio 2. La determinación se limita a ese elemento y no
+  > define "rótulo".»
+
+- **Decisión humana B1** [N], texto literal:
+
+  > «En el Decision Brief de registro de β (historial l. 10656), el elemento que comienza
+  > con "Para efectos de T-c, cuando una declaración humana se utiliza para resolver un
+  > empate" y termina con "posterior al cálculo de A" no cuenta como rótulo a efectos del
+  > criterio 2. La determinación se limita a ese elemento y no define "rótulo".»
+
+- **Límites de las decisiones** (decisión humana, texto literal):
+
+  > Estas dos decisiones son exclusivamente casuísticas.
+  > No adoptan ni establecen:
+  > - una definición general de «rótulo»;
+  > - una definición general de «nivel»;
+  > - una definición de «mismo nivel»;
+  > - ningún criterio basado en negrita, posición, celda, comillas, puntuación o formato;
+  > - que cualquier otro elemento del Brief sea o no sea un rótulo;
+  > - que «Estructura:» sea o no sea un rótulo;
+  > - P1′;
+  > - P2′;
+  > - P3′;
+  > - el final del segmento;
+  > - el alcance de Φ;
+  > - el alcance del título, §F, §B o §C;
+  > - ningún efecto de precedente para otros casos.
+
+- **Sigue ND:** si estas determinaciones son una aplicación del criterio 2 o una norma
+  nueva.
+- **Texto al que se refieren:** el Decision Brief de registro de β, que consta en la
+  conversación (historial l. 10656) y no está transcrito en el repositorio.
+- **Procedencia:** auditorías de P1′ y P2′, de la trazabilidad de «rótulo» y «nivel», de la
+  compatibilidad de una determinación casuística y de las formas A y B1, y decisión humana.
+
+### Criterio 2 · Determinación casuística C sobre el elemento «Estructura:» del Decision Brief de β
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Decisión humana C** [N], texto literal:
+
+  > «En el Decision Brief de registro de β (historial l. 10656), el elemento "Estructura:",
+  > que precede inmediatamente a "Ev → A = argmax_{e∈U} φ(rule(e))", no cuenta como rótulo
+  > a efectos del criterio 2. La determinación se limita a ese elemento y no define
+  > "rótulo".»
+
+- **Límites de la decisión** (decisión humana, texto literal):
+
+  > Esta decisión:
+  > - se limita exclusivamente al elemento «Estructura:» del Brief;
+  > - no define «rótulo» en general;
+  > - no define «nivel» ni «mismo nivel»;
+  > - no establece ningún criterio basado en posición, formato, negrita, dos puntos, celda o
+  >   contenido matemático;
+  > - no decide P1′;
+  > - no decide P2′ como una decisión independiente, aunque cualquier consecuencia de la
+  >   decisión deberá distinguirse de una adopción explícita de P2′;
+  > - no decide P3′;
+  > - no decide el final del segmento más allá de las consecuencias que se sigan
+  >   necesariamente del criterio 2;
+  > - no decide la pertenencia de X2 a la unidad nombrada por H4;
+  > - no decide el alcance de Φ;
+  > - no modifica A, B1, A3, U2 ni el criterio 2;
+  > - no establece ningún precedente para otros casos;
+  > - no resuelve si esta decisión es aplicación o norma nueva; esa cuestión permanece ND.
+
+- **Texto al que se refiere:** el mismo Decision Brief de registro de β (historial
+  l. 10656), no transcrito en el repositorio.
+- **Procedencia:** auditoría de consecuencias de A y B1, auditoría casuística del elemento
+  «Estructura:» y decisión humana.
+
+### Criterio 2 · Determinación casuística N* sobre el tramo que sigue al elemento «Decisión humana β, en tus términos:» del Decision Brief de β
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Decisión humana N\*** [N], texto literal:
+
+  > «En el Decision Brief de registro de β (historial l. 10656), ninguna parte del texto que
+  > contenga algo del tramo que va desde inmediatamente después del elemento
+  > "Decisión humana β, en tus términos:" hasta el final de la secuencia
+  > "solo si |A| ≥ 2, T-c → e* ∈ A.", salvo las partes que coinciden exactamente con el
+  > elemento que comienza con
+  > "Para efectos de T-c, cuando una declaración humana se utiliza para resolver un empate"
+  > y termina con "posterior al cálculo de A" o con el elemento "Estructura:", cuenta como
+  > rótulo a efectos del criterio 2. La determinación se limita a esas partes y no define
+  > "rótulo".»
+
+- **Texto al que se refiere:** el mismo Decision Brief de registro de β (historial
+  l. 10656), no transcrito en el repositorio.
+- **Procedencia:** auditorías de N\* (partes pendientes del tramo, forma de planteamiento,
+  contenido en la Forma B, propuesta y texto corregido) y decisión humana.
+
 ---
 
 ## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto), alcance de F2 respecto de una φ enumerativa y lugar de la declaración de T-c
@@ -969,6 +1063,9 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | Alcance de F2 respecto de una φ enumerativa (resolución interpretativa) | Conversación (Decision Brief sobre esta cuestión, auditoría interpretativa, auditoría de impacto y aceptación humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Resolución [D] con la derivación transcrita |
 | Lugar de la declaración de T-c respecto de Ev (interpretación β) | Conversación (auditoría de C1 a C4, auditoría α / β, auditoría procedimental, Decision Brief, decisión humana, auditoría post-β y Decision Brief de registro) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Interpretación [N], condicional a T-c; n1 sigue ND |
 | Identidad de R_regla (interpretación) | Conversación (auditorías textuales, auditoría de procedencia, Decision Brief, auditoría adversarial, test de consistencia, auditoría de minimalidad y decisión humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Interpretación [N]; la procedencia histórica consta solo en la conversación |
+| Criterio 2 · determinaciones casuísticas A y B1 sobre el Decision Brief de β | Conversación (auditorías de P1′, P2′, «rótulo» y «nivel», compatibilidad y formas A y B1; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refieren no está transcrito en el repositorio; si son aplicación o norma nueva sigue ND |
+| Criterio 2 · determinación casuística C sobre el elemento «Estructura:» del Decision Brief de β | Conversación (auditoría de consecuencias de A y B1 y auditoría casuística de «Estructura:»; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; si es aplicación o norma nueva sigue ND |
+| Criterio 2 · determinación casuística N\* sobre el tramo del Decision Brief de β | Conversación (auditorías de N\*: partes del tramo, forma, contenido, propuesta y texto corregido; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
