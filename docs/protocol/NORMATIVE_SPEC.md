@@ -617,6 +617,17 @@ reabren.**
   cuestión. Si una declaración puede intervenir en los desempates sigue en **G-3**. G-3 a
   G-11 siguen abiertas.
 
+### Identidad de R_regla — interpretación
+
+**Interpretación [N]** (2026-09-28, `DECISION_LOG.md` §8). Texto literal:
+
+> «En T-0, G-1, G-2 y G-3, `R_regla` designa la parte operativa de R (T-0). La fórmula
+> `argmax` de G-1 describe su núcleo y no determina en todos los casos lo que `R_regla`
+> dé. La invariancia establecida en G-2 se refiere a ese núcleo.»
+
+Es una interpretación conjunta de textos cerrados. **No modifica T-0, G-1, G-2 ni β**, y
+no decide ninguna cuestión abierta (ver `DECISION_LOG.md` §8).
+
 ### Entradas de Cat excluidas por norma
 
 | Entrada | Motivo | Etiqueta |

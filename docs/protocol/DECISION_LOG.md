@@ -791,6 +791,41 @@ estado CLOSED.
   procedimental, Decision Brief de α / β, decisión humana, auditoría post-β y Decision
   Brief de registro.
 
+### Identidad de R_regla — interpretación
+- **Fecha:** 2026-09-28 (fecha documentada).
+- **Decisión humana** [N], texto literal:
+
+  > «En T-0, G-1, G-2 y G-3, `R_regla` designa la parte operativa de R (T-0). La fórmula
+  > `argmax` de G-1 describe su núcleo y no determina en todos los casos lo que `R_regla`
+  > dé. La invariancia establecida en G-2 se refiere a ese núcleo.»
+
+- **Naturaleza:** interpretación [N] conjunta de T-0, G-1, G-2 y G-3. No es una deducción
+  [D]: la auditoría textual mostró que el corpus no determina qué designa `R_regla`. No
+  modifica ningún texto.
+- **Qué fija, y solo esto:**
+  1. En T-0, G-1, G-2 y G-3, `R_regla` designa la parte operativa de R según T-0.
+  2. El `argmax` de G-1 es su núcleo.
+  3. El `argmax` no determina en todos los casos lo que `R_regla` dé.
+  4. La invariancia [D] de G-2 se refiere a ese núcleo.
+- **Compatibilidad con β:** usa «núcleo» en el mismo sentido que β. Es compatible con
+  «el valor de R_regla depende además del acto», con «R_regla completa» y con el acto
+  externo a Ev. No modifica ni reinterpreta β.
+- **Lecturas no adoptadas:** que `R_regla` designe el conjunto que resulta del `argmax`;
+  que el término designe objetos distintos en cada texto; mantener la ambigüedad. No se
+  decide si la identidad de `R_regla` es extensional o intensional.
+- **Lo que no decide:** el papel de Ev; el significado de «total»; «aplicada a U»; G-3,
+  incluidos su codominio, los empates, A = ∅, ⊥, T-c, T-e y la totalidad o parcialidad de
+  `R_regla`; si un tratamiento posterior forma parte de `R_regla` más allá de lo que fija
+  β; el nodo de ese tratamiento; la invariancia de nada distinto del núcleo; G-4, G-11 ni
+  n1; la formalización de «núcleo».
+- **Aviso de nombres:** en la conversación esta cuestión se llamó «D1». Se registra sin ese
+  número para no confundirla con D1.1, D1.6 ni D1.9. «Núcleo» se usa aquí en el sentido de
+  β, no en el de «núcleo de C-5» (H1) ni en el de «núcleo general más anexos» (D1.1).
+- **Procedencia:** auditorías textuales de la fila G-3 y de la identidad de `R_regla` y el
+  papel de Ev, auditoría de procedencia, Decision Brief, auditoría adversarial de las
+  lecturas extensional e intensional, test de consistencia, auditoría de minimalidad y
+  decisión humana.
+
 ---
 
 ## 9. Decisiones que permanecen OPEN
@@ -816,6 +851,9 @@ interpretativa [D]: ninguna norma cerrada excluye una φ enumerativa; F2 no la e
 posterior al cálculo de A, que solo elige e\* ∈ A; los hechos [D] de G-1 sobre «F2» y
 «dominio Ev» se refieren al núcleo argmax. Condicional a T-c. Sigue ND si el acto ocurre
 una sola vez.
+**Identidad de R_regla:** interpretación [N]: en T-0, G-1, G-2 y G-3, R_regla designa la
+parte operativa de R (T-0); el argmax de G-1 es su núcleo y no determina en todos los casos
+lo que R_regla dé; la invariancia de G-2 se refiere a ese núcleo. No decide nada de G-3.
 **H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
@@ -847,6 +885,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | G-2 (sin objeto) | Conversación (Decision Brief de G-2, auditoría semántica y formal, auditoría de función normativa, auditoría documental y decisión humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D, §G | Sí. Invariancia [D] con la demostración transcrita completa |
 | Alcance de F2 respecto de una φ enumerativa (resolución interpretativa) | Conversación (Decision Brief sobre esta cuestión, auditoría interpretativa, auditoría de impacto y aceptación humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Resolución [D] con la derivación transcrita |
 | Lugar de la declaración de T-c respecto de Ev (interpretación β) | Conversación (auditoría de C1 a C4, auditoría α / β, auditoría procedimental, Decision Brief, decisión humana, auditoría post-β y Decision Brief de registro) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Interpretación [N], condicional a T-c; n1 sigue ND |
+| Identidad de R_regla (interpretación) | Conversación (auditorías textuales, auditoría de procedencia, Decision Brief, auditoría adversarial, test de consistencia, auditoría de minimalidad y decisión humana) | `DECISION_LOG.md` §8; `NORMATIVE_SPEC.md` §D | Sí. Interpretación [N]; la procedencia histórica consta solo en la conversación |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
