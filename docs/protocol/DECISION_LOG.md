@@ -551,6 +551,22 @@ estado CLOSED.
 - **Procedencia:** auditorías de N\* (partes pendientes del tramo, forma de planteamiento,
   contenido en la Forma B, propuesta y texto corregido) y decisión humana.
 
+### Criterio 2 · Determinación casuística P1′ sobre la correspondencia del nombre «la decisión β»
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Decisión humana P1′** [N], texto literal:
+
+  > «En el acto de registro de β
+  > ("Autorizo registrar la decisión β y la interpretación de alcance exactamente en los términos del Decision Brief que acabas de presentar",
+  > historial l. 10660), el nombre "la decisión β" alcanza, a efectos del criterio 2, el
+  > segmento del Decision Brief de registro de β (historial l. 10656) cuyo rótulo es el
+  > elemento "Decisión humana β, en tus términos:". La determinación se limita a esa
+  > correspondencia de nombre y no excluye que ese nombre alcance otros segmentos.»
+
+- **Texto al que se refiere:** el acto de registro de β y el Decision Brief de registro de β,
+  que constan en la conversación (historial l. 10660 y l. 10656); el Decision Brief no está
+  transcrito en el repositorio.
+- **Procedencia:** auditoría de P1′, revisión previa de su formulación y decisión humana.
+
 ---
 
 ## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto), alcance de F2 respecto de una φ enumerativa y lugar de la declaración de T-c
@@ -1066,6 +1082,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | Criterio 2 · determinaciones casuísticas A y B1 sobre el Decision Brief de β | Conversación (auditorías de P1′, P2′, «rótulo» y «nivel», compatibilidad y formas A y B1; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refieren no está transcrito en el repositorio; si son aplicación o norma nueva sigue ND |
 | Criterio 2 · determinación casuística C sobre el elemento «Estructura:» del Decision Brief de β | Conversación (auditoría de consecuencias de A y B1 y auditoría casuística de «Estructura:»; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; si es aplicación o norma nueva sigue ND |
 | Criterio 2 · determinación casuística N\* sobre el tramo del Decision Brief de β | Conversación (auditorías de N\*: partes del tramo, forma, contenido, propuesta y texto corregido; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio |
+| Criterio 2 · determinación casuística P1′ sobre la correspondencia del nombre «la decisión β» | Conversación (auditoría de P1′ y revisión previa de su formulación; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el acto de registro de β y el Decision Brief a los que se refiere constan en la conversación; el Decision Brief no está transcrito en el repositorio |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
