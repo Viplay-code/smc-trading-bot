@@ -37,6 +37,7 @@ distintas, se documenta la coexistencia (§I), no se armoniza.
 | **[D]** | Hecho matemático demostrado en sesiones anteriores a la que cerró la decisión |
 | **[D+]** | Hecho matemático demostrado durante el trabajo del Protocolo V2, con el alcance indicado |
 | **ND** | Relación no demostrada ni refutada. **ND no significa falso** |
+| **[E] registrado** | Enunciado que consta en el registro sin rango normativo ni demostrativo propio, conforme a U2 y A3 (§D). Su presencia en el registro no constituye por sí misma una adopción normativa ni una demostración |
 
 ---
 
@@ -293,6 +294,41 @@ la demostración completa no esté transcrita en el repositorio. **La condición
 exigiendo que exista una demostración**: ninguna afirmación puede recibir [D] sin haber
 sido demostrada. Es una aclaración del significado de R-B3: no modifica su texto, B3 ·
 P1 a P5, DM-8, DM-9 ni ningún estatus, ni el significado matemático de CT-P, CT-r o CT-K.
+
+### Rango del texto registrado (U2 y A3)
+
+**Reglas metodológicas [N]** (2026-09-28, `DECISION_LOG.md` §7). Se aplican a los textos
+adoptados por remisión.
+
+> **U2.** «los enunciados que estén dentro de un texto adoptado por remisión pero que no
+> tengan una etiqueta [N], [D] o [ND] propia se consideran [E] registrado, salvo que exista
+> otra evidencia normativa o demostrativa que les otorgue otro rango.»
+>
+> **A3.** «Solo conserva [N] el contenido no literal que el acto humano haya nombrado
+> expresamente como decisión; una etiqueta [N] por sí sola no basta.»
+>
+> **Nombramiento expreso.** «el acto humano, con palabras literales, designa por su nombre o
+> descripción inequívoca una unidad determinada del texto remitido como decisión adoptada;
+> mencionar un identificador en una instrucción no basta.»
+>
+> **Unidad nombrada.** «el segmento que el texto remitido presenta bajo ese nombre,
+> delimitado por su rótulo y contenido hasta el siguiente rótulo del mismo nivel.»
+>
+> **E1.** «una delimitación negativa puede ser [N] si forma parte del contenido sustantivo
+> adoptado; su carácter negativo no determina el rango.»
+>
+> **E2.** «el acto humano y su registro en el log delimitan la unidad adoptada; el spec no
+> puede ampliar por sí solo la decisión.»
+>
+> **E3.** «una instrucción de registro no convierte automáticamente su contenido en [N],
+> salvo cuando el propio acto identifica inequívocamente ese contenido como objeto de la
+> decisión/adopción que se registra.»
+
+Una deducción [D] no pasa a [N] (U2; R-B3). **[E] registrado** es una clasificación
+registral, no una categoría normativa (§A). Estas reglas no deciden el rango del texto
+registrado por aprobación general, el alcance de una etiqueta en viñetas no nombradas ni
+«n1 queda fuera de G-3». Su aplicación a registros existentes consta en `DECISION_LOG.md`
+§7 y no modifica esos registros.
 
 ### No obligatorio
 

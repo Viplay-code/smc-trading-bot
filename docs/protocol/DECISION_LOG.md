@@ -6,7 +6,9 @@
 Este registro recoge, en orden, las decisiones humanas ya cerradas del Protocolo V2.
 
 **Etiquetas:** **[N]** decisión humana normativa · **[D]** / **[D+]** hecho matemático
-demostrado · **[I]** inferencia · **ND** no demostrado ni refutado.
+demostrado · **[I]** inferencia · **ND** no demostrado ni refutado · **[E] registrado**
+enunciado que consta en el registro sin rango normativo ni demostrativo propio (U2 y A3,
+§7).
 
 **Sobre las fechas.** Las decisiones se tomaron en sesiones de trabajo cuya fecha exacta
 **no está documentada con certeza** para cada una. Se registra solo la fecha de
@@ -381,6 +383,79 @@ estado CLOSED.
   significado matemático de CT-P, CT-r ni CT-K; no reabre ninguna decisión cerrada.
 - **Procedencia:** Decision Brief de B3, auditoría de la condición 1 de R-B3 (que
   identificó la ambigüedad), Decision Memo sobre R-a, R-b y R-c, y decisión humana.
+
+### Rango del texto registrado — U2
+- **Fecha:** 2026-09-28 (fecha documentada).
+- **Decisión humana** [N], regla metodológica, texto literal:
+
+  > «U2 — [E] registrado. Regla: los enunciados que estén dentro de un texto adoptado por
+  > remisión pero que no tengan una etiqueta [N], [D] o [ND] propia se consideran [E]
+  > registrado, salvo que exista otra evidencia normativa o demostrativa que les otorgue
+  > otro rango.»
+
+- **Lo que no implica** (texto literal): que «todo el bloque adoptado sea [N]»; que «una
+  deducción [D] pase a [N]»; que «una etiqueta [N] se extienda automáticamente a todo el
+  documento»; que «“n1 queda fuera de G-3” quede resuelto, porque su relación con “Sigue
+  ND” permanece ND»; que «se modifique ninguna decisión sustantiva de Ev, φ, “máximo”, ⊥,
+  T-e o G-3».
+- **Definición de [E] registrado** (decisión humana, texto literal): «Enunciado que consta
+  en el registro sin rango normativo ni demostrativo propio, conforme a U2 y A3.» «Su
+  presencia en el registro no constituye por sí misma una adopción normativa ni una
+  demostración.» Es una clasificación registral, no una categoría normativa. Los usos
+  anteriores de «[E]» en este registro no se redefinen.
+- **Alternativas no adoptadas:** U1 (hereda el rango del encabezado) y U3 (ND).
+- **Lo que no resuelve:** el alcance de una etiqueta dentro de una viñeta o un párrafo no
+  nombrados; «n1 queda fuera de G-3».
+- **Procedencia:** comparación de convenciones de rango registral, subauditorías de la
+  adopción por remisión, de su alcance y de U1, U2 y U3, y decisión humana.
+
+### Rango del texto registrado — A3 (nombramiento expreso), E1 a E3
+- **Fecha:** 2026-09-28 (fecha documentada).
+- **Decisión humana** [N], regla metodológica, texto literal:
+
+  > «A3: Solo conserva [N] el contenido no literal que el acto humano haya nombrado
+  > expresamente como decisión; una etiqueta [N] por sí sola no basta.»
+
+- **Criterios operativos adoptados** [N], texto literal:
+  1. «Nombramiento expreso: el acto humano, con palabras literales, designa por su nombre o
+     descripción inequívoca una unidad determinada del texto remitido como decisión
+     adoptada; mencionar un identificador en una instrucción no basta.»
+  2. «Unidad nombrada: el segmento que el texto remitido presenta bajo ese nombre,
+     delimitado por su rótulo y contenido hasta el siguiente rótulo del mismo nivel.»
+- **Precisiones adoptadas** [N], texto literal:
+  - **E1:** «una delimitación negativa puede ser [N] si forma parte del contenido
+    sustantivo adoptado; su carácter negativo no determina el rango.»
+  - **E2:** «el acto humano y su registro en el log delimitan la unidad adoptada; el spec
+    no puede ampliar por sí solo la decisión.»
+  - **E3:** «una instrucción de registro no convierte automáticamente su contenido en [N],
+    salvo cuando el propio acto identifica inequívocamente ese contenido como objeto de la
+    decisión/adopción que se registra.»
+- **Alternativas no adoptadas:** A2 (la etiqueta [N] propia conserva [N]) y A4 (solo lo
+  literal es [N]).
+- **Aplicación a registros existentes** (confirmada por la persona usuaria). No modifica
+  esos registros, que se conservan como están escritos:
+  - El acto de registro de β («Autorizo registrar la decisión β y la interpretación de
+    alcance exactamente en los términos del Decision Brief») satisface A3 respecto de «la
+    interpretación de alcance»: la identifica inequívocamente como objeto, la coordina
+    expresamente con «la decisión β» y autoriza su registro exactamente en esos términos.
+  - «Interpretación de alcance adoptada con β», puntos 1 a 4 (§8): [N].
+  - «Ev determina A» (punto 1 de esa interpretación): [N].
+  - «Naturaleza: interpretación [N] …» de los registros de β y de la identidad de
+    R_regla, y «Qué fija, y solo esto» de este último: [E] registrado.
+  - «G-3.2 adopta T-c» como proposición: [E] registrado, salvo como antecedente hipotético
+    del enunciado [D] «Consecuencia condicional para G-4». La instrucción literal
+    correspondiente de la persona usuaria conserva [N] como instrucción.
+  - La identidad de R_regla (§8) permanece intacta.
+- **Lo que no hace:** no reescribe los registros de β ni de la identidad de R_regla, ni sus
+  etiquetas; no modifica `NORMATIVE_SPEC.md` §D, «Interpretación [N] de alcance»; no
+  registra ninguna deducción nueva como [D]; no decide el rango del texto registrado por
+  aprobación general, el alcance de una etiqueta en viñetas no nombradas ni «n1 queda
+  fuera de G-3».
+- **Cuestión abierta que surge de la aplicación** (no forma parte de A3): si «Ev determina
+  A» vale solo en la rama T-c o también fuera de ella sigue **ND** (§9).
+- **Procedencia:** comparación de A2, A3 y A4, auditoría de la función de las etiquetas,
+  formalización del nombramiento expreso, comprobaciones de consistencia y decisiones
+  humanas.
 
 ---
 
@@ -839,6 +914,10 @@ P5 = (a).
 **R-B3, condición 1:** interpretación [N] adoptada (R-a): «demostración registrada» es el
 hecho con enunciado, alcance y referencia demostrativa en el repositorio, sin necesidad de
 transcribir la demostración completa.
+**Rango del texto registrado:** reglas metodológicas [N] U2 (en un texto adoptado por
+remisión, lo que no tiene etiqueta propia es [E] registrado) y A3 (solo conserva [N] el
+contenido no literal nombrado expresamente como decisión), con sus criterios operativos y
+las precisiones E1 a E3.
 **O y U** quedaron CLOSED (§8). **T-0** quedó CLOSED con la decisión B: T no es un nodo
 vigente. **N-H3** quedó CLOSED: extiende la regla de neutralidad de C6-8a/b a H3-C-3.
 **R-EV** quedó CLOSED: la evidencia admisible para R es la de la Alternativa C.
@@ -854,6 +933,8 @@ una sola vez.
 **Identidad de R_regla:** interpretación [N]: en T-0, G-1, G-2 y G-3, R_regla designa la
 parte operativa de R (T-0); el argmax de G-1 es su núcleo y no determina en todos los casos
 lo que R_regla dé; la invariancia de G-2 se refiere a ese núcleo. No decide nada de G-3.
+**Sigue ND:** si «Ev determina A» (interpretación de alcance de β) vale solo en la rama
+T-c o también fuera de ella.
 **H3-C-3 sigue OPEN** porque R sigue OPEN.
 **H3-C-4 sigue OPEN**, pero es inalcanzable bajo el U vigente.
 
@@ -876,6 +957,8 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | DM-9 | Conversación (auditoría, revisión adversarial y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C, §D, §E | Sí. **Las demostraciones de E-40 a E-43 y la verificación numérica de SW-n no están transcritas**: solo constan sus enunciados, hipótesis y alcance |
 | B3 (P1 a P5) | Conversación (auditoría, Decision Brief y DR completo) | `DECISION_LOG.md` §7 y `NORMATIVE_SPEC.md` §C.1, §D, §G | Sí. Se apoya únicamente en **E-28**, ya registrado |
 | R-B3 · interpretación de la condición 1 (R-a) | Conversación (Decision Brief de B3, auditoría de la condición 1, Decision Memo y decisión humana) | `DECISION_LOG.md` §7; `NORMATIVE_SPEC.md` §D | Sí. Interpretación [N]; fundamento documental en R-B3, §A y §E |
+| Rango del texto registrado — U2 | Conversación (comparación de convenciones de rango registral, subauditorías de la adopción por remisión, de su alcance y de U1, U2 y U3, y decisión humana) | `DECISION_LOG.md` §7; `NORMATIVE_SPEC.md` §A, §D | Sí. Regla metodológica [N] |
+| Rango del texto registrado — A3, E1 a E3 | Conversación (comparación de A2, A3 y A4, auditoría de la función de las etiquetas, formalización del nombramiento expreso, comprobaciones de consistencia y decisiones humanas) | `DECISION_LOG.md` §7; `NORMATIVE_SPEC.md` §D | Sí. Regla metodológica [N]; su aplicación a registros existentes no los modifica |
 | O = C | Conversación (auditorías del nodo O, Decision Brief, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §G | Sí. Decisión humana de diseño; **el expediente no demuestra O = C** |
 | U = {PRO, CEA, CEL} y C₁ | Conversación (auditoría de U, auditoría comparativa U-A / U-B, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Los hechos de U se apoyan en **E-32**, **E-37** y la verificación directa de las condiciones de base, que **no tiene fila propia en §E** |
 | T-0 (decisión B) | Conversación (auditoría de T, auditoría T-0, decisión humana y auditoría de cierre) | `DECISION_LOG.md` §8 y `NORMATIVE_SPEC.md` §B, §D, §G | Sí. Decisión humana de diseño; **el expediente no determina A ni B** |
