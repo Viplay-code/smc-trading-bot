@@ -686,6 +686,41 @@ estado CLOSED.
 - **Procedencia:** auditorías de Q2 (formulación, resolución sustantiva, presentación de la
   decisión y ajuste de límites) y decisión humana.
 
+### Determinación O-M-A sobre «objeto» en la condición de E3 en el acto de registro de β
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Identificación:** el acto, la decisión y T son los identificados en la determinación
+  Q1-B.
+- **Estado previo:** O-M había quedado III / indeterminada por el corpus; O-M-A y O-M-B
+  fueron auditadas como compatibles con las determinaciones cerradas.
+- **Decisión humana O-M-A** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada del corpus:
+
+  > «En la aplicación de E3 al acto de registro de β, respecto de "la decisión β" y de los
+  > textos M del Decision Brief de registro de β (historial l. 10656) que contienen T y son
+  > más amplios que T, un texto M no queda fuera de lo que comprende "objeto de la
+  > decisión/adopción 'la decisión β' que se registra" por el solo hecho de ser parte propia
+  > del contenido de "la decisión β".»
+
+- **Límites** (decisión humana, texto literal):
+
+  > «La determinación se limita a la aplicación de E3 a ese acto, a "la decisión β", a T y a
+  > los textos M que contienen T. No precisa ni modifica E3 ni establece qué significa
+  > "objeto" fuera de esta aplicación. No se aplica a otros actos ni a registros futuros. No
+  > afirma ni niega que exista algún texto M que sea parte propia del contenido de "la
+  > decisión β". No determina qué comprende ese contenido ni su extensión. No determina si
+  > queda comprendido un texto M que coincide con ese contenido, lo excede o se solapa con él
+  > solo en parte. No establece condiciones suficientes para que un texto M quede
+  > comprendido. No afirma ni niega que ese acto identificara inequívocamente algún texto M.
+  > No determina qué texto M tiene la propiedad definida en Q2-A. No determina si un texto M
+  > que, en su caso, quede fuera de lo que comprende "objeto de la decisión/adopción 'la
+  > decisión β' que se registra" tiene la propiedad definida en Q2-A. No determina si nombrar
+  > "la decisión β" equivale a identificar un texto. No modifica Q1-B ni Q2-A. No resuelve F
+  > ni se refiere a "la interpretación de alcance". Lo que se siga de su combinación con
+  > otras determinaciones registradas no forma parte de ella. No determina el rango de T.»
+
+- **Procedencia:** auditorías de O-M (identificación, formulación, compatibilidad, cierre de
+  la formulación, comparación preparatoria y registro) y decisión humana.
+
 ---
 
 ## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto), alcance de F2 respecto de una φ enumerativa y lugar de la declaración de T-c
@@ -1206,6 +1241,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | Determinación casuística P3′ sobre el acto de registro de β | Conversación (auditorías de P3′; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el acto de registro de β y el Decision Brief a los que se refiere constan en la conversación; el Decision Brief no está transcrito en el repositorio |
 | Determinación Q1-B sobre la condición de E3 en el acto de registro de β | Conversación (auditorías de Q1; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; Q1-B tiene rango [N], no [D] |
 | Determinación Q2-A sobre la condición de E3 en el acto de registro de β | Conversación (auditorías de Q2; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; Q2-A tiene rango [N], no [D] |
+| Determinación O-M-A sobre «objeto» en la condición de E3 en el acto de registro de β | Conversación (auditorías de O-M; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; O-M-A tiene rango [N], no [D] |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
