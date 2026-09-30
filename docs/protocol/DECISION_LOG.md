@@ -721,6 +721,183 @@ estado CLOSED.
 - **Procedencia:** auditorías de O-M (identificación, formulación, compatibilidad, cierre de
   la formulación, comparación preparatoria y registro) y decisión humana.
 
+### Criterio 2 · Determinación casuística Q-fin-1 sobre el elemento «Esta decisión NO debe interpretarse … dentro de A» del Decision Brief de β
+- **Fecha:** 2026-09-30 (fecha documentada).
+- **Pregunta sometida a decisión** (texto literal):
+
+  > «En el Decision Brief de registro de β (historial l. 10656), a efectos del criterio 2,
+  > ¿cuál de las siguientes clasificaciones corresponde al elemento que comienza con "Esta
+  > decisión NO debe interpretarse" y termina con "dentro de A"?
+  > (i) no cuenta como rótulo;
+  > (ii) cuenta como rótulo del mismo nivel que el elemento "Decisión humana β, en tus
+  > términos:";
+  > (iii) cuenta como rótulo, pero no del mismo nivel que el elemento "Decisión humana β, en
+  > tus términos:".»
+
+- **Decisión humana Q-fin-1** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada de A, B1, C ni de ninguna otra decisión:
+
+  > «Q-fin-1 = (i): el elemento «Esta decisión NO debe interpretarse … dentro de A» no
+  > cuenta como rótulo, a efectos del criterio 2.»
+
+- **Límites** (decisión humana, texto literal):
+
+  > «La determinación se limita a ese elemento y a su relación con el elemento "Decisión
+  > humana β, en tus términos:". No define "rótulo", "nivel", "mismo nivel" ni "elemento",
+  > ni establece ningún criterio basado en posición, formato, negrita, comillas, puntuación,
+  > dos puntos o celda. No se basa en que ese elemento pertenezca o no pertenezca al
+  > contenido de "la decisión β". No determina si los signos que lo rodean forman parte de
+  > él o de algún segmento. No determina cuál es el nivel de ninguno de los dos elementos ni
+  > si un nivel es superior o inferior a otro. No determina qué efecto tiene esta
+  > clasificación sobre el final del segmento al que alcanza el nombre "la decisión β" según
+  > P1′, ni el orden de lectura del texto, ni el efecto de un rótulo que no sea del mismo
+  > nivel, ni la lectura de "delimitado por su rótulo y contenido". No determina si existe
+  > alguna unidad nombrada bajo ese elemento. No clasifica ningún otro elemento ni sirve de
+  > precedente. No resuelve C-β, L-β, D2, F, M-1, M-2, O-M-x, O-M-y, H-b ni ND-1.»
+
+- **Texto al que se refiere:** el Decision Brief de registro de β, que consta en la
+  conversación (historial l. 10656) y no está transcrito en el repositorio.
+- **Procedencia:** auditorías del final del segmento y de la formulación de Q-fin-1,
+  evidencia documental del Brief y decisión humana.
+
+### Criterio 2 · Determinación casuística ND-ord sobre el orden de dos textos del Decision Brief de β posteriores al elemento de Q-fin-1
+- **Fecha:** 2026-09-30 (fecha documentada).
+- **Pregunta sometida a decisión** (texto literal):
+
+  > «En el Decision Brief de registro de β (historial l. 10656), a efectos del criterio 2 y
+  > respecto del segmento al que alcanza el nombre "la decisión β" según P1′, ¿cuál de las
+  > siguientes respuestas corresponde a los dos textos identificados en (a) y (b), en cuanto
+  > a cuál de ellos aparece primero después del elemento que comienza con "Esta decisión NO
+  > debe interpretarse" y termina con "dentro de A", en el orden en que el texto remitido
+  > los presenta?
+  > (a) de esos dos textos, el primero que aparece después de ese elemento es el que
+  > comienza con "[N], interpretación. Condicional" y termina con "no adopta T-c [D]";
+  > (b) de esos dos textos, el primero que aparece después de ese elemento es el que
+  > comienza con "Interpretación del alcance de cuatro hechos" y termina con "se adopta con
+  > ella";
+  > (c) ninguno de esos dos textos es el primero en aparecer después de ese elemento:
+  > ninguno de ellos aparece después de él en ese orden, o no hay entre ellos un orden que
+  > permita decir cuál aparece antes.»
+
+- **Decisión humana ND-ord** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada de ninguna otra decisión:
+
+  > «ND-ord = (a): de los dos textos identificados en la pregunta, el primero que aparece
+  > después del elemento «Esta decisión NO debe interpretarse … dentro de A», en el orden en
+  > que el texto remitido los presenta, es el texto que comienza con «[N], interpretación.
+  > Condicional» y termina con «no adopta T-c [D]».»
+
+- **Límites** (decisión humana, texto literal):
+
+  > «La determinación se limita a ese paso y a esos dos textos. No establece ninguna regla
+  > general sobre la lectura de tablas o documentos, ni el orden de ningún otro paso. No
+  > determina si algún otro texto o signo se interpone. No clasifica ninguno de los dos
+  > textos ni ningún otro elemento como rótulo o no rótulo. No determina el final del
+  > segmento ni el efecto del final de una celda, tabla o sección. No se basa en el
+  > contenido de "la decisión β" ni en lo que deba comprender el segmento. No resuelve
+  > ND-parse, D2, ND-sup, C-β, L-β, F, M-1, M-2, O-M-x, O-M-y, H-b ni ND-1.»
+
+- **Texto al que se refiere:** el Decision Brief de registro de β, que consta en la
+  conversación (historial l. 10656) y no está transcrito en el repositorio.
+- **Procedencia:** auditorías de las consecuencias de Q-fin-1, de ND-ord y de la redacción
+  de su pregunta, y decisión humana.
+
+### Criterio 2 · Determinación casuística Q-fin-2 sobre las partes del texto «[N], interpretación. Condicional … no adopta T-c [D]» del Decision Brief de β
+- **Fecha:** 2026-09-30 (fecha documentada).
+- **Pregunta sometida a decisión** (texto literal):
+
+  > «En el Decision Brief de registro de β (historial l. 10656), a efectos del criterio 2,
+  > ¿cuál de las siguientes clasificaciones corresponde a las partes, incluido el propio
+  > texto completo, del texto que comienza con "[N], interpretación. Condicional" y termina
+  > con "no adopta T-c [D]"?
+  > (i) ninguna parte de ese texto cuenta como rótulo;
+  > (ii) alguna parte de ese texto cuenta como rótulo del mismo nivel que el elemento
+  > "Decisión humana β, en tus términos:";
+  > (iii) alguna parte de ese texto cuenta como rótulo, pero ninguna del mismo nivel que el
+  > elemento "Decisión humana β, en tus términos:".»
+
+- **Decisión humana Q-fin-2** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada de Q-fin-1, de ND-ord ni de ninguna otra decisión:
+
+  > «Q-fin-2 = (i): ninguna parte de ese texto cuenta como rótulo.»
+
+- **Límites** (decisión humana, texto literal):
+
+  > «La determinación se limita a las partes de ese texto y a su relación con el elemento
+  > "Decisión humana β, en tus términos:". No delimita elementos dentro de ese texto ni
+  > determina, en los casos (ii) y (iii), qué parte cuenta como rótulo. En el caso (ii), no
+  > determina si alguna otra parte cuenta como rótulo que no sea del mismo nivel. No
+  > clasifica los textos que contienen algo de ese texto y se extienden fuera de él. No
+  > define "rótulo", "nivel", "mismo nivel", "elemento" ni "parte", ni fija qué cuenta como
+  > parte a efectos de ninguna otra cuestión. No establece ningún criterio basado en
+  > posición, formato, negrita, dos puntos, corchetes, etiquetas o celda. No determina
+  > ninguna otra función de ese texto o de sus partes, como la de etiqueta. No se basa en
+  > que ese texto pertenezca o no pertenezca al contenido de "la decisión β". No determina
+  > el efecto de esta clasificación sobre el final del segmento, ni el orden de ningún otro
+  > paso, ni el efecto de un rótulo que no sea del mismo nivel. No clasifica ningún texto
+  > fuera de ese texto ni sirve de precedente. No reinterpreta Q-fin-1 ni ND-ord. No
+  > resuelve ND-parse, D2, ND-sup, C-β, L-β, F, M-1, M-2, O-M-x, O-M-y, H-b ni ND-1.»
+
+- **Texto al que se refiere:** el Decision Brief de registro de β, que consta en la
+  conversación (historial l. 10656) y no está transcrito en el repositorio.
+- **Procedencia:** auditorías de la delimitación del objeto en la celda «Tipo», de la
+  formulación y de la compatibilidad de Q-fin-2, y decisión humana.
+
+### Criterio 2 · Determinación casuística ND-ord-2 sobre el orden de dos textos del Decision Brief de β posteriores al texto de Q-fin-2
+- **Fecha:** 2026-09-30 (fecha documentada).
+- **Pregunta sometida a decisión** (texto literal):
+
+  > «En el Decision Brief de registro de β (historial l. 10656), a efectos del criterio 2 y
+  > respecto del segmento al que alcanza el nombre "la decisión β" según P1′, sea el texto de
+  > referencia el que comienza con "[N], interpretación. Condicional" y termina con "no
+  > adopta T-c [D]"; sea el texto 1 el que comienza con "Interpretación del alcance de
+  > cuatro hechos" y termina con "se adopta con ella"; y sea el texto 2 el texto "[N],
+  > interpretación" que no forma parte del texto de referencia. En el orden en que el texto
+  > remitido presenta esos textos, ¿cuál de las siguientes respuestas corresponde?
+  > (a) el texto 1 y el texto 2 aparecen después del texto de referencia, y el texto 1
+  > precede al texto 2;
+  > (b) el texto 1 y el texto 2 aparecen después del texto de referencia, y el texto 2
+  > precede al texto 1;
+  > (c) el texto 1 y el texto 2 aparecen después del texto de referencia, y no hay entre
+  > ellos un orden según el cual uno preceda al otro;
+  > (d) el texto 1 aparece después del texto de referencia y el texto 2 no;
+  > (e) el texto 2 aparece después del texto de referencia y el texto 1 no;
+  > (f) ni el texto 1 ni el texto 2 aparecen después del texto de referencia.»
+
+- **Decisión humana ND-ord-2** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada de ND-ord ni de ninguna otra decisión:
+
+  > «ND-ord-2 = (a): el texto 1 y el texto 2 aparecen después del texto de referencia, y el
+  > texto 1 precede al texto 2.»
+
+- **Evidencia documental considerada** [E]: en el Decision Brief (historial l. 10656), el
+  texto de referencia figura al final de la primera fila de la tabla de la sección A; el
+  texto 1, al comienzo de la fila siguiente; y el texto 2, al final de esa fila.
+- **Límites** (decisión humana, texto literal):
+
+  > «La determinación se limita a ese paso y a esos tres textos. No extiende ni reinterpreta
+  > ND-ord, ni se combina con ella para establecer un orden de lectura de la tabla o del
+  > documento. No establece ninguna regla general sobre la lectura de tablas o documentos,
+  > ni el orden de ningún otro paso. Solo determina si el texto 1 y el texto 2 aparecen
+  > después del texto de referencia y, si aparecen los dos, su precedencia relativa. En
+  > ningún caso afirma que alguno de ellos sea el texto siguiente al texto de referencia, ni
+  > qué texto es el siguiente en términos absolutos. No determina si algún otro texto o
+  > signo aparece entre el texto de referencia y esos textos. Que un texto no aparezca
+  > después del texto de referencia comprende que aparezca antes o que no haya un orden
+  > entre ambos; la determinación no distingue entre esos casos. La mención del texto de
+  > referencia en la identificación del texto 2 solo sirve para identificarlo. No clasifica
+  > ninguno de esos textos ni ningún otro como rótulo o no rótulo, ni determina su nivel. No
+  > determina el final del segmento, si el segmento comprende alguno de esos textos, ni el
+  > efecto del final de una celda, fila, tabla o sección. No determina qué segmento alcanza
+  > el nombre "la interpretación de alcance" ni resuelve H-b. No se basa en el contenido de
+  > "la decisión β" ni en lo que deba comprender el segmento. No reabre Q-fin-1, ND-ord ni
+  > Q-fin-2. No resuelve ND-parse, D2, ND-sup, C-β, L-β, F, M-1, M-2, O-M-x, O-M-y ni ND-1.»
+
+- **Texto al que se refiere:** el Decision Brief de registro de β, que consta en la
+  conversación (historial l. 10656) y no está transcrito en el repositorio.
+- **Procedencia:** auditorías de las consecuencias de Q-fin-2, de ND-ord-2 y de la
+  formulación de su pregunta, evidencia documental del Brief y decisión humana.
+
 ---
 
 ## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto), alcance de F2 respecto de una φ enumerativa y lugar de la declaración de T-c
@@ -1242,6 +1419,10 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | Determinación Q1-B sobre la condición de E3 en el acto de registro de β | Conversación (auditorías de Q1; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; Q1-B tiene rango [N], no [D] |
 | Determinación Q2-A sobre la condición de E3 en el acto de registro de β | Conversación (auditorías de Q2; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; Q2-A tiene rango [N], no [D] |
 | Determinación O-M-A sobre «objeto» en la condición de E3 en el acto de registro de β | Conversación (auditorías de O-M; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; O-M-A tiene rango [N], no [D] |
+| Criterio 2 · determinación casuística Q-fin-1 sobre el elemento «Esta decisión NO debe interpretarse … dentro de A» del Decision Brief de β | Conversación (auditorías del final del segmento y de la formulación de Q-fin-1; evidencia documental del Brief; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; Q-fin-1 tiene rango [N], no [D] |
+| Criterio 2 · determinación casuística ND-ord sobre el orden de dos textos del Decision Brief de β posteriores al elemento de Q-fin-1 | Conversación (auditorías de las consecuencias de Q-fin-1, de ND-ord y de la redacción de su pregunta; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; ND-ord tiene rango [N], no [D] |
+| Criterio 2 · determinación casuística Q-fin-2 sobre las partes del texto «[N], interpretación. Condicional … no adopta T-c [D]» del Decision Brief de β | Conversación (auditorías de la delimitación del objeto en la celda «Tipo», de la formulación y de la compatibilidad de Q-fin-2; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; Q-fin-2 tiene rango [N], no [D] |
+| Criterio 2 · determinación casuística ND-ord-2 sobre el orden de dos textos del Decision Brief de β posteriores al texto de Q-fin-2 | Conversación (auditorías de las consecuencias de Q-fin-2, de ND-ord-2 y de la formulación de su pregunta; evidencia documental del Brief; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; ND-ord-2 tiene rango [N], no [D] |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
