@@ -567,6 +567,125 @@ estado CLOSED.
   transcrito en el repositorio.
 - **Procedencia:** auditoría de P1′, revisión previa de su formulación y decisión humana.
 
+### Criterio 1 · Nombramiento expreso de β por el acto de registro (H5)
+- **Fecha de la determinación:** 2026-09-29 (historial l. 12150).
+- **Acto al que se refiere:** el acto de registro de β, citado literalmente en P1′ (historial
+  l. 10660).
+- **Decisión humana H5** [N], texto literal (punto 2 de «Por tanto», historial l. 12150):
+
+  > «Registrar la decisión β y la interpretación de alcance exactamente en los términos de…» → sí satisface el nombramiento expreso respecto de β y de la interpretación de alcance.
+
+- **Función del punto** (confirmación de la persona usuaria, 2026-09-29): es una determinación
+  sobre el acto de registro de β, no una ilustración de la precisión de E3. La confirmación no
+  añade contenido normativo.
+- **Alcance de este registro** (decisión humana, texto literal):
+
+  > - H5 NO resuelve qué contenido concreto fue identificado inequívocamente por H4.
+  > - H5 NO debe anticipar P3′.
+  > - H5 NO determina el rango de X2.
+  > - H5 NO resuelve F.
+  > - H5 NO afecta a otros candidatos ni a la extensión total del segmento.
+
+- **Objeto registrado:** solo el nombramiento expreso de β como objeto (criterio 1). La
+  mención de «la interpretación de alcance» en el mismo punto no se registra aquí como
+  determinación; su registro sigue siendo el de la aplicación de A3 (§7), sin cambios.
+- **No incluye** la «Precisión de E3» de H5: E3 conserva su redacción registrada (§7).
+- **Procedencia:** H5, auditoría de ND-H5 y confirmación humana de la función del punto 2.
+
+### Determinación casuística P3′ sobre el acto de registro de β
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Decisión humana P3′** [N], texto literal:
+
+  > «El acto de registro de β
+  > ("Autorizo registrar la decisión β y la interpretación de alcance exactamente en los términos del Decision Brief que acabas de presentar",
+  > historial l. 10660) no identificaba inequívocamente como contenido de "la decisión β" el
+  > texto del Decision Brief de registro de β (historial l. 10656) que comienza con
+  > "Estructura:" y termina con "solo si |A| ≥ 2, T-c → e* ∈ A.". Esta determinación deja
+  > constancia de lo que ese acto identificaba en su momento, se limita a ese texto y a ese
+  > acto, y no establece ningún criterio general.»
+
+- **Texto al que se refiere:** el acto de registro de β y el Decision Brief de registro de β,
+  que constan en la conversación (historial l. 10660 y l. 10656); el Decision Brief no está
+  transcrito en el repositorio.
+- **Procedencia:** auditorías de P3′ y decisión humana.
+
+### Determinación Q1-B sobre la condición de E3 en el acto de registro de β
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Identificación:**
+  - el acto: el acto de registro de β citado en P1′ (historial l. 10660);
+  - la decisión: «la decisión β»;
+  - T (decisión humana, texto literal):
+
+    > «En esta determinación, T designa el texto del Decision Brief de registro de β
+    > (historial l. 10656) que comienza con "Estructura:" y termina con "solo si |A| ≥ 2,
+    > T-c → e* ∈ A."»
+
+- **Estado previo:** Q1 había quedado III / indeterminada por el corpus; Q1-A y Q1-B fueron
+  auditadas como compatibles con las normas cerradas.
+- **Decisión humana Q1-B** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada del corpus:
+
+  > «En el acto de registro de β, respecto de "la decisión β" y de T, Q1-B: T, tomado por sí
+  > mismo, no está entre los contenidos a los que se refiere "ese contenido" en la condición
+  > de E3.»
+
+- **Motivación de la decisión** (decisión humana, texto literal; no es una norma general ni
+  modifica E3):
+
+  > «Para este acto de registro de β y respecto de T, se adopta la determinación de que T,
+  > tomado por sí mismo, no ocupa el lugar de «ese contenido» en la condición de E3.»
+  >
+  > «Esta determinación no modifica ni interpreta con alcance general la condición de E3.»
+
+- **Límites** (decisión humana, texto literal):
+
+  > La decisión Q1-B:
+  > - descarta únicamente la vía directa en la que T, tomado por sí mismo, sea «ese
+  >   contenido» de E3;
+  > - no resuelve Q2;
+  > - no determina si existe transferencia desde algún texto más amplio M hacia T;
+  > - no resuelve H-a(i);
+  > - no resuelve H-b;
+  > - no modifica P3′ ni ninguna otra determinación cerrada;
+  > - no establece una regla general sobre el alcance de E3 fuera de este caso;
+  > - no modifica ni interpreta con alcance general la condición de E3.
+
+- **Procedencia:** auditorías de Q1 (formulación, resolución sustantiva, consecuencias de III
+  y compatibilidad) y decisión humana.
+
+### Determinación Q2-A sobre la condición de E3 en el acto de registro de β
+- **Fecha:** 2026-09-29 (fecha documentada).
+- **Identificación:** el acto, la decisión y T son los identificados en la determinación
+  Q1-B.
+- **Estado previo:** Q2 había quedado III / indeterminada por el corpus; Q2-A y Q2-B fueron
+  auditadas como compatibles con las determinaciones cerradas.
+- **Decisión humana Q2-A** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada del corpus:
+
+  > «En el acto de registro de β, respecto de "la decisión β" y de T, Q2-A: existe al menos
+  > un texto M del Decision Brief de registro de β (historial l. 10656) que contiene T y es
+  > más amplio que T, tal que, si el propio acto identificara inequívocamente M como objeto
+  > de la decisión/adopción "la decisión β" que se registra, la condición de E3 se tendría
+  > por cumplida respecto de T sin que T hubiera sido identificado por sí mismo.»
+
+- **Límites** (decisión humana, texto literal):
+
+  > «La determinación se limita a ese acto, a "la decisión β", a T y a los textos del mismo
+  > Decision Brief que contienen T. No establece ninguna regla general sobre la aplicación
+  > de E3 ni sobre la relación entre un texto y sus partes. No precisa ni modifica E3, ni
+  > establece qué exige o permite E3 en otros casos. No afirma ni niega que ese acto
+  > identificara inequívocamente T ni ningún texto M. No determina qué texto M concreto
+  > cumple esa función. No modifica Q1-B. No establece qué significa "objeto" en E3 ni
+  > ninguna relación entre identificar un texto como objeto e identificarlo como contenido
+  > de "la decisión β". No resuelve si ese acto identificaba T como contenido u objeto de
+  > "la interpretación de alcance". No resuelve la posición de T dentro del tramo al que se
+  > refiere N*. No convierte en regla general ninguna aplicación [E] ni analogía anterior.
+  > Lo que se siga de su combinación con otras determinaciones registradas no forma parte
+  > de ella. No determina el rango de T.»
+
+- **Procedencia:** auditorías de Q2 (formulación, resolución sustantiva, presentación de la
+  decisión y ajuste de límites) y decisión humana.
+
 ---
 
 ## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto), alcance de F2 respecto de una φ enumerativa y lugar de la declaración de T-c
@@ -1083,6 +1202,10 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | Criterio 2 · determinación casuística C sobre el elemento «Estructura:» del Decision Brief de β | Conversación (auditoría de consecuencias de A y B1 y auditoría casuística de «Estructura:»; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; si es aplicación o norma nueva sigue ND |
 | Criterio 2 · determinación casuística N\* sobre el tramo del Decision Brief de β | Conversación (auditorías de N\*: partes del tramo, forma, contenido, propuesta y texto corregido; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio |
 | Criterio 2 · determinación casuística P1′ sobre la correspondencia del nombre «la decisión β» | Conversación (auditoría de P1′ y revisión previa de su formulación; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el acto de registro de β y el Decision Brief a los que se refiere constan en la conversación; el Decision Brief no está transcrito en el repositorio |
+| Criterio 1 · nombramiento expreso de β por el acto de registro (H5) | Conversación (H5, l. 12150; auditoría de ND-H5; confirmación humana de la función del punto 2) | `DECISION_LOG.md` §7 | **Parcial** — el acto de registro de β y H5 constan en la conversación; se registra solo el nivel del objeto |
+| Determinación casuística P3′ sobre el acto de registro de β | Conversación (auditorías de P3′; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el acto de registro de β y el Decision Brief a los que se refiere constan en la conversación; el Decision Brief no está transcrito en el repositorio |
+| Determinación Q1-B sobre la condición de E3 en el acto de registro de β | Conversación (auditorías de Q1; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; Q1-B tiene rango [N], no [D] |
+| Determinación Q2-A sobre la condición de E3 en el acto de registro de β | Conversación (auditorías de Q2; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito íntegramente en el repositorio; Q2-A tiene rango [N], no [D] |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
