@@ -898,6 +898,59 @@ estado CLOSED.
 - **Procedencia:** auditorías de las consecuencias de Q-fin-2, de ND-ord-2 y de la
   formulación de su pregunta, evidencia documental del Brief y decisión humana.
 
+### Criterio 2 · Determinación casuística ND-prec sobre la precedencia entre tres textos del Decision Brief de β
+- **Fecha:** 2026-10-01 (fecha documentada).
+- **Procedimiento de decisión** (texto literal):
+
+  > «¿Se adopta como determinación humana [N] el texto de ND-prec, con sus límites Lprec?
+  > Adoptar: ND-prec se registra con Lprec.
+  > No adoptar: no se registra ninguna determinación y ND-prec sigue abierta. No adoptar no
+  > afirma que alguna de las tres relaciones se cumpla o no se cumpla.»
+
+- **Decisión humana ND-prec** [N], texto literal. Es una determinación humana, no una
+  conclusión [D] derivada de ND-ord, de ND-ord-2 ni de ninguna otra decisión:
+
+  > «Se adopta ND-prec como determinación humana [N], con el texto de la determinación y los límites Lprec auditados.»
+
+- **Determinación adoptada** (texto literal):
+
+  > «En el Decision Brief de registro de β (historial l. 10656), a efectos del criterio 2 y
+  > respecto del segmento al que alcanza el nombre "la decisión β" según P1′, en el orden en
+  > que el texto remitido presenta sus textos: el elemento que comienza con "Esta decisión
+  > NO debe interpretarse" y termina con "dentro de A" precede al texto que comienza con
+  > "[N], interpretación. Condicional" y termina con "no adopta T-c [D]"; el texto que
+  > comienza con "[N], interpretación. Condicional" y termina con "no adopta T-c [D]"
+  > precede al texto que comienza con "Interpretación del alcance de cuatro hechos" y
+  > termina con "se adopta con ella"; y el elemento que comienza con "Esta decisión NO debe
+  > interpretarse" y termina con "dentro de A" precede al texto que comienza con
+  > "Interpretación del alcance de cuatro hechos" y termina con "se adopta con ella".»
+
+- **Límites (Lprec)** (decisión humana, texto literal):
+
+  > «La determinación solo decide esas tres relaciones de precedencia entre esos tres
+  > textos. No limita el orden a esos textos ni excluye que otros textos o signos aparezcan
+  > antes, entre o después de ellos. Cada una de las tres relaciones se decide directamente
+  > y ninguna se deduce de las otras; la determinación no establece que la relación de
+  > precedencia sea transitiva respecto de ningún otro texto, ni que tenga ninguna otra
+  > propiedad. No determina si ese orden es el mismo al que se refieren ND-ord o ND-ord-2,
+  > ni si los órdenes a los que se refieren ND-ord y ND-ord-2 son el mismo, ni reinterpreta
+  > ni amplía ninguna de esas decisiones. No determina si algún texto o signo aparece entre
+  > esos textos ni identifica ninguno. No establece ninguna regla general sobre la lectura
+  > de tablas o documentos, ni el orden de ningún otro texto o paso. No determina la
+  > relación entre ese orden y el orden del texto dentro de una celda. No clasifica ninguno
+  > de esos textos ni ningún otro como rótulo o no rótulo, ni determina su nivel. No
+  > determina el final del segmento ni si el segmento comprende alguno de esos textos. No
+  > determina qué segmento alcanza el nombre "la interpretación de alcance" ni resuelve
+  > H-b. No se basa en el contenido de "la decisión β" ni en lo que deba comprender el
+  > segmento. No reabre Q-fin-1, ND-ord, Q-fin-2 ni ND-ord-2. No resuelve ND-parse, D2,
+  > ND-sup, C-β, L-β, F, M-1, M-2, O-M-x, O-M-y ni ND-1.»
+
+- **Texto al que se refiere:** el Decision Brief de registro de β, que consta en la
+  conversación (historial l. 10656) y no está transcrito en el repositorio.
+- **Procedencia:** auditorías de las consecuencias de ND-ord-2, de las dependencias entre
+  las cuestiones abiertas, del objeto, la estructura, la suficiencia y la formulación de
+  ND-prec, de su procedimiento de decisión y de su identificación, y decisión humana.
+
 ---
 
 ## 8. H3-C-3 · Objeto (O), universo (U), arquitectura (T-0), neutralidad (N-H3), evidencia de R (R-EV), arquitectura de R_regla (G-1), G-2 (sin objeto), alcance de F2 respecto de una φ enumerativa y lugar de la declaración de T-c
@@ -1423,6 +1476,7 @@ Ver `docs/protocol/NORMATIVE_SPEC.md` §G.
 | Criterio 2 · determinación casuística ND-ord sobre el orden de dos textos del Decision Brief de β posteriores al elemento de Q-fin-1 | Conversación (auditorías de las consecuencias de Q-fin-1, de ND-ord y de la redacción de su pregunta; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; ND-ord tiene rango [N], no [D] |
 | Criterio 2 · determinación casuística Q-fin-2 sobre las partes del texto «[N], interpretación. Condicional … no adopta T-c [D]» del Decision Brief de β | Conversación (auditorías de la delimitación del objeto en la celda «Tipo», de la formulación y de la compatibilidad de Q-fin-2; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; Q-fin-2 tiene rango [N], no [D] |
 | Criterio 2 · determinación casuística ND-ord-2 sobre el orden de dos textos del Decision Brief de β posteriores al texto de Q-fin-2 | Conversación (auditorías de las consecuencias de Q-fin-2, de ND-ord-2 y de la formulación de su pregunta; evidencia documental del Brief; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; ND-ord-2 tiene rango [N], no [D] |
+| Criterio 2 · determinación casuística ND-prec sobre la precedencia entre tres textos del Decision Brief de β | Conversación (auditorías de las consecuencias de ND-ord-2, de las dependencias, del objeto, la estructura, la suficiencia, la formulación, el procedimiento y la identificación de ND-prec; decisión humana) | `DECISION_LOG.md` §7 | **Parcial** — el Decision Brief al que se refiere no está transcrito en el repositorio; ND-prec tiene rango [N], no [D] |
 | Hechos [D] / [D+] | Conversación (auditorías de cada DM) | `NORMATIVE_SPEC.md` §E | **Parcial** — se registran los enunciados y su alcance; **las demostraciones completas y los cálculos de los testigos no se han transcrito** |
 | Relaciones ND | Conversación (auditorías) | `NORMATIVE_SPEC.md` §F | Sí, con su alcance por clase |
 | Colisiones de nombres | Auditoría del repositorio (2026-09-21) | `NORMATIVE_SPEC.md` §B | Sí, verificada contra el repositorio |
