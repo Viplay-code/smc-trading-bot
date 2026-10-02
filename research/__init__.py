@@ -30,6 +30,7 @@ from .simulate import simulate_v3, EXIT_CONFIGS
 from .simulate_donchian import simulate_donchian_exit, run_config_donchian
 from .entries import find_entries, ENTRY_META_REQUIREMENTS
 from .expand import expand_universe, MAX_UNIVERSE_CELLS
+from .experiment import ExperimentSpec, ExperimentSpecError, expand_experiment_spec
 from .decision import summarize_decision, CandidateDecision
 from .persistence import (
     EXPERIMENT_RESULT_COLUMNS,
@@ -74,6 +75,9 @@ __all__ = [
     "ENTRY_META_REQUIREMENTS",
     "expand_universe",
     "MAX_UNIVERSE_CELLS",
+    "ExperimentSpec",
+    "ExperimentSpecError",
+    "expand_experiment_spec",
     "summarize_decision",
     "CandidateDecision",
     "EXPERIMENT_RESULT_COLUMNS",

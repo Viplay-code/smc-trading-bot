@@ -116,26 +116,37 @@ def test_identidad_cadena_completa():
               "scripts.bias_campaign.gate_check — un único objeto, sin copias", ok)
 
 
-def test_campanas_legacy_representativas_mantienen_identidad():
-    """Muestra representativa (no las ~25, pero cubre las 3 familias de
-    import: directo bias_camp.gate_check, y las 2 que además re-exportan
-    FREQ_MIN_PER_MONTH/FREQ_MAX_PER_MONTH) — todas deben seguir apuntando
-    al mismo objeto tras la consolidación."""
+def test_campanas_representativas_respetan_el_contrato_actual():
+    """Las campañas legacy que todavía evalúan gates conservan el re-export.
+
+    `trigger_campaign` y `gestion_campaign_session` ya fueron migradas: su
+    contrato actual es construir contratos válidos y delegar ejecución/gates
+    en `research.runner`, por lo que no deben reconstruir un símbolo local
+    `gate_check` solo para satisfacer esta prueba.
+    """
     import scripts.entry_campaign_t1 as m1
     import scripts.trigger_campaign as m2
     import scripts.gestion_campaign_session as m3
     import scripts.gestion_espacio6_raw_campaign as m4
-    ok = (
+    legacy_ok = (
         m1.gate_check is research.gate_check
-        and m2.gate_check is research.gate_check
-        and m3.gate_check is research.gate_check
         and m4.gate_check is research.gate_check
         and m1.FREQ_MIN_PER_MONTH == 6
-        and m2.FREQ_MIN_PER_MONTH == 6
     )
-    return _p("4 campañas legacy representativas (entry_campaign_t1, trigger_campaign, "
-              "gestion_campaign_session, gestion_espacio6_raw_campaign) mantienen "
-              "gate_check idéntico al consolidado", ok)
+    migrated_ok = True
+    for campaign in (m2, m3):
+        try:
+            contracts = campaign.build_universe(("BTCUSDT",), {"train": 2022})
+            migrated_ok = migrated_ok and callable(campaign.runner.run_many)
+            for contract in contracts:
+                campaign.runner.validate_contract(contract)
+        except Exception as exc:
+            print(f"    {campaign.__name__}: {type(exc).__name__}: {exc}")
+            migrated_ok = False
+
+    ok = legacy_ok and migrated_ok
+    return _p("Campañas legacy conservan gate_check consolidado y campañas migradas "
+              "(trigger/session) construyen contratos válidos para research.runner", ok)
 
 
 # --------------------------------------------------------------------------- #
@@ -237,11 +248,18 @@ def test_muestra_amplia_de_campanas_legacy_importan_sin_excepcion():
         "scripts.trigger_campaign", "scripts.trigger_campaign_sweep_bos_session",
         "scripts.trigger_entry_campaign_rama_b",
     ]
+    migradas = {"scripts.gestion_campaign_session", "scripts.trigger_campaign"}
     fallos = []
     for name in modulos:
         try:
             mod = importlib.import_module(name)
-            if not callable(getattr(mod, "gate_check", None)):
+            if name in migradas:
+                contracts = mod.build_universe(("BTCUSDT",), {"train": 2022})
+                if not contracts:
+                    fallos.append(f"{name}: build_universe no produjo contratos")
+                for contract in contracts:
+                    mod.runner.validate_contract(contract)
+            elif not callable(getattr(mod, "gate_check", None)):
                 fallos.append(f"{name}: gate_check no es callable")
             elif mod.gate_check is not research.gate_check:
                 fallos.append(f"{name}: gate_check NO es el objeto consolidado")
@@ -251,8 +269,9 @@ def test_muestra_amplia_de_campanas_legacy_importan_sin_excepcion():
     if fallos:
         for f in fallos:
             print(f"    ! {f}")
-    return _p(f"Las {len(modulos)} campañas legacy (todas las que usan gate_check) importan "
-              f"sin excepción y quedan con gate_check == research.gate_check", ok)
+    return _p(f"Las {len(modulos) - len(migradas)} campañas que aplican gates localmente "
+              f"mantienen research.gate_check; las {len(migradas)} migradas producen contratos "
+              f"válidos para research.runner", ok)
 
 
 ALL_TESTS = [
@@ -260,7 +279,7 @@ ALL_TESTS = [
     test_gate_check_none_devuelve_false,
     test_gate_check_equivalencia_exacta_casos_limite,
     test_identidad_cadena_completa,
-    test_campanas_legacy_representativas_mantienen_identidad,
+    test_campanas_representativas_respetan_el_contrato_actual,
     test_experiment_result_determinista,
     test_experiment_result_sin_metrics_no_fabrica_valores,
     test_trade_record_determinista,
